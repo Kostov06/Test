@@ -1,0 +1,3540 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!-- Automatisch erzeugt mit: node build/build-single-file.js – bitte nicht von Hand bearbeiten. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schichtplaner – Faire Schichtpläne für Veranstaltungen</title>
+<meta name="description" content="Wizard zum Erstellen fairer Schichtpläne für Veranstaltungen inkl. Excel-Export.">
+<style>
+/* ============================================================
+   Schichtplaner – Stylesheet
+   Reines CSS, keine Frameworks.
+
+   Farben liegen ausschließlich als Custom Properties vor. Das helle
+   Set steht auf :root, das dunkle wird an drei Stellen gesetzt:
+     1. @media (prefers-color-scheme: dark) – Systemeinstellung
+     2. :root[data-theme="dark"]            – ausdrücklicher Umschalter
+     3. :root[data-theme="light"]           – zurück auf hell, auch wenn
+                                              das System dunkel meldet
+   Die Attributselektoren sind spezifischer als :root und gewinnen
+   deshalb in beide Richtungen gegen die Systemeinstellung.
+   ============================================================ */
+
+:root {
+  --bg:            #f4f6fb;
+  --bg-elev:       #ffffff;
+  --bg-sunken:     #eef1f8;
+  --border:        #dbe0ec;
+  --border-strong: #c2cadb;
+  --text:          #1b2233;
+  --text-muted:    #626c85;
+  --text-faint:    #8b94a8;
+  --accent:        #3457d5;
+  --accent-hover:  #2b47b4;
+  --accent-soft:   #e8edfd;
+  --ok:            #1c8a53;
+  --ok-soft:       #e3f6ec;
+  --warn:          #a56100;
+  --warn-soft:     #fdf0dc;
+  --danger:        #c0362c;
+  --danger-soft:   #fdeae8;
+  --radius:        12px;
+  --radius-sm:     8px;
+  --shadow:        0 1px 2px rgba(20, 30, 60, .06), 0 8px 24px rgba(20, 30, 60, .07);
+  --shadow-sm:     0 1px 2px rgba(20, 30, 60, .08);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:            #12151c;
+    --bg-elev:       #1a1e27;
+    --bg-sunken:     #15181f;
+    --border:        #2b313e;
+    --border-strong: #3b4353;
+    --text:          #e8ebf2;
+    --text-muted:    #9aa4b8;
+    --text-faint:    #77819a;
+    --accent:        #6b8bff;
+    --accent-hover:  #85a0ff;
+    --accent-soft:   #1e2740;
+    --ok:            #4ec98a;
+    --ok-soft:       #16301f;
+    --warn:          #e0a458;
+    --warn-soft:     #33260f;
+    --danger:        #ff8478;
+    --danger-soft:   #341a19;
+    --shadow:        0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --shadow-sm:     0 1px 2px rgba(0,0,0,.4);
+  }
+}
+
+/* Ausdrücklich gewähltes dunkles Erscheinungsbild */
+:root[data-theme="dark"] {
+  --bg:            #12151c;
+  --bg-elev:       #1a1e27;
+  --bg-sunken:     #15181f;
+  --border:        #2b313e;
+  --border-strong: #3b4353;
+  --text:          #e8ebf2;
+  --text-muted:    #9aa4b8;
+  --text-faint:    #77819a;
+  --accent:        #6b8bff;
+  --accent-hover:  #85a0ff;
+  --accent-soft:   #1e2740;
+  --ok:            #4ec98a;
+  --ok-soft:       #16301f;
+  --warn:          #e0a458;
+  --warn-soft:     #33260f;
+  --danger:        #ff8478;
+  --danger-soft:   #341a19;
+  --shadow:        0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --shadow-sm:     0 1px 2px rgba(0,0,0,.4);
+}
+
+/* Ausdrücklich gewähltes helles Erscheinungsbild */
+:root[data-theme="light"] {
+  --bg:            #f4f6fb;
+  --bg-elev:       #ffffff;
+  --bg-sunken:     #eef1f8;
+  --border:        #dbe0ec;
+  --border-strong: #c2cadb;
+  --text:          #1b2233;
+  --text-muted:    #626c85;
+  --text-faint:    #8b94a8;
+  --accent:        #3457d5;
+  --accent-hover:  #2b47b4;
+  --accent-soft:   #e8edfd;
+  --ok:            #1c8a53;
+  --ok-soft:       #e3f6ec;
+  --warn:          #a56100;
+  --warn-soft:     #fdf0dc;
+  --danger:        #c0362c;
+  --danger-soft:   #fdeae8;
+  --shadow:        0 1px 2px rgba(20, 30, 60, .06), 0 8px 24px rgba(20, 30, 60, .07);
+  --shadow-sm:     0 1px 2px rgba(20, 30, 60, .08);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3, h4 { margin: 0; line-height: 1.25; font-weight: 650; }
+p { margin: 0; }
+
+/* ---------- Header ---------- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { font-size: 26px; line-height: 1; }
+.brand h1 { font-size: 18px; letter-spacing: -.01em; }
+.brand-sub { font-size: 12.5px; color: var(--text-muted); }
+.header-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 140px;
+}
+
+.content { min-width: 0; outline: none; }
+
+/* ---------- Schrittnavigation ---------- */
+
+.stepnav { position: sticky; top: 82px; align-self: start; display: flex; flex-direction: column; gap: 4px; }
+
+.stepnav-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stepnav-item:hover { background: var(--bg-elev); color: var(--text); }
+.stepnav-item[aria-current="step"] {
+  background: var(--bg-elev);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.stepnav-num {
+  flex: none;
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  font-size: 12px; font-weight: 650;
+}
+.stepnav-item[aria-current="step"] .stepnav-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+.stepnav-item.done .stepnav-num { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.stepnav-label { font-size: 14px; font-weight: 550; }
+.stepnav-desc { font-size: 12px; color: var(--text-faint); }
+
+/* ---------- Karten & Panels ---------- */
+
+.panel {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.step-head { margin-bottom: 18px; }
+.step-kicker { font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.step-head h2 { font-size: 22px; margin-top: 4px; }
+.step-head p { color: var(--text-muted); margin-top: 6px; max-width: 68ch; }
+
+.section-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 12px;
+}
+.section-title h3 { font-size: 15px; }
+
+/* ---------- Formulare ---------- */
+
+.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field.span-2 { grid-column: span 2; }
+.field label { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+.field .hint { font-size: 12px; color: var(--text-faint); }
+
+input[type="text"], input[type="date"], input[type="time"], input[type="number"],
+textarea, select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+textarea { resize: vertical; min-height: 68px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+input[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
+
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit; font-size: 14px; font-weight: 550;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { filter: brightness(.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-elev); border-color: var(--border-strong); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--text-muted); font-size: 13px; padding: 7px 11px; }
+.btn-ghost:hover { color: var(--text); background: var(--bg-sunken); }
+.btn-danger { color: var(--danger); }
+.btn-icon {
+  padding: 6px 9px; background: transparent; border-color: transparent;
+  color: var(--text-faint); font-size: 15px; line-height: 1;
+}
+.btn-icon:hover { background: var(--danger-soft); color: var(--danger); }
+.btn-sm { padding: 6px 11px; font-size: 13px; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ---------- Listen (Personen, Aufgaben, Abwesenheiten) ---------- */
+
+.row-list { display: flex; flex-direction: column; gap: 8px; }
+
+.row-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+.row-item .idx { flex: none; width: 22px; text-align: right; color: var(--text-faint); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.row-item input[type="text"] { background: var(--bg-elev); }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.card-head h4 { font-size: 14px; }
+.card-head .card-meta { font-size: 12.5px; color: var(--text-muted); }
+
+.empty {
+  padding: 26px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+}
+
+/* ---------- Hinweise ---------- */
+
+.note { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13.5px; border: 1px solid; margin-bottom: 14px; }
+.note-info   { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.note-warn   { background: var(--warn-soft);   border-color: var(--warn);   color: var(--text); }
+.note-error  { background: var(--danger-soft); border-color: var(--danger); color: var(--text); }
+.note-ok     { background: var(--ok-soft);     border-color: var(--ok);     color: var(--text); }
+.note ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* ---------- Statistik-Kacheln ---------- */
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.stat .k { font-size: 12px; color: var(--text-muted); }
+.stat .v { font-size: 19px; font-weight: 660; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.stat.is-warn .v { color: var(--warn); }
+.stat.is-danger .v { color: var(--danger); }
+.stat.is-ok .v { color: var(--ok); }
+
+/* ---------- Tabs ---------- */
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; }
+.tab {
+  padding: 9px 14px; border: none; background: none; cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 550; color: var(--text-muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ---------- Tabellen ---------- */
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.data th, table.data td { padding: 8px 11px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.data thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--bg-sunken);
+  font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted);
+  white-space: nowrap;
+}
+table.data tbody tr:last-child td { border-bottom: none; }
+table.data tbody tr:hover { background: var(--bg-sunken); }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data td.time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.row-gap td { border-top: 2px solid var(--border-strong); }
+tr.is-open td { background: var(--danger-soft); }
+tr.is-partial td { background: var(--warn-soft); }
+
+td.seat select { padding: 5px 8px; font-size: 13px; min-width: 130px; }
+td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
+
+/* ---------- Badges & Balken ---------- */
+
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; border: 1px solid;
+}
+.badge-ok     { background: var(--ok-soft);     border-color: var(--ok);     color: var(--ok); }
+.badge-warn   { background: var(--warn-soft);   border-color: var(--warn);   color: var(--warn); }
+.badge-danger { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.badge-muted  { background: var(--bg-sunken);   border-color: var(--border); color: var(--text-muted); }
+
+.bar { height: 8px; border-radius: 999px; background: var(--bg-sunken); border: 1px solid var(--border); overflow: hidden; min-width: 90px; }
+.bar > span { display: block; height: 100%; background: var(--accent); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-size: 11.5px; padding: 2px 8px; border-radius: 999px;
+  background: var(--accent-soft); border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ---------- Personenansicht ---------- */
+
+.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.person-card { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); padding: 14px; }
+.person-card h4 { font-size: 14px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.person-card ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.person-card li { font-size: 13px; display: flex; gap: 8px; }
+.person-card li .t { font-variant-numeric: tabular-nums; color: var(--text-muted); white-space: nowrap; }
+
+/* ---------- Footer ---------- */
+
+.wizard-footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+}
+.wizard-footer-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px;
+}
+.footer-hint { flex: 1; font-size: 13px; color: var(--text-muted); min-width: 0; }
+.footer-hint.is-error { color: var(--danger); }
+
+/* ---------- Toasts ---------- */
+
+.toast-host { position: fixed; bottom: 78px; right: 20px; z-index: 60; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 10px 15px; border-radius: var(--radius-sm);
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow); font-size: 13.5px; max-width: 340px;
+}
+.toast.ok    { border-color: var(--ok);     background: var(--ok-soft); }
+.toast.error { border-color: var(--danger); background: var(--danger-soft); }
+
+/* ---------- Sonstiges ---------- */
+
+.muted { color: var(--text-muted); }
+.small { font-size: 12.5px; }
+.mt-16 { margin-top: 16px; }
+.actions-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding-bottom: 150px; }
+  .stepnav {
+    position: static;
+    flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px;
+  }
+  .stepnav-item { flex: none; width: auto; }
+  .stepnav-desc { display: none; }
+  .field.span-2 { grid-column: auto; }
+}
+
+/* ---------- Handy ---------- */
+
+@media (max-width: 640px) {
+  .app-header { padding: 10px 14px; gap: 8px; }
+  .brand h1 { font-size: 16px; }
+  .brand-sub { display: none; }
+  .header-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .header-actions .btn { flex: none; }
+
+  .layout { padding: 16px 14px 108px; gap: 16px; }
+  .panel { padding: 16px; }
+  .step-head h2 { font-size: 19px; }
+
+  /* Fußzeile: Buttons nebeneinander in voller Breite, Hinweis nur im Fehlerfall */
+  .wizard-footer-inner { flex-wrap: wrap; padding: 10px 14px; gap: 8px; }
+  .wizard-footer-inner .btn { flex: 1 1 0; justify-content: center; }
+  .footer-hint { display: none; order: -1; width: 100%; flex-basis: 100%; font-size: 12.5px; }
+  .footer-hint.is-error { display: block; }
+
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat { padding: 10px 12px; }
+  .stat .v { font-size: 17px; }
+
+  .toast-host { right: 12px; left: 12px; bottom: 84px; }
+  .toast { max-width: none; }
+
+  /* Eingabezeilen umbrechen lassen, statt sie zu quetschen */
+  .row-item { flex-wrap: wrap; }
+  .row-item input[type="text"] { min-width: 60%; max-width: none !important; }
+  .row-item input[type="time"] { max-width: 46% !important; }
+
+  table.data th, table.data td { padding: 7px 9px; }
+}
+
+@media print {
+  .app-header, .stepnav, .wizard-footer, .toast-host, .tabs, .btn { display: none !important; }
+  .layout { display: block; padding: 0; }
+  .panel { box-shadow: none; border: none; padding: 0; }
+  table.data { font-size: 11px; }
+}
+
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🗓️</span>
+    <div>
+      <h1>Schichtplaner</h1>
+      <p class="brand-sub">Faire Schichtpläne für Veranstaltungen</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-ghost" data-action="load-demo">Beispiel laden</button>
+    <button type="button" class="btn btn-ghost" data-action="export-json">Speichern (JSON)</button>
+    <button type="button" class="btn btn-ghost" data-action="import-json">Laden (JSON)</button>
+    <button type="button" class="btn btn-ghost btn-danger" data-action="reset-all">Zurücksetzen</button>
+    <input type="file" id="jsonFileInput" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="stepnav" id="stepNav" aria-label="Schritte"></nav>
+  <main class="content" id="stepContent" tabindex="-1"></main>
+</div>
+
+<footer class="wizard-footer">
+  <div class="wizard-footer-inner">
+    <button type="button" class="btn btn-secondary" data-action="prev">‹ Zurück</button>
+    <div class="footer-hint" id="footerHint"></div>
+    <button type="button" class="btn btn-primary" data-action="next">Weiter ›</button>
+  </div>
+</footer>
+
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+<script>
+/* ---- src/util.js ---- */
+/* ============================================================
+   util.js – Hilfsfunktionen (Zeit, IDs, DOM, Zufall)
+   Klassisches Script, damit die App auch per Doppelklick
+   (file://) ohne Server läuft. Alles hängt an window.Util.
+   ============================================================ */
+
+window.Util = (function () {
+  'use strict';
+
+  var MIN_PER_DAY = 1440;
+
+  /* ---------- Zeit ---------- */
+
+  /** "HH:MM" -> Minuten seit Mitternacht; ungültig -> null */
+  function parseTime(value) {
+    if (typeof value !== 'string') return null;
+    var m = value.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    var h = parseInt(m[1], 10), min = parseInt(m[2], 10);
+    if (h > 23 || min > 59) return null;
+    return h * 60 + min;
+  }
+
+  /** Minuten -> "HH:MM" (Tagesüberlauf wird abgeschnitten) */
+  function formatTime(minutes) {
+    var m = ((Math.round(minutes) % MIN_PER_DAY) + MIN_PER_DAY) % MIN_PER_DAY;
+    return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+  }
+
+  /** Minuten -> "HH:MM" bzw. "HH:MM (+1)" bei Folgetag */
+  function formatTimeDay(minutes) {
+    var day = Math.floor(minutes / MIN_PER_DAY);
+    return formatTime(minutes) + (day > 0 ? ' (+' + day + ')' : '');
+  }
+
+  /**
+   * Normalisiert ein Zeitfenster: Endet es rechnerisch vor dem Start,
+   * liegt das Ende am Folgetag (z. B. 20:00 – 02:00).
+   */
+  function normalizeWindow(startMin, endMin) {
+    var e = endMin;
+    while (e <= startMin) e += MIN_PER_DAY;
+    return { start: startMin, end: e };
+  }
+
+  /**
+   * Richtet eine Uhrzeit am Bezugsfenster aus: liegt sie vor dem
+   * Fensterstart, wird sie auf den Folgetag geschoben.
+   */
+  function alignToWindow(minutes, windowStart) {
+    var v = minutes;
+    while (v < windowStart) v += MIN_PER_DAY;
+    return v;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  /** Zwei halboffene Intervalle [a1,a2) und [b1,b2) überschneiden sich? */
+  function overlaps(a1, a2, b1, b2) { return a1 < b2 && b1 < a2; }
+
+  /** Minuten -> "2 h 30 min" */
+  function formatDuration(minutes) {
+    var m = Math.round(minutes);
+    var h = Math.floor(m / 60), r = m % 60;
+    if (h && r) return h + ' h ' + r + ' min';
+    if (h) return h + ' h';
+    return r + ' min';
+  }
+
+  /** Minuten -> "2,5" (Stunden mit Komma, deutsche Schreibweise) */
+  function hoursText(minutes) {
+    return (minutes / 60).toFixed(2).replace('.', ',');
+  }
+
+  /* ---------- Datum ---------- */
+
+  /** "YYYY-MM-DD" -> "DD.MM.YYYY" */
+  function formatDate(iso) {
+    if (!iso) return '';
+    var p = String(iso).split('-');
+    if (p.length !== 3) return String(iso);
+    return p[2] + '.' + p[1] + '.' + p[0];
+  }
+
+  /** "YYYY-MM-DD" + n Tage -> "YYYY-MM-DD" */
+  function addDays(iso, days) {
+    if (!iso) return '';
+    var p = String(iso).split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    d.setUTCDate(d.getUTCDate() + (days || 0));
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+
+  /** Kalenderdatum für einen Minutenwert relativ zum Veranstaltungsstart */
+  function dateForMinutes(isoDate, minutes) {
+    return addDays(isoDate, Math.floor(minutes / MIN_PER_DAY));
+  }
+
+  var WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  function weekdayName(iso) {
+    if (!iso) return '';
+    var p = String(iso).split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    return WEEKDAYS[d.getUTCDay()] || '';
+  }
+
+  function todayIso() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  /* ---------- IDs & Zufall ---------- */
+
+  var idCounter = 0;
+  function uid(prefix) {
+    idCounter += 1;
+    return (prefix || 'id') + '_' + Date.now().toString(36) + '_' + idCounter.toString(36);
+  }
+
+  /** Deterministischer PRNG (mulberry32) – gleicher Seed, gleicher Plan */
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function hashString(str) {
+    var h = 2166136261;
+    for (var i = 0; i < String(str).length; i++) {
+      h ^= String(str).charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  /* ---------- Statistik ---------- */
+
+  function sum(arr) { var s = 0; for (var i = 0; i < arr.length; i++) s += arr[i]; return s; }
+  function mean(arr) { return arr.length ? sum(arr) / arr.length : 0; }
+  function variance(arr) {
+    if (!arr.length) return 0;
+    var m = mean(arr), s = 0;
+    for (var i = 0; i < arr.length; i++) s += (arr[i] - m) * (arr[i] - m);
+    return s / arr.length;
+  }
+  function stdev(arr) { return Math.sqrt(variance(arr)); }
+
+  /* ---------- DOM ---------- */
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function $(selector, root) { return (root || document).querySelector(selector); }
+  function $$(selector, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(selector));
+  }
+
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /** Dateinamen-tauglicher Text */
+  function slugify(text) {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'schichtplan';
+  }
+
+  function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+
+  return {
+    MIN_PER_DAY: MIN_PER_DAY,
+    parseTime: parseTime,
+    formatTime: formatTime,
+    formatTimeDay: formatTimeDay,
+    normalizeWindow: normalizeWindow,
+    alignToWindow: alignToWindow,
+    overlaps: overlaps,
+    formatDuration: formatDuration,
+    hoursText: hoursText,
+    formatDate: formatDate,
+    addDays: addDays,
+    dateForMinutes: dateForMinutes,
+    weekdayName: weekdayName,
+    todayIso: todayIso,
+    pad2: pad2,
+    uid: uid,
+    rng: rng,
+    hashString: hashString,
+    sum: sum,
+    mean: mean,
+    variance: variance,
+    stdev: stdev,
+    escapeHtml: escapeHtml,
+    $: $,
+    $$: $$,
+    downloadBlob: downloadBlob,
+    slugify: slugify,
+    clamp: clamp
+  };
+})();
+
+</script>
+<script>
+/* ---- src/store.js ---- */
+/* ============================================================
+   store.js – Datenmodell, Persistenz, Validierung
+   ------------------------------------------------------------
+   Datenmodell (Version 1):
+
+   state = {
+     version: 1,
+     step:    Number,                       // aktueller Wizard-Schritt (1..6)
+     event:   { name, date, startTime, endTime, notes },
+     people:  [ { id, name, arrival, departure, note } ],
+     tasks:   [ { id, name, wholeEvent, startTime, endTime,
+                  slotMinutes, peoplePerSlot, note } ],
+     absences:[ { id, personId, startTime, endTime, reason } ],
+     options: { seed, minRestMinutes, preferBlocks, maxShiftsPerPerson,
+                mergeShortLastSlot, balanceTaskTypes },
+     schedule: null | Ergebnisobjekt aus scheduler.js
+   }
+
+   Uhrzeiten werden als "HH:MM" gespeichert und beim Rechnen in
+   Minuten seit Veranstaltungsbeginn umgerechnet. Endet eine Zeit
+   rechnerisch vor ihrem Start, liegt sie am Folgetag – damit sind
+   Veranstaltungen über Mitternacht abgedeckt.
+   ============================================================ */
+
+window.Store = (function () {
+  'use strict';
+
+  var U = window.Util;
+  var STORAGE_KEY = 'schichtplaner.state.v1';
+  var VERSION = 1;
+
+  function defaultState() {
+    return {
+      version: VERSION,
+      step: 1,
+      event: { name: '', date: U.todayIso(), startTime: '08:00', endTime: '22:00', notes: '' },
+      people: [],
+      tasks: [],
+      absences: [],
+      options: {
+        seed: 42,
+        minRestMinutes: 0,
+        preferBlocks: false,
+        maxShiftsPerPerson: 0,      // 0 = keine Obergrenze
+        mergeShortLastSlot: true,
+        balanceTaskTypes: true,
+        exportSheets: { people: true, availability: true, issues: true, info: true }
+      },
+      schedule: null
+    };
+  }
+
+  var state = defaultState();
+
+  /* ---------- Persistenz ---------- */
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) {
+      /* Speicher voll oder nicht verfügbar – App funktioniert trotzdem weiter. */
+    }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var parsed = JSON.parse(raw);
+      state = migrate(parsed);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /** Fehlende Felder ergänzen – hält alte gespeicherte Stände lauffähig. */
+  function migrate(raw) {
+    var base = defaultState();
+    if (!raw || typeof raw !== 'object') return base;
+    var next = {
+      version: VERSION,
+      step: U.clamp(parseInt(raw.step, 10) || 1, 1, 6),
+      event: Object.assign({}, base.event, raw.event || {}),
+      people: (raw.people || []).map(function (p) {
+        return {
+          id: p.id || U.uid('p'),
+          name: String(p.name || ''),
+          arrival: p.arrival || '',
+          departure: p.departure || '',
+          note: String(p.note || '')
+        };
+      }),
+      tasks: (raw.tasks || []).map(function (t) {
+        return {
+          id: t.id || U.uid('t'),
+          name: String(t.name || ''),
+          wholeEvent: t.wholeEvent !== false,
+          startTime: t.startTime || '',
+          endTime: t.endTime || '',
+          slotMinutes: parseInt(t.slotMinutes, 10) || 60,
+          peoplePerSlot: U.clamp(parseInt(t.peoplePerSlot, 10) || 1, 1, 10),
+          note: String(t.note || '')
+        };
+      }),
+      absences: (raw.absences || []).map(function (a) {
+        return {
+          id: a.id || U.uid('a'),
+          personId: a.personId || '',
+          startTime: a.startTime || '',
+          endTime: a.endTime || '',
+          reason: String(a.reason || '')
+        };
+      }),
+      options: Object.assign({}, base.options, raw.options || {}, {
+        exportSheets: Object.assign({}, base.options.exportSheets, (raw.options || {}).exportSheets || {})
+      }),
+      schedule: raw.schedule || null
+    };
+    // Abwesenheiten ohne existierende Person verwerfen.
+    var ids = {};
+    next.people.forEach(function (p) { ids[p.id] = true; });
+    next.absences = next.absences.filter(function (a) { return ids[a.personId]; });
+    return next;
+  }
+
+  function reset() {
+    state = defaultState();
+    save();
+  }
+
+  /* ---------- Zugriff ---------- */
+
+  function get() { return state; }
+
+  function set(patch) {
+    Object.assign(state, patch);
+    save();
+  }
+
+  function personById(id) {
+    for (var i = 0; i < state.people.length; i++) if (state.people[i].id === id) return state.people[i];
+    return null;
+  }
+
+  function personName(id) {
+    var p = personById(id);
+    return p ? (p.name || 'Ohne Namen') : '';
+  }
+
+  function taskById(id) {
+    for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === id) return state.tasks[i];
+    return null;
+  }
+
+  /* ---------- Mutationen ---------- */
+
+  function addPerson(name) {
+    var person = { id: U.uid('p'), name: name || '', arrival: '', departure: '', note: '' };
+    state.people.push(person);
+    invalidateSchedule();
+    save();
+    return person;
+  }
+
+  function removePerson(id) {
+    state.people = state.people.filter(function (p) { return p.id !== id; });
+    state.absences = state.absences.filter(function (a) { return a.personId !== id; });
+    invalidateSchedule();
+    save();
+  }
+
+  function addTask(preset) {
+    var task = Object.assign({
+      id: U.uid('t'),
+      name: '',
+      wholeEvent: true,
+      startTime: state.event.startTime,
+      endTime: state.event.endTime,
+      slotMinutes: 60,
+      peoplePerSlot: 1,
+      note: ''
+    }, preset || {});
+    task.id = U.uid('t');
+    state.tasks.push(task);
+    invalidateSchedule();
+    save();
+    return task;
+  }
+
+  function removeTask(id) {
+    state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+    invalidateSchedule();
+    save();
+  }
+
+  function addAbsence(personId) {
+    var absence = {
+      id: U.uid('a'),
+      personId: personId,
+      startTime: state.event.startTime,
+      endTime: state.event.endTime,
+      reason: ''
+    };
+    state.absences.push(absence);
+    invalidateSchedule();
+    save();
+    return absence;
+  }
+
+  function removeAbsence(id) {
+    state.absences = state.absences.filter(function (a) { return a.id !== id; });
+    invalidateSchedule();
+    save();
+  }
+
+  function absencesFor(personId) {
+    return state.absences.filter(function (a) { return a.personId === personId; });
+  }
+
+  /** Ein bereits berechneter Plan passt nach Datenänderungen nicht mehr. */
+  function invalidateSchedule() {
+    if (state.schedule) state.schedule.stale = true;
+  }
+
+  /* ---------- Validierung ---------- */
+
+  /** Prüft einen Wizard-Schritt. Rückgabe: Array von Fehlermeldungen. */
+  function validateStep(step) {
+    var errors = [];
+    var ev = state.event;
+
+    if (step === 1) {
+      if (!ev.name.trim()) errors.push('Bitte einen Namen für die Veranstaltung eingeben.');
+      if (!ev.date) errors.push('Bitte ein Datum auswählen.');
+      var s = U.parseTime(ev.startTime), e = U.parseTime(ev.endTime);
+      if (s === null) errors.push('Startzeit ist ungültig (Format HH:MM).');
+      if (e === null) errors.push('Endzeit ist ungültig (Format HH:MM).');
+      if (s !== null && e !== null && s === e) {
+        errors.push('Start- und Endzeit dürfen nicht identisch sein.');
+      }
+    }
+
+    if (step === 2) {
+      var named = state.people.filter(function (p) { return p.name.trim(); });
+      if (named.length < 1) errors.push('Bitte mindestens eine Person erfassen.');
+      var seen = {};
+      named.forEach(function (p) {
+        var key = p.name.trim().toLowerCase();
+        if (seen[key]) errors.push('Der Name „' + p.name.trim() + '“ kommt mehrfach vor.');
+        seen[key] = true;
+      });
+    }
+
+    if (step === 3) {
+      if (!state.tasks.length) errors.push('Bitte mindestens eine Aufgabe anlegen.');
+      state.tasks.forEach(function (t, i) {
+        var label = t.name.trim() || 'Aufgabe ' + (i + 1);
+        if (!t.name.trim()) errors.push('Aufgabe ' + (i + 1) + ': Bitte einen Namen eingeben.');
+        if (!(t.slotMinutes > 0)) errors.push(label + ': Schichtlänge muss größer als 0 sein.');
+        if (!(t.peoplePerSlot >= 1)) errors.push(label + ': Es wird mindestens 1 Person pro Schicht benötigt.');
+        if (!t.wholeEvent) {
+          var ts = U.parseTime(t.startTime), te = U.parseTime(t.endTime);
+          if (ts === null || te === null) {
+            errors.push(label + ': Zeitraum ist unvollständig oder ungültig.');
+          } else if (ts === te) {
+            errors.push(label + ': Start- und Endzeit dürfen nicht identisch sein.');
+          }
+        }
+      });
+    }
+
+    if (step === 4) {
+      state.absences.forEach(function (a) {
+        var name = personName(a.personId) || 'Unbekannt';
+        var as = U.parseTime(a.startTime), ae = U.parseTime(a.endTime);
+        if (as === null || ae === null) {
+          errors.push(name + ': Abwesenheit hat eine ungültige Uhrzeit.');
+        } else if (as === ae) {
+          errors.push(name + ': Abwesenheit hat identische Start- und Endzeit.');
+        }
+      });
+      state.people.forEach(function (p) {
+        if (p.arrival && U.parseTime(p.arrival) === null) {
+          errors.push((p.name || 'Person') + ': „kommt erst ab“ ist ungültig.');
+        }
+        if (p.departure && U.parseTime(p.departure) === null) {
+          errors.push((p.name || 'Person') + ': „geht früher“ ist ungültig.');
+        }
+      });
+    }
+
+    return errors;
+  }
+
+  /** Personen mit Namen – nur diese werden verplant. */
+  function activePeople() {
+    return state.people.filter(function (p) { return p.name.trim(); });
+  }
+
+  /* ---------- Import / Export ---------- */
+
+  function toJson() { return JSON.stringify(state, null, 2); }
+
+  function fromJson(text) {
+    var parsed = JSON.parse(text);
+    state = migrate(parsed);
+    save();
+  }
+
+  /* ---------- Demodaten ---------- */
+
+  function loadDemo() {
+    state = defaultState();
+    state.event = {
+      name: 'Jugendfreizeit – Sommerfest',
+      date: U.todayIso(),
+      startTime: '08:00',
+      endTime: '22:00',
+      notes: 'Treffpunkt für alle Schichten ist der Info-Tisch im Foyer.'
+    };
+    ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Frank', 'Greta', 'Hannes']
+      .forEach(function (n) { state.people.push({ id: U.uid('p'), name: n, arrival: '', departure: '', note: '' }); });
+
+    state.people[3].arrival = '12:00';   // David kommt später
+    state.people[6].departure = '18:00'; // Greta geht früher
+
+    state.tasks = [
+      { id: U.uid('t'), name: 'Teeschicht',            wholeEvent: true,  startTime: '08:00', endTime: '22:00', slotMinutes: 120, peoplePerSlot: 1, note: 'Teeküche im Foyer' },
+      { id: U.uid('t'), name: 'Türschicht',            wholeEvent: true,  startTime: '08:00', endTime: '22:00', slotMinutes: 60,  peoplePerSlot: 2, note: 'Immer zu zweit besetzen' },
+      { id: U.uid('t'), name: 'Küchendienst / Essen',  wholeEvent: false, startTime: '11:30', endTime: '14:00', slotMinutes: 75,  peoplePerSlot: 2, note: '' },
+      { id: U.uid('t'), name: 'Frühstücksvorbereitung',wholeEvent: false, startTime: '08:00', endTime: '09:30', slotMinutes: 90,  peoplePerSlot: 2, note: '' },
+      { id: U.uid('t'), name: 'Aufräumen',             wholeEvent: false, startTime: '20:00', endTime: '22:00', slotMinutes: 60,  peoplePerSlot: 2, note: '' },
+      { id: U.uid('t'), name: 'Brötchen besorgen',     wholeEvent: false, startTime: '08:00', endTime: '09:00', slotMinutes: 60,  peoplePerSlot: 1, note: 'Bäckerei Ecke Hauptstraße' }
+    ];
+
+    state.absences = [
+      { id: U.uid('a'), personId: state.people[0].id, startTime: '14:00', endTime: '16:00', reason: 'Workshop-Leitung' },
+      { id: U.uid('a'), personId: state.people[2].id, startTime: '17:00', endTime: '19:00', reason: 'Probe' },
+      { id: U.uid('a'), personId: state.people[5].id, startTime: '09:00', endTime: '11:00', reason: 'Anreise Gäste' }
+    ];
+
+    state.step = 1;
+    save();
+  }
+
+  return {
+    VERSION: VERSION,
+    defaultState: defaultState,
+    get: get,
+    set: set,
+    save: save,
+    load: load,
+    reset: reset,
+    personById: personById,
+    personName: personName,
+    taskById: taskById,
+    addPerson: addPerson,
+    removePerson: removePerson,
+    addTask: addTask,
+    removeTask: removeTask,
+    addAbsence: addAbsence,
+    removeAbsence: removeAbsence,
+    absencesFor: absencesFor,
+    invalidateSchedule: invalidateSchedule,
+    validateStep: validateStep,
+    activePeople: activePeople,
+    toJson: toJson,
+    fromJson: fromJson,
+    loadDemo: loadDemo
+  };
+})();
+
+</script>
+<script>
+/* ---- src/scheduler.js ---- */
+/* ============================================================
+   scheduler.js – Faire automatische Schichtverteilung
+   ------------------------------------------------------------
+   Ablauf:
+     1. Kontext aufbauen (Zeitfenster, Nichtverfügbarkeiten)
+     2. Schichten (Slots) aus den Aufgaben erzeugen
+     3. Greedy-Erstbelegung: knappste Schicht zuerst,
+        günstigste Person (= geringste Last) zuerst
+     4. Reparaturlauf: freie Plätze durch Umsetzen füllen
+     5. Ausgleichslauf: Verschieben & Tauschen, solange die
+        Fairness-Kostenfunktion sinkt
+     6. Statistik und Problemliste
+
+   Harte Regeln (werden nie verletzt):
+     - keine Einteilung in Abwesenheitszeiten
+     - keine zwei Aufgaben gleichzeitig
+     - keine Person doppelt in derselben Schicht
+     - optionale Obergrenze an Schichten pro Person
+
+   Weiche Regeln (fließen in die Kostenfunktion ein):
+     - gleiche Gesamtarbeitszeit für alle
+     - gleiche Anzahl Schichten für alle
+     - gleichmäßige Verteilung über die Aufgabenarten
+     - Mindestpause zwischen zwei Schichten
+     - Blöcke bevorzugen bzw. Schichten hintereinander vermeiden
+   ============================================================ */
+
+window.Scheduler = (function () {
+  'use strict';
+
+  var U = window.Util;
+  var EPS = 1e-9;
+
+  /* Gewichte der Kostenfunktion (kleiner = fairer) */
+  var W_MINUTES = 1;      // Varianz der Gesamtminuten (Leitgröße)
+  var W_COUNT = 900;      // Varianz der Schichtanzahl
+  var W_TASKMIX = 250;    // Varianz je Aufgabenart
+  var W_REST = 2500;      // verletzte Mindestpause
+  var W_ADJACENT = 400;   // direkt aneinandergrenzende Schichten
+
+  /* ---------------- Kontext ---------------- */
+
+  /**
+   * Bereitet alle Zeitangaben in Minuten relativ zum Veranstaltungstag auf.
+   * Ergebnis enthält u. a. die Nichtverfügbarkeiten je Person.
+   */
+  function buildContext(state) {
+    var ev = state.event;
+    var evStart = U.parseTime(ev.startTime);
+    var evEnd = U.parseTime(ev.endTime);
+    if (evStart === null) evStart = 0;
+    if (evEnd === null) evEnd = evStart + 60;
+    var win = U.normalizeWindow(evStart, evEnd);
+
+    var people = state.people.filter(function (p) { return p.name.trim(); });
+    var unavailable = {};
+    var availableMinutes = {};
+
+    people.forEach(function (p) {
+      var blocks = [];
+
+      // Kommt erst später / geht früher -> Randzeiten sperren
+      if (p.arrival && U.parseTime(p.arrival) !== null) {
+        var arr = U.alignToWindow(U.parseTime(p.arrival), win.start);
+        if (arr > win.start) blocks.push({ start: win.start, end: Math.min(arr, win.end), reason: 'kommt später' });
+      }
+      if (p.departure && U.parseTime(p.departure) !== null) {
+        var dep = U.alignToWindow(U.parseTime(p.departure), win.start);
+        if (dep < win.end) blocks.push({ start: Math.max(dep, win.start), end: win.end, reason: 'geht früher' });
+      }
+
+      // Eingetragene Abwesenheiten
+      state.absences.forEach(function (a) {
+        if (a.personId !== p.id) return;
+        var s = U.parseTime(a.startTime), e = U.parseTime(a.endTime);
+        if (s === null || e === null) return;
+        var as = U.alignToWindow(s, win.start);
+        var ae = U.alignToWindow(e, as);
+        if (ae <= as) ae += U.MIN_PER_DAY;
+        blocks.push({ start: as, end: ae, reason: a.reason || 'abwesend' });
+      });
+
+      unavailable[p.id] = blocks;
+
+      // Wie viel Zeit steht die Person überhaupt zur Verfügung?
+      var free = win.end - win.start;
+      blocks.forEach(function (b) {
+        var s = Math.max(b.start, win.start), e = Math.min(b.end, win.end);
+        if (e > s) free -= (e - s);
+      });
+      availableMinutes[p.id] = Math.max(0, free);
+    });
+
+    return {
+      window: win,
+      people: people,
+      peopleIds: people.map(function (p) { return p.id; }),
+      unavailable: unavailable,
+      availableMinutes: availableMinutes,
+      options: state.options,
+      date: ev.date
+    };
+  }
+
+  /** Ist die Person im gesamten Intervall [start,end) verfügbar? */
+  function isAvailable(ctx, personId, start, end) {
+    var blocks = ctx.unavailable[personId] || [];
+    for (var i = 0; i < blocks.length; i++) {
+      if (U.overlaps(start, end, blocks[i].start, blocks[i].end)) return false;
+    }
+    return true;
+  }
+
+  /** Grund der Nichtverfügbarkeit (für Anzeige/Export) */
+  function blockingReason(ctx, personId, start, end) {
+    var blocks = ctx.unavailable[personId] || [];
+    for (var i = 0; i < blocks.length; i++) {
+      if (U.overlaps(start, end, blocks[i].start, blocks[i].end)) return blocks[i].reason;
+    }
+    return '';
+  }
+
+  /* ---------------- Schichten erzeugen ---------------- */
+
+  function buildSlots(state, ctx) {
+    var slots = [];
+    var warnings = [];
+    var win = ctx.window;
+    var merge = state.options.mergeShortLastSlot !== false;
+
+    state.tasks.forEach(function (task) {
+      var start, end;
+      if (task.wholeEvent) {
+        start = win.start;
+        end = win.end;
+      } else {
+        var ts = U.parseTime(task.startTime), te = U.parseTime(task.endTime);
+        if (ts === null || te === null) {
+          warnings.push({ type: 'task', taskName: task.name, message: 'Zeitraum unvollständig – Aufgabe wurde übersprungen.' });
+          return;
+        }
+        start = U.alignToWindow(ts, win.start);
+        end = U.alignToWindow(te, start);
+        if (end <= start) end += U.MIN_PER_DAY;
+        // auf das Veranstaltungsfenster begrenzen
+        var clippedStart = Math.max(start, win.start);
+        var clippedEnd = Math.min(end, win.end);
+        if (clippedEnd <= clippedStart) {
+          warnings.push({
+            type: 'task', taskName: task.name,
+            message: 'Zeitraum liegt außerhalb der Veranstaltung – Aufgabe wurde übersprungen.'
+          });
+          return;
+        }
+        if (clippedStart !== start || clippedEnd !== end) {
+          warnings.push({
+            type: 'task', taskName: task.name,
+            message: 'Zeitraum wurde auf die Veranstaltungszeit gekürzt (' +
+              U.formatTime(clippedStart) + '–' + U.formatTime(clippedEnd) + ').'
+          });
+        }
+        start = clippedStart;
+        end = clippedEnd;
+      }
+
+      var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
+      var required = U.clamp(parseInt(task.peoplePerSlot, 10) || 1, 1, 10);
+      var taskSlots = [];
+      var cursor = start;
+      while (cursor < end) {
+        var slotEnd = Math.min(cursor + len, end);
+        taskSlots.push({ start: cursor, end: slotEnd });
+        cursor = slotEnd;
+      }
+      // Sehr kurze Restschicht an die vorherige anhängen
+      if (merge && taskSlots.length > 1) {
+        var last = taskSlots[taskSlots.length - 1];
+        if ((last.end - last.start) < len / 2) {
+          taskSlots[taskSlots.length - 2].end = last.end;
+          taskSlots.pop();
+        }
+      }
+
+      taskSlots.forEach(function (s, i) {
+        slots.push({
+          id: U.uid('s'),
+          taskId: task.id,
+          taskName: task.name.trim() || 'Aufgabe',
+          taskNote: task.note || '',
+          index: i + 1,
+          start: s.start,
+          end: s.end,
+          required: required,
+          assigned: new Array(required).fill(null),
+          manual: new Array(required).fill(false)
+        });
+      });
+    });
+
+    slots.sort(function (a, b) {
+      return a.start - b.start || a.taskName.localeCompare(b.taskName, 'de');
+    });
+    return { slots: slots, warnings: warnings };
+  }
+
+  /* ---------------- Belegungszustand ---------------- */
+
+  function createAssignmentState(ctx, slots) {
+    var st = {
+      ctx: ctx,
+      slots: slots,
+      byPerson: {},      // personId -> [{start, end, slotId, taskId}]
+      minutes: {},
+      count: {},
+      taskCount: {},     // personId -> { taskId: n }
+      penalty: {},       // personId -> weiche Einzelstrafen
+      taskIds: []
+    };
+    ctx.peopleIds.forEach(function (id) {
+      st.byPerson[id] = [];
+      st.minutes[id] = 0;
+      st.count[id] = 0;
+      st.taskCount[id] = {};
+      st.penalty[id] = 0;
+    });
+    var seen = {};
+    slots.forEach(function (s) { if (!seen[s.taskId]) { seen[s.taskId] = true; st.taskIds.push(s.taskId); } });
+    return st;
+  }
+
+  function assign(st, slot, seat, personId) {
+    slot.assigned[seat] = personId;
+    st.byPerson[personId].push({ start: slot.start, end: slot.end, slotId: slot.id, taskId: slot.taskId });
+    st.minutes[personId] += (slot.end - slot.start);
+    st.count[personId] += 1;
+    st.taskCount[personId][slot.taskId] = (st.taskCount[personId][slot.taskId] || 0) + 1;
+    updatePenalty(st, personId);
+  }
+
+  function unassign(st, slot, seat) {
+    var personId = slot.assigned[seat];
+    if (!personId) return null;
+    slot.assigned[seat] = null;
+    var list = st.byPerson[personId];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].slotId === slot.id) { list.splice(i, 1); break; }
+    }
+    st.minutes[personId] -= (slot.end - slot.start);
+    st.count[personId] -= 1;
+    st.taskCount[personId][slot.taskId] -= 1;
+    updatePenalty(st, personId);
+    return personId;
+  }
+
+  /** Weiche Strafen einer Person: Mindestpause und Blockbildung */
+  function updatePenalty(st, personId) {
+    var opts = st.ctx.options || {};
+    var minRest = parseInt(opts.minRestMinutes, 10) || 0;
+    var list = st.byPerson[personId].slice().sort(function (a, b) { return a.start - b.start; });
+    var penalty = 0;
+    for (var i = 1; i < list.length; i++) {
+      var gap = list[i].start - list[i - 1].end;
+      if (gap < 0) gap = 0;
+      if (gap === 0) {
+        // direkt aneinander: je nach Wunsch Bonus oder Strafe
+        penalty += opts.preferBlocks ? -W_ADJACENT / 2 : W_ADJACENT;
+      } else if (minRest > 0 && gap < minRest) {
+        penalty += W_REST;
+      }
+    }
+    st.penalty[personId] = penalty;
+  }
+
+  /** Fairness-Kosten des aktuellen Gesamtplans (kleiner ist besser) */
+  function cost(st) {
+    var ids = st.ctx.peopleIds;
+    if (!ids.length) return 0;
+    var mins = [], cnts = [];
+    var total = 0;
+    for (var i = 0; i < ids.length; i++) {
+      mins.push(st.minutes[ids[i]]);
+      cnts.push(st.count[ids[i]]);
+      total += st.penalty[ids[i]];
+    }
+    var c = W_MINUTES * U.variance(mins) + W_COUNT * U.variance(cnts) + total;
+
+    if (st.ctx.options && st.ctx.options.balanceTaskTypes !== false) {
+      for (var t = 0; t < st.taskIds.length; t++) {
+        var tid = st.taskIds[t];
+        var per = [];
+        for (var j = 0; j < ids.length; j++) per.push(st.taskCount[ids[j]][tid] || 0);
+        c += W_TASKMIX * U.variance(per);
+      }
+    }
+    return c;
+  }
+
+  /* ---------------- Eignungsprüfung ---------------- */
+
+  function hasConflict(st, personId, start, end, exceptSlotId) {
+    var list = st.byPerson[personId] || [];
+    for (var i = 0; i < list.length; i++) {
+      if (exceptSlotId && list[i].slotId === exceptSlotId) continue;
+      if (U.overlaps(start, end, list[i].start, list[i].end)) return true;
+    }
+    return false;
+  }
+
+  function inSlot(slot, personId) {
+    for (var i = 0; i < slot.assigned.length; i++) if (slot.assigned[i] === personId) return true;
+    return false;
+  }
+
+  function isEligible(st, slot, personId) {
+    var max = parseInt(st.ctx.options.maxShiftsPerPerson, 10) || 0;
+    if (max > 0 && st.count[personId] >= max) return false;
+    if (inSlot(slot, personId)) return false;
+    if (!isAvailable(st.ctx, personId, slot.start, slot.end)) return false;
+    if (hasConflict(st, personId, slot.start, slot.end, slot.id)) return false;
+    return true;
+  }
+
+  /** Personen, die (nur nach Abwesenheiten betrachtet) infrage kämen */
+  function availableCountFor(ctx, slot) {
+    var n = 0;
+    for (var i = 0; i < ctx.peopleIds.length; i++) {
+      if (isAvailable(ctx, ctx.peopleIds[i], slot.start, slot.end)) n++;
+    }
+    return n;
+  }
+
+  /* ---------------- Greedy-Erstbelegung ---------------- */
+
+  function greedyFill(st, rand) {
+    var ctx = st.ctx;
+    var maxAvail = 1;
+    ctx.peopleIds.forEach(function (id) { maxAvail = Math.max(maxAvail, ctx.availableMinutes[id]); });
+
+    // Knappste Schichten zuerst: wenig Auswahl, viele benötigte Personen
+    var order = st.slots.slice().map(function (slot) {
+      return { slot: slot, slack: availableCountFor(ctx, slot) - slot.required };
+    });
+    order.sort(function (a, b) {
+      return a.slack - b.slack || a.slot.start - b.slot.start ||
+        a.slot.taskName.localeCompare(b.slot.taskName, 'de');
+    });
+
+    order.forEach(function (entry) {
+      var slot = entry.slot;
+      for (var seat = 0; seat < slot.required; seat++) {
+        if (slot.assigned[seat]) continue;
+        var best = null, bestScore = Infinity;
+        for (var i = 0; i < ctx.peopleIds.length; i++) {
+          var pid = ctx.peopleIds[i];
+          if (!isEligible(st, slot, pid)) continue;
+          var score = candidateScore(st, slot, pid, maxAvail, rand);
+          if (score < bestScore) { bestScore = score; best = pid; }
+        }
+        if (best) assign(st, slot, seat, best);
+      }
+    });
+  }
+
+  function candidateScore(st, slot, personId, maxAvail, rand) {
+    var opts = st.ctx.options;
+    var score = st.minutes[personId] + st.count[personId] * 15;
+
+    if (opts.balanceTaskTypes !== false) {
+      score += (st.taskCount[personId][slot.taskId] || 0) * 25;
+    }
+
+    // Wer insgesamt wenig Zeit hat, wird früher berücksichtigt
+    var ratio = maxAvail > 0 ? (st.ctx.availableMinutes[personId] / maxAvail) : 1;
+    score -= (1 - ratio) * 90;
+
+    // Nachbarschaft zu bereits vergebenen Schichten
+    var minRest = parseInt(opts.minRestMinutes, 10) || 0;
+    var list = st.byPerson[personId];
+    for (var i = 0; i < list.length; i++) {
+      var gap = list[i].start >= slot.end ? (list[i].start - slot.end)
+        : (slot.start >= list[i].end ? (slot.start - list[i].end) : 0);
+      if (gap === 0) score += opts.preferBlocks ? -35 : 45;
+      else if (minRest > 0 && gap < minRest) score += 200;
+    }
+
+    // Deterministischer Mini-Zufall bricht Gleichstände auf
+    score += rand() * 4;
+    return score;
+  }
+
+  /* ---------------- Reparatur: freie Plätze füllen ---------------- */
+
+  /**
+   * Für jeden freien Platz wird versucht, eine verfügbare Person
+   * freizuräumen, indem ihre kollidierende Schicht an jemand
+   * anderen abgegeben wird (einstufige Kettenverschiebung).
+   */
+  function repairOpenSeats(st) {
+    var changed = false;
+    st.slots.forEach(function (slot) {
+      for (var seat = 0; seat < slot.required; seat++) {
+        if (slot.assigned[seat]) continue;
+
+        // 1. Direkt jemanden einsetzen, falls möglich
+        var direct = bestEligible(st, slot);
+        if (direct) { assign(st, slot, seat, direct); changed = true; continue; }
+
+        // 2. Kettenverschiebung
+        if (moveChain(st, slot, seat)) changed = true;
+      }
+    });
+    return changed;
+  }
+
+  function bestEligible(st, slot, excludeId) {
+    var best = null, bestScore = Infinity;
+    for (var i = 0; i < st.ctx.peopleIds.length; i++) {
+      var pid = st.ctx.peopleIds[i];
+      if (excludeId && pid === excludeId) continue;
+      if (!isEligible(st, slot, pid)) continue;
+      var score = st.minutes[pid] + st.count[pid] * 15;
+      if (score < bestScore) { bestScore = score; best = pid; }
+    }
+    return best;
+  }
+
+  function moveChain(st, slot, seat) {
+    var ctx = st.ctx;
+    for (var i = 0; i < ctx.peopleIds.length; i++) {
+      var pid = ctx.peopleIds[i];
+      if (inSlot(slot, pid)) continue;
+      if (!isAvailable(ctx, pid, slot.start, slot.end)) continue;
+      var max = parseInt(ctx.options.maxShiftsPerPerson, 10) || 0;
+      if (max > 0 && st.count[pid] >= max) continue;
+
+      // Kollidierende Schichten dieser Person suchen
+      var clashes = st.byPerson[pid].filter(function (a) {
+        return U.overlaps(slot.start, slot.end, a.start, a.end);
+      });
+      if (clashes.length !== 1) continue;
+
+      var clashSlot = findSlot(st, clashes[0].slotId);
+      if (!clashSlot) continue;
+      var clashSeat = clashSlot.assigned.indexOf(pid);
+      if (clashSeat < 0) continue;
+      if (clashSlot.manual && clashSlot.manual[clashSeat]) continue;
+
+      // Ersatz für die freigewordene Schicht suchen
+      unassign(st, clashSlot, clashSeat);
+      var replacement = bestEligible(st, clashSlot, pid);
+      if (replacement) {
+        assign(st, clashSlot, clashSeat, replacement);
+        assign(st, slot, seat, pid);
+        return true;
+      }
+      assign(st, clashSlot, clashSeat, pid); // zurückrollen
+    }
+    return false;
+  }
+
+  function findSlot(st, slotId) {
+    for (var i = 0; i < st.slots.length; i++) if (st.slots[i].id === slotId) return st.slots[i];
+    return null;
+  }
+
+  /* ---------------- Ausgleich: Verschieben & Tauschen ---------------- */
+
+  function balance(st, rand, maxPasses) {
+    var passes = 0;
+    while (passes < maxPasses) {
+      passes++;
+      var improved = false;
+      if (improveByMoving(st)) improved = true;
+      if (improveBySwapping(st, rand)) improved = true;
+      if (!improved) break;
+    }
+    return passes;
+  }
+
+  function improveByMoving(st) {
+    var improved = false;
+    for (var i = 0; i < st.slots.length; i++) {
+      var slot = st.slots[i];
+      for (var seat = 0; seat < slot.required; seat++) {
+        var current = slot.assigned[seat];
+        if (!current) continue;
+        if (slot.manual && slot.manual[seat]) continue;
+
+        var before = cost(st);
+        var bestPerson = null, bestCost = before;
+        for (var j = 0; j < st.ctx.peopleIds.length; j++) {
+          var pid = st.ctx.peopleIds[j];
+          if (pid === current) continue;
+          unassign(st, slot, seat);
+          var ok = isEligible(st, slot, pid);
+          if (ok) {
+            assign(st, slot, seat, pid);
+            var c = cost(st);
+            if (c < bestCost - EPS) { bestCost = c; bestPerson = pid; }
+            unassign(st, slot, seat);
+          }
+          assign(st, slot, seat, current); // Ausgangszustand wiederherstellen
+        }
+        if (bestPerson) {
+          unassign(st, slot, seat);
+          assign(st, slot, seat, bestPerson);
+          improved = true;
+        }
+      }
+    }
+    return improved;
+  }
+
+  function improveBySwapping(st, rand) {
+    // Liste aller belegten Plätze
+    var seats = [];
+    st.slots.forEach(function (slot) {
+      for (var seat = 0; seat < slot.required; seat++) {
+        if (slot.assigned[seat] && !(slot.manual && slot.manual[seat])) {
+          seats.push({ slot: slot, seat: seat });
+        }
+      }
+    });
+    if (seats.length < 2) return false;
+
+    var improved = false;
+    var attemptsPerSeat = Math.min(seats.length - 1, 24);
+
+    for (var i = 0; i < seats.length; i++) {
+      for (var k = 0; k < attemptsPerSeat; k++) {
+        var j = Math.floor(rand() * seats.length);
+        if (j === i) continue;
+        var a = seats[i], b = seats[j];
+        if (a.slot.id === b.slot.id) continue;
+        var pa = a.slot.assigned[a.seat], pb = b.slot.assigned[b.seat];
+        if (!pa || !pb || pa === pb) continue;
+
+        var before = cost(st);
+        unassign(st, a.slot, a.seat);
+        unassign(st, b.slot, b.seat);
+
+        if (isEligible(st, a.slot, pb) && isEligible(st, b.slot, pa)) {
+          assign(st, a.slot, a.seat, pb);
+          assign(st, b.slot, b.seat, pa);
+          if (cost(st) < before - EPS) { improved = true; continue; }
+          unassign(st, a.slot, a.seat);
+          unassign(st, b.slot, b.seat);
+        }
+        assign(st, a.slot, a.seat, pa);
+        assign(st, b.slot, b.seat, pb);
+      }
+    }
+    return improved;
+  }
+
+  /* ---------------- Statistik & Probleme ---------------- */
+
+  function buildStats(state, ctx, slots) {
+    var perPerson = {};
+    ctx.people.forEach(function (p) {
+      perPerson[p.id] = {
+        personId: p.id,
+        name: p.name.trim(),
+        count: 0,
+        minutes: 0,
+        availableMinutes: ctx.availableMinutes[p.id],
+        tasks: {},
+        shifts: []
+      };
+    });
+
+    var requiredSeats = 0, filledSeats = 0;
+    slots.forEach(function (slot) {
+      requiredSeats += slot.required;
+      slot.assigned.forEach(function (pid) {
+        if (!pid || !perPerson[pid]) return;
+        filledSeats++;
+        var rec = perPerson[pid];
+        rec.count += 1;
+        rec.minutes += (slot.end - slot.start);
+        rec.tasks[slot.taskName] = (rec.tasks[slot.taskName] || 0) + 1;
+        rec.shifts.push(slot.id);
+      });
+    });
+
+    var list = ctx.people.map(function (p) { return perPerson[p.id]; });
+    var mins = list.map(function (r) { return r.minutes; });
+    var counts = list.map(function (r) { return r.count; });
+
+    return {
+      perPerson: list,
+      totalSlots: slots.length,
+      requiredSeats: requiredSeats,
+      filledSeats: filledSeats,
+      openSeats: requiredSeats - filledSeats,
+      totalMinutes: U.sum(mins),
+      meanMinutes: U.mean(mins),
+      minMinutes: mins.length ? Math.min.apply(null, mins) : 0,
+      maxMinutes: mins.length ? Math.max.apply(null, mins) : 0,
+      spreadMinutes: mins.length ? (Math.max.apply(null, mins) - Math.min.apply(null, mins)) : 0,
+      stdevMinutes: U.stdev(mins),
+      minCount: counts.length ? Math.min.apply(null, counts) : 0,
+      maxCount: counts.length ? Math.max.apply(null, counts) : 0
+    };
+  }
+
+  function buildIssues(ctx, slots, taskWarnings) {
+    var issues = [];
+
+    taskWarnings.forEach(function (w) {
+      issues.push({
+        severity: 'warn',
+        taskName: w.taskName,
+        start: null,
+        end: null,
+        required: 0,
+        filled: 0,
+        message: w.message
+      });
+    });
+
+    slots.forEach(function (slot) {
+      var filled = slot.assigned.filter(Boolean).length;
+      if (filled >= slot.required) return;
+      var avail = availableCountFor(ctx, slot);
+      var message;
+      if (avail === 0) {
+        message = 'Niemand ist in diesem Zeitraum verfügbar.';
+      } else if (avail < slot.required) {
+        message = 'Nur ' + avail + ' von ' + slot.required + ' benötigten Personen sind überhaupt verfügbar.';
+      } else {
+        message = 'Alle verfügbaren Personen sind zu dieser Zeit bereits anderweitig eingeteilt.';
+      }
+      issues.push({
+        severity: filled === 0 ? 'error' : 'warn',
+        slotId: slot.id,
+        taskName: slot.taskName,
+        start: slot.start,
+        end: slot.end,
+        required: slot.required,
+        filled: filled,
+        message: message
+      });
+    });
+
+    return issues;
+  }
+
+  /* ---------------- Öffentliche API ---------------- */
+
+  /** Berechnet einen kompletten Plan aus dem aktuellen Zustand. */
+  function compute(state) {
+    var ctx = buildContext(state);
+    var built = buildSlots(state, ctx);
+    var slots = built.slots;
+    var st = createAssignmentState(ctx, slots);
+    var seed = parseInt(state.options.seed, 10);
+    if (isNaN(seed)) seed = 42;
+    var rand = U.rng(seed);
+
+    if (ctx.peopleIds.length && slots.length) {
+      greedyFill(st, rand);
+      repairOpenSeats(st);
+      balance(st, rand, 8);
+      repairOpenSeats(st);
+      balance(st, rand, 3);
+    }
+
+    var schedule = {
+      generatedAt: new Date().toISOString(),
+      seed: seed,
+      window: ctx.window,
+      date: state.event.date,
+      slots: slots,
+      stats: buildStats(state, ctx, slots),
+      issues: buildIssues(ctx, slots, built.warnings),
+      stale: false
+    };
+    return schedule;
+  }
+
+  /**
+   * Kandidatenlisten für die manuelle Nachbesetzung in der Oberfläche.
+   * Rückgabe: { slotId: [ [ {personId, name, ok, reason}, ... ] je Platz ] }
+   */
+  function seatOptions(state, schedule) {
+    var ctx = buildContext(state);
+    var busy = {};
+    ctx.peopleIds.forEach(function (id) { busy[id] = []; });
+    schedule.slots.forEach(function (slot) {
+      slot.assigned.forEach(function (pid) {
+        if (pid && busy[pid]) busy[pid].push({ start: slot.start, end: slot.end, slotId: slot.id });
+      });
+    });
+
+    function busyElsewhere(pid, slot) {
+      var list = busy[pid] || [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].slotId === slot.id) continue;
+        if (U.overlaps(slot.start, slot.end, list[i].start, list[i].end)) return true;
+      }
+      return false;
+    }
+
+    var result = {};
+    schedule.slots.forEach(function (slot) {
+      var seats = [];
+      for (var seat = 0; seat < slot.required; seat++) {
+        var current = slot.assigned[seat];
+        /* jshint loopfunc:true */
+        seats.push(ctx.people.map(function (p) {
+          if (p.id === current) return { personId: p.id, name: p.name.trim(), ok: true, reason: '' };
+          if (inSlot(slot, p.id)) return { personId: p.id, name: p.name.trim(), ok: false, reason: 'schon in dieser Schicht' };
+          if (!isAvailable(ctx, p.id, slot.start, slot.end)) {
+            return {
+              personId: p.id, name: p.name.trim(), ok: false,
+              reason: blockingReason(ctx, p.id, slot.start, slot.end) || 'nicht verfügbar'
+            };
+          }
+          if (busyElsewhere(p.id, slot)) {
+            return { personId: p.id, name: p.name.trim(), ok: false, reason: 'andere Schicht zur gleichen Zeit' };
+          }
+          return { personId: p.id, name: p.name.trim(), ok: true, reason: '' };
+        }));
+      }
+      result[slot.id] = seats;
+    });
+    return result;
+  }
+
+  /** Statistik und Problemliste nach manueller Änderung neu berechnen. */
+  function refresh(state, schedule) {
+    var ctx = buildContext(state);
+    schedule.stats = buildStats(state, ctx, schedule.slots);
+    schedule.issues = buildIssues(ctx, schedule.slots, []);
+    return schedule;
+  }
+
+  return {
+    compute: compute,
+    seatOptions: seatOptions,
+    refresh: refresh,
+    buildContext: buildContext,
+    isAvailable: isAvailable
+  };
+})();
+
+</script>
+<script>
+/* ---- src/xlsx.js ---- */
+/* ============================================================
+   xlsx.js – Minimaler XLSX-Writer ohne externe Bibliotheken
+   ------------------------------------------------------------
+   Erzeugt eine gültige .xlsx-Datei (Office Open XML) als Blob.
+   Die ZIP-Container werden ohne Kompression ("stored") geschrieben,
+   das ist für Tabellen dieser Größe völlig ausreichend und kommt
+   ohne Deflate-Implementierung aus. Texte werden als inlineStr
+   abgelegt – dadurch ist keine sharedStrings-Tabelle nötig und die
+   Datei bleibt in Excel/LibreOffice frei bearbeitbar.
+
+   Verwendung:
+     XlsxWriter.build([
+       { name: 'Blattname', columns: [{width:14}, ...],
+         freeze: 1, autoFilter: true,
+         rows: [ [ {v:'Text', s:'header'}, {v:12, t:'n'} ], ... ] }
+     ]) -> Blob
+
+   Zellformate (s): 'default' | 'header' | 'title' | 'bold' | 'muted'
+                    'cell' | 'wrap' | 'bad' | 'warn' | 'good' | 'time'
+   ============================================================ */
+
+window.XlsxWriter = (function () {
+  'use strict';
+
+  /* ---------------- ZIP ---------------- */
+
+  var CRC_TABLE = (function () {
+    var table = new Uint32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes) {
+    var c = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) {
+      c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    }
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function utf8(str) { return new TextEncoder().encode(str); }
+
+  function dosDateTime(date) {
+    var d = date || new Date();
+    var year = Math.max(1980, d.getFullYear());
+    return {
+      time: ((d.getHours() << 11) | (d.getMinutes() << 5) | (Math.floor(d.getSeconds() / 2))) & 0xFFFF,
+      date: (((year - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF
+    };
+  }
+
+  /** files: [{ name, data: Uint8Array }] -> Blob (ZIP, gespeichert) */
+  function zip(files) {
+    var stamp = dosDateTime(new Date());
+    var chunks = [];
+    var central = [];
+    var offset = 0;
+
+    files.forEach(function (file) {
+      var nameBytes = utf8(file.name);
+      var crc = crc32(file.data);
+      var size = file.data.length;
+
+      var local = new Uint8Array(30 + nameBytes.length);
+      var lv = new DataView(local.buffer);
+      lv.setUint32(0, 0x04034b50, true);   // Signatur
+      lv.setUint16(4, 20, true);           // benötigte Version
+      lv.setUint16(6, 0x0800, true);       // Flags: UTF-8 Dateinamen
+      lv.setUint16(8, 0, true);            // Methode: stored
+      lv.setUint16(10, stamp.time, true);
+      lv.setUint16(12, stamp.date, true);
+      lv.setUint32(14, crc, true);
+      lv.setUint32(18, size, true);
+      lv.setUint32(22, size, true);
+      lv.setUint16(26, nameBytes.length, true);
+      lv.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+
+      chunks.push(local, file.data);
+
+      var entry = new Uint8Array(46 + nameBytes.length);
+      var cv = new DataView(entry.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);           // erzeugt von Version
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, stamp.time, true);
+      cv.setUint16(14, stamp.date, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, size, true);
+      cv.setUint32(24, size, true);
+      cv.setUint16(28, nameBytes.length, true);
+      cv.setUint32(42, offset, true);
+      entry.set(nameBytes, 46);
+      central.push(entry);
+
+      offset += local.length + size;
+    });
+
+    var centralSize = central.reduce(function (n, e) { return n + e.length; }, 0);
+    var end = new Uint8Array(22);
+    var ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+
+    return new Blob(chunks.concat(central, [end]),
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  /* ---------------- XML-Hilfen ---------------- */
+
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      // Steuerzeichen sind in XML nicht erlaubt
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+  }
+
+  function colName(index) {
+    var n = index + 1, s = '';
+    while (n > 0) {
+      var rest = (n - 1) % 26;
+      s = String.fromCharCode(65 + rest) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  /* Reihenfolge muss zu cellXfs in styles.xml passen */
+  var STYLE_INDEX = {
+    default: 0,
+    title: 1,
+    header: 2,
+    cell: 3,
+    wrap: 4,
+    bold: 5,
+    muted: 6,
+    bad: 7,
+    warn: 8,
+    good: 9,
+    time: 10,
+    number: 11
+  };
+
+  function styleId(name) {
+    return STYLE_INDEX[name] != null ? STYLE_INDEX[name] : 0;
+  }
+
+  function stylesXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<numFmts count="1"><numFmt numFmtId="164" formatCode="0.00"/></numFmts>' +
+      '<fonts count="5">' +
+        '<font><sz val="11"/><name val="Calibri"/><family val="2"/></font>' +
+        '<font><b/><sz val="11"/><name val="Calibri"/><family val="2"/></font>' +
+        '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>' +
+        '<font><b/><sz val="14"/><name val="Calibri"/><family val="2"/></font>' +
+        '<font><i/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/><family val="2"/></font>' +
+      '</fonts>' +
+      '<fills count="6">' +
+        '<fill><patternFill patternType="none"/></fill>' +
+        '<fill><patternFill patternType="gray125"/></fill>' +
+        '<fill><patternFill patternType="solid"><fgColor rgb="FF2F4F9E"/><bgColor indexed="64"/></patternFill></fill>' +
+        '<fill><patternFill patternType="solid"><fgColor rgb="FFFBD8D3"/><bgColor indexed="64"/></patternFill></fill>' +
+        '<fill><patternFill patternType="solid"><fgColor rgb="FFFDEFD3"/><bgColor indexed="64"/></patternFill></fill>' +
+        '<fill><patternFill patternType="solid"><fgColor rgb="FFDFF3E5"/><bgColor indexed="64"/></patternFill></fill>' +
+      '</fills>' +
+      '<borders count="2">' +
+        '<border><left/><right/><top/><bottom/><diagonal/></border>' +
+        '<border>' +
+          '<left style="thin"><color rgb="FFD0D5E0"/></left>' +
+          '<right style="thin"><color rgb="FFD0D5E0"/></right>' +
+          '<top style="thin"><color rgb="FFD0D5E0"/></top>' +
+          '<bottom style="thin"><color rgb="FFD0D5E0"/></bottom>' +
+          '<diagonal/>' +
+        '</border>' +
+      '</borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="12">' +
+        // 0 default
+        '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+        // 1 title
+        '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+        // 2 header
+        '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>' +
+        // 3 cell
+        '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+        // 4 wrap
+        '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+        // 5 bold
+        '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+        // 6 muted
+        '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+        // 7 bad
+        '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+        // 8 warn
+        '<xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+        // 9 good
+        '<xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+        // 10 time (linksbündig, als Text bearbeitbar)
+        '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>' +
+        // 11 number
+        '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>' +
+      '</cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Standard" xfId="0" builtinId="0"/></cellStyles>' +
+      '</styleSheet>';
+  }
+
+  /**
+   * Eine Zelle beschreiben:
+   *   String / Zahl direkt, oder { v, t:'s'|'n', s:'header' }
+   */
+  function cellXml(cell, ref) {
+    var value, type, style;
+    if (cell == null) return '';
+    if (typeof cell === 'object') {
+      value = cell.v;
+      type = cell.t || (typeof value === 'number' ? 'n' : 's');
+      style = styleId(cell.s || 'cell');
+    } else {
+      value = cell;
+      type = typeof cell === 'number' ? 'n' : 's';
+      style = styleId('cell');
+    }
+    if (value == null || value === '') {
+      return '<c r="' + ref + '" s="' + style + '"/>';
+    }
+    if (type === 'n' && typeof value === 'number' && isFinite(value)) {
+      return '<c r="' + ref + '" s="' + style + '"><v>' + value + '</v></c>';
+    }
+    return '<c r="' + ref + '" s="' + style + '" t="inlineStr"><is><t xml:space="preserve">' +
+      esc(value) + '</t></is></c>';
+  }
+
+  function sheetXml(sheet) {
+    var rows = sheet.rows || [];
+    var maxCols = 0;
+    rows.forEach(function (r) { maxCols = Math.max(maxCols, (r || []).length); });
+    maxCols = Math.max(maxCols, (sheet.columns || []).length, 1);
+
+    var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+
+    xml += '<dimension ref="A1:' + colName(maxCols - 1) + Math.max(1, rows.length) + '"/>';
+
+    xml += '<sheetViews><sheetView workbookViewId="0">';
+    if (sheet.freeze) {
+      xml += '<pane ySplit="' + sheet.freeze + '" topLeftCell="A' + (sheet.freeze + 1) +
+        '" activePane="bottomLeft" state="frozen"/>' +
+        '<selection pane="bottomLeft" activeCell="A' + (sheet.freeze + 1) + '" sqref="A' + (sheet.freeze + 1) + '"/>';
+    }
+    xml += '</sheetView></sheetViews>';
+    xml += '<sheetFormatPr defaultRowHeight="15"/>';
+
+    if (sheet.columns && sheet.columns.length) {
+      xml += '<cols>';
+      sheet.columns.forEach(function (col, i) {
+        xml += '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' +
+          (col.width || 14) + '" customWidth="1"/>';
+      });
+      xml += '</cols>';
+    }
+
+    xml += '<sheetData>';
+    rows.forEach(function (row, rIdx) {
+      if (!row) { return; }
+      xml += '<row r="' + (rIdx + 1) + '"' + (sheet.headerRow === rIdx + 1 ? ' ht="22" customHeight="1"' : '') + '>';
+      row.forEach(function (cell, cIdx) {
+        xml += cellXml(cell, colName(cIdx) + (rIdx + 1));
+      });
+      xml += '</row>';
+    });
+    xml += '</sheetData>';
+
+    if (sheet.autoFilter && rows.length > (sheet.autoFilterRow || 1)) {
+      var fRow = sheet.autoFilterRow || 1;
+      xml += '<autoFilter ref="A' + fRow + ':' + colName(maxCols - 1) + rows.length + '"/>';
+    }
+
+    xml += '<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>';
+    xml += '</worksheet>';
+    return xml;
+  }
+
+  /** Blattnamen für Excel entschärfen (max. 31 Zeichen, keine Sonderzeichen) */
+  function safeSheetName(name, index) {
+    var clean = String(name || ('Blatt' + (index + 1))).replace(/[\\\/\?\*\[\]:]/g, ' ').trim();
+    if (!clean) clean = 'Blatt' + (index + 1);
+    return clean.slice(0, 31);
+  }
+
+  /** sheets -> Blob */
+  function build(sheets) {
+    var names = sheets.map(function (s, i) { return safeSheetName(s.name, i); });
+
+    var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      sheets.map(function (s, i) {
+        return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ' +
+          'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+      }).join('') +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+      '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' +
+      '</Types>';
+
+    var rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+      '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' +
+      '</Relationships>';
+
+    var workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets>' +
+      names.map(function (n, i) {
+        return '<sheet name="' + esc(n) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>';
+      }).join('') +
+      '</sheets></workbook>';
+
+    var workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      sheets.map(function (s, i) {
+        return '<Relationship Id="rId' + (i + 1) + '" ' +
+          'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" ' +
+          'Target="worksheets/sheet' + (i + 1) + '.xml"/>';
+      }).join('') +
+      '<Relationship Id="rId' + (sheets.length + 1) + '" ' +
+      'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      '</Relationships>';
+
+    var now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    var core = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+      'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" ' +
+      'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      '<dc:creator>Schichtplaner</dc:creator><cp:lastModifiedBy>Schichtplaner</cp:lastModifiedBy>' +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + now + '</dcterms:created>' +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + now + '</dcterms:modified>' +
+      '</cp:coreProperties>';
+
+    var app = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" ' +
+      'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">' +
+      '<Application>Schichtplaner</Application></Properties>';
+
+    var files = [
+      { name: '[Content_Types].xml', data: utf8(contentTypes) },
+      { name: '_rels/.rels', data: utf8(rootRels) },
+      { name: 'docProps/core.xml', data: utf8(core) },
+      { name: 'docProps/app.xml', data: utf8(app) },
+      { name: 'xl/workbook.xml', data: utf8(workbook) },
+      { name: 'xl/_rels/workbook.xml.rels', data: utf8(workbookRels) },
+      { name: 'xl/styles.xml', data: utf8(stylesXml()) }
+    ];
+    sheets.forEach(function (sheet, i) {
+      files.push({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml', data: utf8(sheetXml(sheet)) });
+    });
+
+    return zip(files);
+  }
+
+  return { build: build, colName: colName, zip: zip, crc32: crc32 };
+})();
+
+</script>
+<script>
+/* ---- src/export.js ---- */
+/* ============================================================
+   export.js – Aufbau der Excel-Mappe aus Plan + Stammdaten
+   ------------------------------------------------------------
+   Tabellenblätter:
+     1. Schichtplan       – eine Zeile je Schicht, Personen in Spalten
+     2. Teilnehmende      – Namen, Zeiten, Auslastung
+     3. Verfügbarkeiten   – Abwesenheiten und An-/Abreisezeiten
+     4. Offene Schichten  – nicht besetzbare / problematische Schichten
+     5. Veranstaltung     – Rahmendaten und Kennzahlen
+
+   Alle Werte werden als Text bzw. einfache Zahlen geschrieben,
+   damit die Datei anschließend problemlos von Hand weiter
+   bearbeitet werden kann.
+   ============================================================ */
+
+window.Exporter = (function () {
+  'use strict';
+
+  var U = window.Util;
+
+  function h(text) { return { v: text, s: 'header' }; }
+  function c(value, style) { return { v: value, s: style || 'cell' }; }
+  function n(value, style) { return { v: value, t: 'n', s: style || 'cell' }; }
+
+  /* ---------------- Blatt 1: Schichtplan ---------------- */
+
+  function sheetPlan(state, schedule) {
+    var maxPeople = 1;
+    schedule.slots.forEach(function (s) { maxPeople = Math.max(maxPeople, s.required); });
+
+    var header = [h('Datum'), h('Aufgabe'), h('Startzeit'), h('Endzeit'), h('Dauer (min)')];
+    for (var i = 0; i < maxPeople; i++) header.push(h('Person ' + (i + 1)));
+    header.push(h('Bemerkung'));
+
+    var rows = [];
+    rows.push([{ v: state.event.name || 'Schichtplan', s: 'title' }]);
+    rows.push([{
+      v: U.formatDate(state.event.date) + ' · ' +
+        U.formatTime(schedule.window.start) + '–' + U.formatTimeDay(schedule.window.end) +
+        (state.event.notes ? ' · ' + state.event.notes : ''),
+      s: 'muted'
+    }]);
+    rows.push([]);
+    rows.push(header);
+
+    var slots = schedule.slots.slice().sort(sortSlots);
+    slots.forEach(function (slot) {
+      var open = slot.required - slot.assigned.filter(Boolean).length;
+      var rowStyle = open === 0 ? 'cell' : (open === slot.required ? 'bad' : 'warn');
+      var row = [
+        c(U.formatDate(U.dateForMinutes(state.event.date, slot.start)), rowStyle),
+        c(slot.taskName, rowStyle),
+        c(U.formatTime(slot.start), 'time'),
+        c(U.formatTimeDay(slot.end), 'time'),
+        n(slot.end - slot.start, rowStyle)
+      ];
+      for (var i = 0; i < maxPeople; i++) {
+        if (i >= slot.required) { row.push(c('', 'cell')); continue; }
+        var pid = slot.assigned[i];
+        row.push(pid ? c(nameOf(state, pid), rowStyle) : c('— offen —', 'bad'));
+      }
+      var remark = [];
+      if (open > 0) remark.push(open === 1 ? '1 Platz offen' : open + ' Plätze offen');
+      if (slot.taskNote) remark.push(slot.taskNote);
+      row.push(c(remark.join(' · '), open > 0 ? 'bad' : 'wrap'));
+      rows.push(row);
+    });
+
+    if (!slots.length) rows.push([c('Keine Schichten vorhanden', 'cell')]);
+
+    var columns = [{ width: 13 }, { width: 26 }, { width: 11 }, { width: 12 }, { width: 12 }];
+    for (var k = 0; k < maxPeople; k++) columns.push({ width: 20 });
+    columns.push({ width: 34 });
+
+    return {
+      name: 'Schichtplan',
+      columns: columns,
+      rows: rows,
+      freeze: 4,
+      headerRow: 4,
+      autoFilter: true,
+      autoFilterRow: 4
+    };
+  }
+
+  function sortSlots(a, b) {
+    return a.start - b.start || a.taskName.localeCompare(b.taskName, 'de') || a.end - b.end;
+  }
+
+  function nameOf(state, personId) {
+    var p = null;
+    for (var i = 0; i < state.people.length; i++) if (state.people[i].id === personId) p = state.people[i];
+    return p ? (p.name || 'Ohne Namen') : 'Unbekannt';
+  }
+
+  /* ---------------- Blatt 2: Teilnehmende ---------------- */
+
+  function sheetPeople(state, schedule) {
+    var rows = [[
+      h('Name'), h('Kommt ab'), h('Geht bis'), h('Notiz'),
+      h('Anzahl Schichten'), h('Gesamtzeit (h)'), h('Aufgabenverteilung')
+    ]];
+
+    var byId = {};
+    schedule.stats.perPerson.forEach(function (r) { byId[r.personId] = r; });
+
+    state.people.forEach(function (p) {
+      if (!p.name.trim()) return;
+      var rec = byId[p.id] || { count: 0, minutes: 0, tasks: {} };
+      var mix = Object.keys(rec.tasks).sort().map(function (t) {
+        return t + ': ' + rec.tasks[t];
+      }).join(', ');
+      rows.push([
+        c(p.name.trim(), 'bold'),
+        c(p.arrival || '', 'time'),
+        c(p.departure || '', 'time'),
+        c(p.note || ''),
+        n(rec.count),
+        n(Math.round(rec.minutes / 60 * 100) / 100, 'number'),
+        c(mix, 'wrap')
+      ]);
+    });
+
+    return {
+      name: 'Teilnehmende',
+      columns: [{ width: 22 }, { width: 12 }, { width: 12 }, { width: 26 }, { width: 16 }, { width: 15 }, { width: 40 }],
+      rows: rows,
+      freeze: 1,
+      headerRow: 1,
+      autoFilter: true
+    };
+  }
+
+  /* ---------------- Blatt 3: Verfügbarkeiten ---------------- */
+
+  function sheetAvailability(state) {
+    var rows = [[h('Person'), h('Art'), h('Nicht verfügbar von'), h('bis'), h('Grund')]];
+
+    state.people.forEach(function (p) {
+      if (!p.name.trim()) return;
+      var name = p.name.trim();
+      if (p.arrival) {
+        rows.push([c(name, 'bold'), c('kommt später'), c(state.event.startTime, 'time'), c(p.arrival, 'time'), c('vor Ankunft')]);
+      }
+      if (p.departure) {
+        rows.push([c(name, 'bold'), c('geht früher'), c(p.departure, 'time'), c(state.event.endTime, 'time'), c('nach Abreise')]);
+      }
+      state.absences.filter(function (a) { return a.personId === p.id; }).forEach(function (a) {
+        rows.push([c(name, 'bold'), c('Abwesenheit'), c(a.startTime, 'time'), c(a.endTime, 'time'), c(a.reason || '')]);
+      });
+    });
+
+    if (rows.length === 1) rows.push([c('Keine Einschränkungen erfasst – alle Personen sind durchgehend verfügbar.', 'cell')]);
+
+    return {
+      name: 'Verfügbarkeiten',
+      columns: [{ width: 22 }, { width: 16 }, { width: 20 }, { width: 12 }, { width: 32 }],
+      rows: rows,
+      freeze: 1,
+      headerRow: 1,
+      autoFilter: true
+    };
+  }
+
+  /* ---------------- Blatt 4: Offene Schichten ---------------- */
+
+  function sheetIssues(state, schedule) {
+    var rows = [[
+      h('Aufgabe'), h('Datum'), h('Von'), h('Bis'),
+      h('Benötigt'), h('Besetzt'), h('Fehlt'), h('Hinweis')
+    ]];
+
+    schedule.issues.forEach(function (issue) {
+      var style = issue.severity === 'error' ? 'bad' : 'warn';
+      rows.push([
+        c(issue.taskName || '', style),
+        c(issue.start != null ? U.formatDate(U.dateForMinutes(state.event.date, issue.start)) : '', style),
+        c(issue.start != null ? U.formatTime(issue.start) : '', 'time'),
+        c(issue.end != null ? U.formatTimeDay(issue.end) : '', 'time'),
+        issue.required ? n(issue.required, style) : c('', style),
+        issue.required ? n(issue.filled, style) : c('', style),
+        issue.required ? n(issue.required - issue.filled, style) : c('', style),
+        c(issue.message, 'wrap')
+      ]);
+    });
+
+    if (rows.length === 1) {
+      rows.push([c('Keine offenen oder problematischen Schichten – der Plan ist vollständig besetzt.', 'good')]);
+    }
+
+    return {
+      name: 'Offene Schichten',
+      columns: [{ width: 26 }, { width: 13 }, { width: 10 }, { width: 11 }, { width: 10 }, { width: 10 }, { width: 8 }, { width: 52 }],
+      rows: rows,
+      freeze: 1,
+      headerRow: 1,
+      autoFilter: true
+    };
+  }
+
+  /* ---------------- Blatt 5: Veranstaltung ---------------- */
+
+  function sheetInfo(state, schedule) {
+    var s = schedule.stats;
+    var rows = [];
+    rows.push([{ v: 'Veranstaltung', s: 'title' }]);
+    rows.push([]);
+    rows.push([h('Feld'), h('Wert')]);
+    rows.push([c('Name', 'bold'), c(state.event.name || '')]);
+    rows.push([c('Datum', 'bold'), c(U.formatDate(state.event.date) + ' (' + U.weekdayName(state.event.date) + ')')]);
+    rows.push([c('Beginn', 'bold'), c(U.formatTime(schedule.window.start), 'time')]);
+    rows.push([c('Ende', 'bold'), c(U.formatTimeDay(schedule.window.end), 'time')]);
+    rows.push([c('Dauer', 'bold'), c(U.formatDuration(schedule.window.end - schedule.window.start))]);
+    rows.push([c('Bemerkungen', 'bold'), c(state.event.notes || '', 'wrap')]);
+    rows.push([]);
+    rows.push([h('Kennzahl'), h('Wert')]);
+    rows.push([c('Aufgaben', 'bold'), n(state.tasks.length)]);
+    rows.push([c('Personen', 'bold'), n(s.perPerson.length)]);
+    rows.push([c('Schichten gesamt', 'bold'), n(s.totalSlots)]);
+    rows.push([c('Benötigte Plätze', 'bold'), n(s.requiredSeats)]);
+    rows.push([c('Besetzte Plätze', 'bold'), n(s.filledSeats)]);
+    rows.push([c('Offene Plätze', 'bold'), s.openSeats ? n(s.openSeats, 'bad') : n(0, 'good')]);
+    rows.push([c('Gesamtarbeitszeit (h)', 'bold'), n(Math.round(s.totalMinutes / 60 * 100) / 100, 'number')]);
+    rows.push([c('Ø je Person (h)', 'bold'), n(Math.round(s.meanMinutes / 60 * 100) / 100, 'number')]);
+    rows.push([c('Spanne min/max (h)', 'bold'), c(U.hoursText(s.minMinutes) + ' – ' + U.hoursText(s.maxMinutes))]);
+    rows.push([]);
+    rows.push([{ v: 'Erstellt am ' + new Date(schedule.generatedAt).toLocaleString('de-DE') +
+      ' mit Schichtplaner (Zufallsstartwert ' + schedule.seed + ')', s: 'muted' }]);
+
+    return {
+      name: 'Veranstaltung',
+      columns: [{ width: 26 }, { width: 46 }],
+      rows: rows
+    };
+  }
+
+  /* ---------------- Öffentliche API ---------------- */
+
+  function buildWorkbook(state, schedule) {
+    var opt = (state.options && state.options.exportSheets) || {};
+    var sheets = [sheetPlan(state, schedule)];
+    if (opt.people !== false) sheets.push(sheetPeople(state, schedule));
+    if (opt.availability !== false) sheets.push(sheetAvailability(state));
+    if (opt.issues !== false) sheets.push(sheetIssues(state, schedule));
+    if (opt.info !== false) sheets.push(sheetInfo(state, schedule));
+    return window.XlsxWriter.build(sheets);
+  }
+
+  function filename(state) {
+    return 'Schichtplan_' + U.slugify(state.event.name) + '_' + (state.event.date || U.todayIso()) + '.xlsx';
+  }
+
+  function downloadXlsx(state, schedule) {
+    var blob = buildWorkbook(state, schedule);
+    U.downloadBlob(blob, filename(state));
+  }
+
+  /** Zusätzlicher CSV-Export des Schichtplans (Semikolon, Excel-tauglich) */
+  function downloadCsv(state, schedule) {
+    var maxPeople = 1;
+    schedule.slots.forEach(function (s) { maxPeople = Math.max(maxPeople, s.required); });
+    var head = ['Datum', 'Aufgabe', 'Startzeit', 'Endzeit', 'Dauer (min)'];
+    for (var i = 0; i < maxPeople; i++) head.push('Person ' + (i + 1));
+    head.push('Bemerkung');
+
+    var lines = [head.join(';')];
+    schedule.slots.slice().sort(sortSlots).forEach(function (slot) {
+      var open = slot.required - slot.assigned.filter(Boolean).length;
+      var cells = [
+        U.formatDate(U.dateForMinutes(state.event.date, slot.start)),
+        slot.taskName,
+        U.formatTime(slot.start),
+        U.formatTimeDay(slot.end),
+        String(slot.end - slot.start)
+      ];
+      for (var j = 0; j < maxPeople; j++) {
+        var pid = j < slot.required ? slot.assigned[j] : null;
+        cells.push(j >= slot.required ? '' : (pid ? nameOf(state, pid) : 'offen'));
+      }
+      cells.push((open > 0 ? open + ' Plätze offen. ' : '') + (slot.taskNote || ''));
+      lines.push(cells.map(csvCell).join(';'));
+    });
+
+    var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    U.downloadBlob(blob, filename(state).replace(/\.xlsx$/, '.csv'));
+  }
+
+  function csvCell(value) {
+    var s = String(value == null ? '' : value);
+    return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  return {
+    buildWorkbook: buildWorkbook,
+    downloadXlsx: downloadXlsx,
+    downloadCsv: downloadCsv,
+    filename: filename
+  };
+})();
+
+</script>
+<script>
+/* ---- src/ui.js ---- */
+/* ============================================================
+   ui.js – Darstellung der einzelnen Wizard-Schritte
+   Liefert HTML-Strings; die Ereignisbehandlung übernimmt app.js
+   per Delegation (data-action / data-bind).
+   ============================================================ */
+
+window.UI = (function () {
+  'use strict';
+
+  var U = window.Util;
+  var e = U.escapeHtml;
+
+  var STEPS = [
+    { n: 1, label: 'Veranstaltung',   desc: 'Name, Datum, Zeitraum' },
+    { n: 2, label: 'Personen',        desc: 'Wer kann eingeteilt werden?' },
+    { n: 3, label: 'Aufgaben',        desc: 'Schichtarten und Längen' },
+    { n: 4, label: 'Verfügbarkeit',   desc: 'Abwesenheiten eintragen' },
+    { n: 5, label: 'Planungsregeln',  desc: 'Feineinstellungen' },
+    { n: 6, label: 'Plan & Export',   desc: 'Ergebnis und Excel' }
+  ];
+
+  var TASK_PRESETS = [
+    { name: 'Teeschicht',             slotMinutes: 120, peoplePerSlot: 1, wholeEvent: true },
+    { name: 'Türschicht',             slotMinutes: 60,  peoplePerSlot: 2, wholeEvent: true },
+    { name: 'Küchendienst / Essen',   slotMinutes: 90,  peoplePerSlot: 2, wholeEvent: false },
+    { name: 'Frühstücksvorbereitung', slotMinutes: 90,  peoplePerSlot: 2, wholeEvent: false },
+    { name: 'Aufräumen',              slotMinutes: 60,  peoplePerSlot: 2, wholeEvent: false },
+    { name: 'Brötchen besorgen',      slotMinutes: 60,  peoplePerSlot: 1, wholeEvent: false }
+  ];
+
+  /* view-lokaler Zustand (nicht persistiert) */
+  var view = { tab: 'timeline' };
+
+  /* ---------------- Navigation ---------------- */
+
+  function renderNav(state) {
+    return STEPS.map(function (s) {
+      var current = s.n === state.step;
+      var done = s.n < state.step;
+      return '<button type="button" class="stepnav-item' + (done ? ' done' : '') + '"' +
+        (current ? ' aria-current="step"' : '') +
+        ' data-action="goto-step" data-step="' + s.n + '">' +
+        '<span class="stepnav-num">' + (done ? '✓' : s.n) + '</span>' +
+        '<span><span class="stepnav-label">' + e(s.label) + '</span><br>' +
+        '<span class="stepnav-desc">' + e(s.desc) + '</span></span>' +
+        '</button>';
+    }).join('');
+  }
+
+  function head(step, title, text) {
+    return '<div class="step-head">' +
+      '<div class="step-kicker">Schritt ' + step + ' von 6</div>' +
+      '<h2>' + e(title) + '</h2>' +
+      '<p>' + text + '</p></div>';
+  }
+
+  /* ---------------- Schritt 1: Veranstaltung ---------------- */
+
+  /** Live-Hinweis zur Dauer der Veranstaltung (wird gezielt aktualisiert) */
+  function eventDurationHtml(state) {
+    var ev = state.event;
+    var s = U.parseTime(ev.startTime), en = U.parseTime(ev.endTime);
+    if (s === null || en === null || s === en) return '';
+    var w = U.normalizeWindow(s, en);
+    return 'Dauer: <strong>' + U.formatDuration(w.end - w.start) + '</strong>' +
+      (w.end > U.MIN_PER_DAY ? ' · endet am Folgetag um ' + U.formatTime(w.end) : '') +
+      (ev.date ? ' · ' + U.weekdayName(ev.date) + ', ' + U.formatDate(ev.date) : '');
+  }
+
+  function step1(state) {
+    var ev = state.event;
+
+    return '<section class="panel">' +
+      head(1, 'Veranstaltung anlegen',
+        'Rahmendaten der Veranstaltung. Der hier festgelegte Zeitraum ist die Obergrenze für alle Schichten.') +
+      '<div class="field-grid">' +
+        field('Name der Veranstaltung *', '<input type="text" data-bind="event.name" value="' + e(ev.name) + '" placeholder="z. B. Sommerfest der Gemeinde" autocomplete="off">', '', 'span-2') +
+        field('Datum *', '<input type="date" data-bind="event.date" value="' + e(ev.date) + '">',
+          ev.date ? U.weekdayName(ev.date) : '') +
+        field('Startzeit *', '<input type="time" data-bind="event.startTime" value="' + e(ev.startTime) + '">') +
+        field('Endzeit *', '<input type="time" data-bind="event.endTime" value="' + e(ev.endTime) + '">',
+          'Liegt die Endzeit vor der Startzeit, endet die Veranstaltung am Folgetag.') +
+        field('Bemerkungen (optional)', '<textarea data-bind="event.notes" placeholder="Hinweise, die im Plan und im Excel-Export erscheinen">' + e(ev.notes) + '</textarea>', '', 'span-2') +
+      '</div>' +
+      '<p class="small muted mt-16" id="eventDuration">' + eventDurationHtml(state) + '</p>' +
+      '</section>';
+  }
+
+  function field(label, control, hint, extraClass) {
+    return '<div class="field ' + (extraClass || '') + '">' +
+      '<label>' + e(label) + '</label>' + control +
+      (hint ? '<span class="hint">' + hint + '</span>' : '') +
+      '</div>';
+  }
+
+  /* ---------------- Schritt 2: Personen ---------------- */
+
+  function peopleCountText(state) {
+    return state.people.filter(function (p) { return p.name.trim(); }).length + ' Person(en) erfasst';
+  }
+
+  function step2(state) {
+    var rows = state.people.map(function (p, i) {
+      return '<div class="row-item">' +
+        '<span class="idx">' + (i + 1) + '.</span>' +
+        '<input type="text" data-bind="person.name" data-id="' + p.id + '" value="' + e(p.name) + '" placeholder="Vor- und Nachname" autocomplete="off">' +
+        '<input type="text" data-bind="person.note" data-id="' + p.id + '" value="' + e(p.note) + '" placeholder="Notiz (optional)" style="max-width:220px">' +
+        '<button type="button" class="btn btn-icon" data-action="remove-person" data-id="' + p.id + '" title="Person entfernen" aria-label="Person entfernen">✕</button>' +
+        '</div>';
+    }).join('');
+
+    return '<section class="panel">' +
+      head(2, 'Teilnehmende Personen erfassen',
+        'Alle Personen, die grundsätzlich für Schichten eingeplant werden dürfen. Abwesenheiten werden erst in Schritt&nbsp;4 eingetragen.') +
+      (state.people.length
+        ? '<div class="row-list">' + rows + '</div>'
+        : '<div class="empty">Noch keine Personen erfasst.</div>') +
+      '<div class="actions-row mt-16">' +
+        '<button type="button" class="btn btn-secondary" data-action="add-person">+ Person hinzufügen</button>' +
+        '<span class="small muted" id="peopleCount">' + peopleCountText(state) + '</span>' +
+      '</div>' +
+      '<div class="mt-16">' +
+        '<div class="section-title"><h3>Mehrere Namen auf einmal einfügen</h3></div>' +
+        '<textarea id="bulkNames" placeholder="Ein Name pro Zeile oder durch Komma getrennt"></textarea>' +
+        '<div class="actions-row mt-16"><button type="button" class="btn btn-secondary btn-sm" data-action="add-bulk">Namen übernehmen</button></div>' +
+      '</div>' +
+      '</section>';
+  }
+
+  /* ---------------- Schritt 3: Aufgaben ---------------- */
+
+  function step3(state) {
+    var cards = state.tasks.map(function (t, i) { return taskCard(state, t, i); }).join('');
+    var presets = TASK_PRESETS.map(function (p, i) {
+      return '<button type="button" class="btn btn-ghost btn-sm" data-action="add-preset" data-preset="' + i + '">+ ' + e(p.name) + '</button>';
+    }).join('');
+
+    return '<section class="panel">' +
+      head(3, 'Aufgaben und Schichtarten definieren',
+        'Je Aufgabe wird festgelegt, wann sie benötigt wird, wie lang eine Schicht ist und wie viele Personen gleichzeitig gebraucht werden.') +
+      '<div class="note note-info"><strong>Vorlagen:</strong> ' + presets + '</div>' +
+      (state.tasks.length ? cards : '<div class="empty">Noch keine Aufgaben angelegt.</div>') +
+      '<div class="actions-row mt-16">' +
+        '<button type="button" class="btn btn-secondary" data-action="add-task">+ Eigene Aufgabe hinzufügen</button>' +
+      '</div>' +
+      '</section>';
+  }
+
+  function taskTitleText(task, index) {
+    return 'Aufgabe ' + (index + 1) + (task.name.trim() ? ': ' + task.name.trim() : '');
+  }
+
+  function taskCard(state, task, index) {
+    return '<div class="card">' +
+      '<div class="card-head">' +
+        '<h4 id="taskTitle_' + task.id + '">' + e(taskTitleText(task, index)) + '</h4>' +
+        '<button type="button" class="btn btn-icon" data-action="remove-task" data-id="' + task.id + '" title="Aufgabe entfernen" aria-label="Aufgabe entfernen">✕</button>' +
+      '</div>' +
+      '<div class="field-grid">' +
+        field('Name der Aufgabe *', '<input type="text" data-bind="task.name" data-id="' + task.id + '" value="' + e(task.name) + '" placeholder="z. B. Teeschicht" autocomplete="off">', '', 'span-2') +
+        field('Zeitraum', '<label class="check"><input type="checkbox" data-bind="task.wholeEvent" data-id="' + task.id + '"' + (task.wholeEvent ? ' checked' : '') + '> Läuft über die gesamte Veranstaltung</label>',
+          task.wholeEvent ? e(state.event.startTime) + '–' + e(state.event.endTime) : '') +
+        (task.wholeEvent ? '' :
+          field('Benötigt von *', '<input type="time" data-bind="task.startTime" data-id="' + task.id + '" value="' + e(task.startTime) + '">') +
+          field('bis *', '<input type="time" data-bind="task.endTime" data-id="' + task.id + '" value="' + e(task.endTime) + '">')) +
+        field('Länge einer Schicht (Minuten) *', '<input type="number" min="5" step="5" data-bind="task.slotMinutes" data-id="' + task.id + '" value="' + e(task.slotMinutes) + '">', U.formatDuration(task.slotMinutes)) +
+        field('Personen pro Schicht *', '<input type="number" min="1" max="10" step="1" data-bind="task.peoplePerSlot" data-id="' + task.id + '" value="' + e(task.peoplePerSlot) + '">') +
+        field('Bemerkung (optional)', '<input type="text" data-bind="task.note" data-id="' + task.id + '" value="' + e(task.note) + '" placeholder="erscheint im Excel-Export">', '', 'span-2') +
+      '</div>' +
+      '<p class="small muted mt-16" id="taskPreview_' + task.id + '">' + previewSlots(state, task) + '</p>' +
+      '</div>';
+  }
+
+  /** Kleine Vorschau: wie viele Schichten entstehen aus dieser Aufgabe? */
+  function previewSlots(state, task) {
+    var evs = U.parseTime(state.event.startTime), eve = U.parseTime(state.event.endTime);
+    if (evs === null || eve === null) return '';
+    var win = U.normalizeWindow(evs, eve);
+    var start, end;
+    if (task.wholeEvent) { start = win.start; end = win.end; }
+    else {
+      var ts = U.parseTime(task.startTime), te = U.parseTime(task.endTime);
+      if (ts === null || te === null) return '';
+      start = U.alignToWindow(ts, win.start);
+      end = U.alignToWindow(te, start);
+      if (end <= start) end += U.MIN_PER_DAY;
+      start = Math.max(start, win.start);
+      end = Math.min(end, win.end);
+      if (end <= start) return '<span style="color:var(--danger)">Zeitraum liegt außerhalb der Veranstaltung.</span>';
+    }
+    var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
+    var count = Math.ceil((end - start) / len);
+    var required = U.clamp(parseInt(task.peoplePerSlot, 10) || 1, 1, 10);
+    return 'Ergibt <strong>' + count + '</strong> Schicht(en) à ' + U.formatDuration(len) +
+      ' von ' + U.formatTime(start) + ' bis ' + U.formatTimeDay(end) +
+      ' · Personenstunden gesamt: <strong>' + U.hoursText((end - start) * required) + ' h</strong>';
+  }
+
+  /* ---------------- Schritt 4: Verfügbarkeiten ---------------- */
+
+  function step4(state) {
+    var people = state.people.filter(function (p) { return p.name.trim(); });
+    if (!people.length) {
+      return '<section class="panel">' + head(4, 'Verfügbarkeiten und Abwesenheiten', 'Bitte zuerst Personen erfassen.') +
+        '<div class="empty">Keine Personen vorhanden – zurück zu Schritt 2.</div></section>';
+    }
+
+    var cards = people.map(function (p) {
+      var absences = state.absences.filter(function (a) { return a.personId === p.id; });
+      var rows = absences.map(function (a) {
+        return '<div class="row-item">' +
+          '<span class="small muted">nicht da von</span>' +
+          '<input type="time" data-bind="absence.startTime" data-id="' + a.id + '" value="' + e(a.startTime) + '" style="max-width:130px">' +
+          '<span class="small muted">bis</span>' +
+          '<input type="time" data-bind="absence.endTime" data-id="' + a.id + '" value="' + e(a.endTime) + '" style="max-width:130px">' +
+          '<input type="text" data-bind="absence.reason" data-id="' + a.id + '" value="' + e(a.reason) + '" placeholder="Grund (optional)">' +
+          '<button type="button" class="btn btn-icon" data-action="remove-absence" data-id="' + a.id + '" title="Eintrag entfernen" aria-label="Eintrag entfernen">✕</button>' +
+          '</div>';
+      }).join('');
+
+      return '<div class="card">' +
+        '<div class="card-head"><h4>' + e(p.name) + '</h4>' +
+        '<span class="card-meta">' + (absences.length ? absences.length + ' Abwesenheit(en)' : 'durchgehend verfügbar') + '</span></div>' +
+        '<div class="field-grid">' +
+          field('Kommt erst ab (optional)', '<input type="time" data-bind="person.arrival" data-id="' + p.id + '" value="' + e(p.arrival) + '">') +
+          field('Geht früher ab (optional)', '<input type="time" data-bind="person.departure" data-id="' + p.id + '" value="' + e(p.departure) + '">') +
+        '</div>' +
+        (rows ? '<div class="row-list mt-16">' + rows + '</div>' : '') +
+        '<div class="actions-row mt-16">' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-action="add-absence" data-id="' + p.id + '">+ Abwesenheit eintragen</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+
+    return '<section class="panel">' +
+      head(4, 'Verfügbarkeiten und Abwesenheiten festlegen',
+        'Zeiten, in denen jemand <strong>nicht</strong> eingeplant werden darf. Wer immer da ist, braucht keinen Eintrag.') +
+      cards +
+      '</section>';
+  }
+
+  /* ---------------- Schritt 5: Planungsregeln ---------------- */
+
+  function step5(state) {
+    var o = state.options;
+    var demand = totalDemand(state);
+
+    return '<section class="panel">' +
+      head(5, 'Planungsregeln festlegen',
+        'Die Grundregeln (keine Abwesenheiten, keine Doppelbelegung, faire Verteilung) gelten immer. Hier lassen sich zusätzliche Wünsche einstellen.') +
+      '<div class="field-grid">' +
+        field('Mindestpause zwischen zwei Schichten (Minuten)',
+          '<input type="number" min="0" step="15" data-bind="option.minRestMinutes" value="' + e(o.minRestMinutes) + '">',
+          '0 = keine Vorgabe. Wird nur eingehalten, wenn der Plan sonst besetzbar bleibt.') +
+        field('Höchstzahl Schichten je Person',
+          '<input type="number" min="0" step="1" data-bind="option.maxShiftsPerPerson" value="' + e(o.maxShiftsPerPerson) + '">',
+          '0 = keine Obergrenze. Eine zu niedrige Zahl führt zu offenen Schichten.') +
+        field('Zufallsstartwert',
+          '<input type="number" step="1" data-bind="option.seed" value="' + e(o.seed) + '">',
+          'Gleicher Wert = gleicher Plan. Ändern erzeugt eine andere faire Variante.') +
+        field('Weitere Regeln',
+          '<label class="check"><input type="checkbox" data-bind="option.preferBlocks"' + (o.preferBlocks ? ' checked' : '') + '> Schichten möglichst am Stück (Blöcke)</label>' +
+          '<label class="check"><input type="checkbox" data-bind="option.balanceTaskTypes"' + (o.balanceTaskTypes !== false ? ' checked' : '') + '> Aufgabenarten gleichmäßig verteilen</label>' +
+          '<label class="check"><input type="checkbox" data-bind="option.mergeShortLastSlot"' + (o.mergeShortLastSlot !== false ? ' checked' : '') + '> Sehr kurze Restschicht an die vorherige anhängen</label>',
+          '', 'span-2') +
+      '</div>' +
+
+      '<div class="note note-info mt-16" id="demandPreview"><strong>Bedarfsvorschau:</strong> ' + demand.text + '</div>' +
+      '<div class="note note-warn" id="demandWarning"' + (demand.warning ? '' : ' hidden') + '>' + demand.warning + '</div>' +
+
+      '<div class="actions-row mt-16">' +
+        '<button type="button" class="btn btn-primary" data-action="compute">⚙️ Plan berechnen</button>' +
+        '<span class="small muted">Die Berechnung dauert nur einen Augenblick und kann beliebig oft wiederholt werden.</span>' +
+      '</div>' +
+      '</section>';
+  }
+
+  function totalDemand(state) {
+    var evs = U.parseTime(state.event.startTime), eve = U.parseTime(state.event.endTime);
+    if (evs === null || eve === null) return { text: 'Zeitraum unvollständig.', warning: '' };
+    var win = U.normalizeWindow(evs, eve);
+    var personMinutes = 0, slotCount = 0;
+
+    state.tasks.forEach(function (t) {
+      var start, end;
+      if (t.wholeEvent) { start = win.start; end = win.end; }
+      else {
+        var ts = U.parseTime(t.startTime), te = U.parseTime(t.endTime);
+        if (ts === null || te === null) return;
+        start = U.alignToWindow(ts, win.start);
+        end = U.alignToWindow(te, start);
+        if (end <= start) end += U.MIN_PER_DAY;
+        start = Math.max(start, win.start);
+        end = Math.min(end, win.end);
+        if (end <= start) return;
+      }
+      var len = Math.max(5, parseInt(t.slotMinutes, 10) || 60);
+      var required = U.clamp(parseInt(t.peoplePerSlot, 10) || 1, 1, 10);
+      personMinutes += (end - start) * required;
+      slotCount += Math.ceil((end - start) / len);
+    });
+
+    var ctx = window.Scheduler.buildContext(state);
+    var capacity = 0;
+    ctx.peopleIds.forEach(function (id) { capacity += ctx.availableMinutes[id]; });
+    var people = ctx.peopleIds.length;
+
+    var text = slotCount + ' Schichten · ' + U.hoursText(personMinutes) + ' Personenstunden zu verteilen · ' +
+      people + ' Person(en) · rechnerisch <strong>' +
+      (people ? U.hoursText(personMinutes / people) : '0') + ' h</strong> pro Person.';
+
+    var warning = '';
+    if (!people) warning = 'Es sind keine Personen erfasst – der Plan bliebe komplett leer.';
+    else if (personMinutes > capacity) {
+      warning = 'Der Bedarf (' + U.hoursText(personMinutes) + ' h) übersteigt die verfügbare Zeit aller Personen (' +
+        U.hoursText(capacity) + ' h). Es werden zwangsläufig Schichten offen bleiben.';
+    }
+    return { text: text, warning: warning };
+  }
+
+  /* ---------------- Schritt 6: Ergebnis ---------------- */
+
+  function step6(state) {
+    var schedule = state.schedule;
+    if (!schedule) {
+      return '<section class="panel">' +
+        head(6, 'Schichtplan & Export', 'Es wurde noch kein Plan berechnet.') +
+        '<div class="empty">Bitte in Schritt 5 auf „Plan berechnen“ klicken.</div>' +
+        '<div class="actions-row mt-16"><button type="button" class="btn btn-primary" data-action="compute">⚙️ Plan jetzt berechnen</button></div>' +
+        '</section>';
+    }
+
+    var s = schedule.stats;
+    var openIssues = schedule.issues.length;
+
+    var html = '<section class="panel">' +
+      head(6, 'Schichtplan & Export',
+        'Der Plan kann hier noch von Hand angepasst werden. Der Excel-Export übernimmt immer den aktuell angezeigten Stand.');
+
+    if (schedule.stale) {
+      html += '<div class="note note-warn">Die Stammdaten wurden nach der Berechnung geändert. ' +
+        '<button type="button" class="btn btn-sm btn-secondary" data-action="compute">Plan neu berechnen</button></div>';
+    }
+
+    html += '<div class="stat-grid">' +
+      stat('Schichten', s.totalSlots) +
+      stat('Besetzte Plätze', s.filledSeats + ' / ' + s.requiredSeats, s.openSeats ? 'is-warn' : 'is-ok') +
+      stat('Offene Plätze', s.openSeats, s.openSeats ? 'is-danger' : 'is-ok') +
+      stat('Ø Zeit je Person', U.hoursText(s.meanMinutes) + ' h') +
+      stat('Spanne min–max', U.hoursText(s.minMinutes) + '–' + U.hoursText(s.maxMinutes) + ' h', s.spreadMinutes > 90 ? 'is-warn' : 'is-ok') +
+      stat('Schichten je Person', s.minCount + '–' + s.maxCount) +
+      '</div>';
+
+    html += '<div class="actions-row mt-16">' +
+      '<button type="button" class="btn btn-primary" data-action="download-xlsx">⬇️ Excel herunterladen (.xlsx)</button>' +
+      '<button type="button" class="btn btn-secondary" data-action="download-csv">CSV herunterladen</button>' +
+      '<button type="button" class="btn btn-secondary" data-action="print">Drucken</button>' +
+      '<button type="button" class="btn btn-secondary" data-action="compute">Neu berechnen</button>' +
+      '</div>';
+
+    html += '<div class="mt-16"><div class="section-title"><h3>Inhalt der Excel-Datei</h3></div>' +
+      '<div class="field-grid">' +
+        '<label class="check"><input type="checkbox" checked disabled> Blatt „Schichtplan“ (immer enthalten)</label>' +
+        '<label class="check"><input type="checkbox" data-bind="export.people"' + (state.options.exportSheets.people !== false ? ' checked' : '') + '> Blatt „Teilnehmende“</label>' +
+        '<label class="check"><input type="checkbox" data-bind="export.availability"' + (state.options.exportSheets.availability !== false ? ' checked' : '') + '> Blatt „Verfügbarkeiten“</label>' +
+        '<label class="check"><input type="checkbox" data-bind="export.issues"' + (state.options.exportSheets.issues !== false ? ' checked' : '') + '> Blatt „Offene Schichten“</label>' +
+        '<label class="check"><input type="checkbox" data-bind="export.info"' + (state.options.exportSheets.info !== false ? ' checked' : '') + '> Blatt „Veranstaltung“</label>' +
+      '</div></div>';
+
+    html += '</section>';
+
+    html += '<section class="panel">' +
+      '<div class="tabs" role="tablist">' +
+        tab('timeline', 'Zeitplan') +
+        tab('people', 'Nach Person') +
+        tab('issues', 'Probleme' + (openIssues ? ' (' + openIssues + ')' : '')) +
+      '</div>' +
+      (view.tab === 'people' ? renderPeopleView(state, schedule)
+        : view.tab === 'issues' ? renderIssuesView(state, schedule)
+        : renderTimeline(state, schedule)) +
+      '</section>';
+
+    return html;
+  }
+
+  function stat(key, value, cls) {
+    return '<div class="stat ' + (cls || '') + '"><div class="k">' + e(key) + '</div>' +
+      '<div class="v">' + e(value) + '</div></div>';
+  }
+
+  function tab(id, label) {
+    return '<button type="button" class="tab" role="tab" aria-selected="' + (view.tab === id) + '" ' +
+      'data-action="tab" data-tab="' + id + '">' + e(label) + '</button>';
+  }
+
+  function renderTimeline(state, schedule) {
+    if (!schedule.slots.length) return '<div class="empty">Keine Schichten vorhanden.</div>';
+
+    var options = window.Scheduler.seatOptions(state, schedule);
+    var maxSeats = 1;
+    schedule.slots.forEach(function (s) { maxSeats = Math.max(maxSeats, s.required); });
+
+    var slots = schedule.slots.slice().sort(function (a, b) {
+      return a.start - b.start || a.taskName.localeCompare(b.taskName, 'de');
+    });
+
+    var headCells = '<th>Zeit</th><th>Aufgabe</th>';
+    for (var i = 0; i < maxSeats; i++) headCells += '<th>Person ' + (i + 1) + '</th>';
+    headCells += '<th>Status</th>';
+
+    var lastStart = null;
+    var body = slots.map(function (slot) {
+      var filled = slot.assigned.filter(Boolean).length;
+      var cls = filled === 0 ? 'is-open' : (filled < slot.required ? 'is-partial' : '');
+      if (lastStart !== null && slot.start !== lastStart) cls += ' row-gap';
+      lastStart = slot.start;
+
+      var cells = '<td class="time">' + U.formatTime(slot.start) + '–' + U.formatTimeDay(slot.end) +
+        '<br><span class="small muted">' + U.formatDuration(slot.end - slot.start) + '</span></td>' +
+        '<td>' + e(slot.taskName) + (slot.taskNote ? '<br><span class="small muted">' + e(slot.taskNote) + '</span>' : '') + '</td>';
+
+      for (var seat = 0; seat < maxSeats; seat++) {
+        if (seat >= slot.required) { cells += '<td class="muted small">–</td>'; continue; }
+        cells += '<td class="seat">' + seatSelect(slot, seat, options[slot.id][seat]) + '</td>';
+      }
+
+      cells += '<td>' + (filled >= slot.required
+        ? '<span class="badge badge-ok">besetzt</span>'
+        : (filled === 0
+          ? '<span class="badge badge-danger">offen</span>'
+          : '<span class="badge badge-warn">' + (slot.required - filled) + ' fehlt</span>')) + '</td>';
+
+      return '<tr class="' + cls + '">' + cells + '</tr>';
+    }).join('');
+
+    return '<div class="table-wrap"><table class="data"><thead><tr>' + headCells + '</tr></thead>' +
+      '<tbody>' + body + '</tbody></table></div>' +
+      '<p class="small muted mt-16">Über die Auswahlfelder lassen sich Personen manuell tauschen. ' +
+      'Nicht auswählbare Personen sind zu dieser Zeit abwesend oder bereits eingeteilt.</p>';
+  }
+
+  function seatSelect(slot, seat, candidates) {
+    var current = slot.assigned[seat] || '';
+    var opts = '<option value=""' + (current ? '' : ' selected') + '>— frei —</option>';
+    (candidates || []).forEach(function (cand) {
+      var selected = cand.personId === current;
+      opts += '<option value="' + e(cand.personId) + '"' +
+        (selected ? ' selected' : '') +
+        (!cand.ok && !selected ? ' disabled' : '') + '>' +
+        e(cand.name) + (cand.ok || selected ? '' : ' – ' + e(cand.reason)) +
+        '</option>';
+    });
+    return '<select class="' + (current ? '' : 'is-empty') + '" data-action="seat" data-slot="' + e(slot.id) +
+      '" data-seat="' + seat + '" aria-label="Person für ' + e(slot.taskName) + '">' + opts + '</select>';
+  }
+
+  function renderPeopleView(state, schedule) {
+    var s = schedule.stats;
+    if (!s.perPerson.length) return '<div class="empty">Keine Personen erfasst.</div>';
+    var max = Math.max(1, s.maxMinutes);
+    var slotById = {};
+    schedule.slots.forEach(function (slot) { slotById[slot.id] = slot; });
+
+    var cards = s.perPerson.slice().sort(function (a, b) {
+      return b.minutes - a.minutes || a.name.localeCompare(b.name, 'de');
+    }).map(function (rec) {
+      var shifts = rec.shifts.map(function (id) { return slotById[id]; })
+        .filter(Boolean)
+        .sort(function (a, b) { return a.start - b.start; })
+        .map(function (slot) {
+          return '<li><span class="t">' + U.formatTime(slot.start) + '–' + U.formatTimeDay(slot.end) + '</span>' +
+            '<span>' + e(slot.taskName) + '</span></li>';
+        }).join('');
+
+      return '<div class="person-card">' +
+        '<h4><span>' + e(rec.name) + '</span>' +
+        '<span class="small muted">' + rec.count + ' Schicht(en) · ' + U.hoursText(rec.minutes) + ' h</span></h4>' +
+        '<div class="bar mt-16"><span style="width:' + Math.round(rec.minutes / max * 100) + '%"></span></div>' +
+        (rec.availableMinutes < (schedule.window.end - schedule.window.start)
+          ? '<p class="small muted mt-16">verfügbar: ' + U.hoursText(rec.availableMinutes) + ' h von ' +
+            U.hoursText(schedule.window.end - schedule.window.start) + ' h</p>' : '') +
+        (shifts ? '<ul>' + shifts + '</ul>' : '<p class="small muted mt-16">Keine Schicht zugeteilt.</p>') +
+        '</div>';
+    }).join('');
+
+    return '<div class="person-grid">' + cards + '</div>';
+  }
+
+  function renderIssuesView(state, schedule) {
+    if (!schedule.issues.length) {
+      return '<div class="note note-ok">Alle Schichten sind vollständig besetzt – es gibt keine offenen Punkte.</div>';
+    }
+    var rows = schedule.issues.map(function (issue) {
+      return '<tr class="' + (issue.severity === 'error' ? 'is-open' : 'is-partial') + '">' +
+        '<td>' + e(issue.taskName || '') + '</td>' +
+        '<td class="time">' + (issue.start != null
+          ? U.formatTime(issue.start) + '–' + U.formatTimeDay(issue.end) : '–') + '</td>' +
+        '<td class="num">' + (issue.required ? issue.filled + ' / ' + issue.required : '–') + '</td>' +
+        '<td>' + e(issue.message) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    return '<div class="table-wrap"><table class="data">' +
+      '<thead><tr><th>Aufgabe</th><th>Zeit</th><th>Besetzt</th><th>Hinweis</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>' +
+      '<p class="small muted mt-16">Mögliche Gegenmaßnahmen: Schichtlänge ändern, Personen pro Schicht reduzieren, ' +
+      'weitere Personen erfassen oder Abwesenheiten prüfen.</p>';
+  }
+
+  /* ---------------- Dispatcher ---------------- */
+
+  function renderStep(state) {
+    switch (state.step) {
+      case 1: return step1(state);
+      case 2: return step2(state);
+      case 3: return step3(state);
+      case 4: return step4(state);
+      case 5: return step5(state);
+      case 6: return step6(state);
+      default: return step1(state);
+    }
+  }
+
+  function primaryLabel(step) {
+    if (step === 5) return '⚙️ Plan berechnen';
+    if (step === 6) return '⬇️ Excel herunterladen';
+    return 'Weiter ›';
+  }
+
+  return {
+    STEPS: STEPS,
+    TASK_PRESETS: TASK_PRESETS,
+    view: view,
+    renderNav: renderNav,
+    renderStep: renderStep,
+    primaryLabel: primaryLabel,
+    // Bausteine für gezielte Aktualisierungen ohne Neuaufbau des DOM
+    eventDurationHtml: eventDurationHtml,
+    peopleCountText: peopleCountText,
+    taskTitleText: taskTitleText,
+    previewSlots: previewSlots,
+    totalDemand: totalDemand
+  };
+})();
+
+</script>
+<script>
+/* ---- src/app.js ---- */
+/* ============================================================
+   app.js – Wizard-Steuerung, Ereignisbehandlung, Bootstrap
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  var U = window.Util;
+  var Store = window.Store;
+  var UI = window.UI;
+
+  var content = U.$('#stepContent');
+  var nav = U.$('#stepNav');
+  var footerHint = U.$('#footerHint');
+  var toastHost = U.$('#toastHost');
+  var fileInput = U.$('#jsonFileInput');
+
+  var lastErrors = [];
+
+  /* ---------------- Rendering ---------------- */
+
+  function render(focusHint) {
+    var state = Store.get();
+    nav.innerHTML = UI.renderNav(state);
+    content.innerHTML = UI.renderStep(state);
+
+    // Fußzeile
+    U.$('[data-action="prev"]').disabled = state.step <= 1;
+    var nextBtn = U.$('[data-action="next"]');
+    nextBtn.textContent = UI.primaryLabel(state.step);
+    nextBtn.classList.toggle('btn-primary', true);
+
+    showHint();
+    restoreFocus(focusHint);
+  }
+
+  function restoreFocus(hint) {
+    if (!hint || !hint.bind) return;
+    var selector = '[data-bind="' + hint.bind + '"]' + (hint.id ? '[data-id="' + hint.id + '"]' : '');
+    var el = content.querySelector(selector);
+    if (!el) return;
+    el.focus();
+    if (hint.selStart != null && typeof el.setSelectionRange === 'function') {
+      try { el.setSelectionRange(hint.selStart, hint.selEnd); } catch (err) { /* z. B. bei type=time */ }
+    }
+  }
+
+  function focusHintFrom(target) {
+    if (!target || document.activeElement !== target || !target.dataset || !target.dataset.bind) return null;
+    var hint = { bind: target.dataset.bind, id: target.dataset.id || '' };
+    if (typeof target.selectionStart === 'number') {
+      try { hint.selStart = target.selectionStart; hint.selEnd = target.selectionEnd; } catch (err) { /* egal */ }
+    }
+    return hint;
+  }
+
+  function showHint(message, isError) {
+    if (message) {
+      footerHint.innerHTML = message;
+      footerHint.classList.toggle('is-error', !!isError);
+      return;
+    }
+    var state = Store.get();
+    footerHint.classList.remove('is-error');
+    var texts = {
+      1: 'Rahmendaten der Veranstaltung eingeben.',
+      2: 'Alle Personen erfassen, die eingeplant werden dürfen.',
+      3: 'Aufgaben mit Zeitraum, Schichtlänge und Personenzahl anlegen.',
+      4: 'Abwesenheiten eintragen – wer immer da ist, braucht keinen Eintrag.',
+      5: 'Regeln prüfen und den Plan berechnen.',
+      6: 'Plan prüfen, bei Bedarf anpassen und als Excel herunterladen.'
+    };
+    footerHint.textContent = texts[state.step] || '';
+  }
+
+  function toast(message, type) {
+    var el = document.createElement('div');
+    el.className = 'toast ' + (type || '');
+    el.textContent = message;
+    toastHost.appendChild(el);
+    setTimeout(function () {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity .3s';
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 350);
+    }, 3200);
+  }
+
+  function showErrors(errors) {
+    lastErrors = errors;
+    if (!errors.length) { showHint(); return; }
+    showHint('<strong>Bitte prüfen:</strong> ' + U.escapeHtml(errors[0]) +
+      (errors.length > 1 ? ' (+' + (errors.length - 1) + ' weitere)' : ''), true);
+  }
+
+  /* ---------------- Navigation ---------------- */
+
+  function goTo(step) {
+    var state = Store.get();
+    state.step = U.clamp(step, 1, 6);
+    Store.save();
+    lastErrors = [];
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    content.focus();
+  }
+
+  function next() {
+    var state = Store.get();
+    if (state.step === 5) { compute(); return; }
+    if (state.step === 6) { downloadXlsx(); return; }
+
+    var errors = Store.validateStep(state.step);
+    if (errors.length) { showErrors(errors); toast(errors[0], 'error'); return; }
+    goTo(state.step + 1);
+  }
+
+  function prev() {
+    var state = Store.get();
+    goTo(state.step - 1);
+  }
+
+  /* ---------------- Aktionen ---------------- */
+
+  function compute() {
+    var state = Store.get();
+    // Alle vorherigen Schritte prüfen, bevor gerechnet wird
+    var errors = [];
+    for (var s = 1; s <= 4; s++) errors = errors.concat(Store.validateStep(s));
+    if (errors.length) {
+      showErrors(errors);
+      toast(errors[0], 'error');
+      return;
+    }
+
+    var t0 = performance.now();
+    state.schedule = window.Scheduler.compute(state);
+    state.step = 6;
+    UI.view.tab = 'timeline';
+    Store.save();
+    render();
+
+    var st = state.schedule.stats;
+    var ms = Math.round(performance.now() - t0);
+    if (st.openSeats > 0) {
+      toast('Plan berechnet (' + ms + ' ms) – ' + st.openSeats + ' Platz/Plätze konnten nicht besetzt werden.', 'error');
+    } else {
+      toast('Plan berechnet (' + ms + ' ms) – alle ' + st.requiredSeats + ' Plätze sind besetzt.', 'ok');
+    }
+  }
+
+  function downloadXlsx() {
+    var state = Store.get();
+    if (!state.schedule) { toast('Bitte zuerst einen Plan berechnen.', 'error'); return; }
+    try {
+      window.Exporter.downloadXlsx(state, state.schedule);
+      toast('Excel-Datei wurde erzeugt.', 'ok');
+    } catch (err) {
+      toast('Excel-Export fehlgeschlagen: ' + err.message, 'error');
+    }
+  }
+
+  function downloadCsv() {
+    var state = Store.get();
+    if (!state.schedule) { toast('Bitte zuerst einen Plan berechnen.', 'error'); return; }
+    window.Exporter.downloadCsv(state, state.schedule);
+    toast('CSV-Datei wurde erzeugt.', 'ok');
+  }
+
+  function addBulkNames() {
+    var box = U.$('#bulkNames');
+    if (!box) return;
+    var names = box.value.split(/[\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!names.length) { toast('Keine Namen gefunden.', 'error'); return; }
+    names.forEach(function (n) { Store.addPerson(n); });
+    box.value = '';
+    render();
+    toast(names.length + ' Person(en) hinzugefügt.', 'ok');
+  }
+
+  function exportJson() {
+    var state = Store.get();
+    var blob = new Blob([Store.toJson()], { type: 'application/json' });
+    U.downloadBlob(blob, 'schichtplaner_' + U.slugify(state.event.name) + '.json');
+    toast('Projektdatei gespeichert.', 'ok');
+  }
+
+  function importJson(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        Store.fromJson(String(reader.result));
+        render();
+        toast('Projektdatei geladen.', 'ok');
+      } catch (err) {
+        toast('Datei konnte nicht gelesen werden.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  /* ---------------- Datenbindung ---------------- */
+
+  function applyBinding(target) {
+    var bind = target.dataset.bind;
+    if (!bind) return false;
+    var id = target.dataset.id || '';
+    var parts = bind.split('.');
+    var group = parts[0], key = parts[1];
+    var state = Store.get();
+    var value;
+
+    if (target.type === 'checkbox') value = target.checked;
+    else if (target.type === 'number') value = target.value === '' ? 0 : Number(target.value);
+    else value = target.value;
+
+    if (group === 'event') {
+      state.event[key] = value;
+    } else if (group === 'option') {
+      state.options[key] = value;
+    } else if (group === 'export') {
+      state.options.exportSheets[key] = value;
+    } else if (group === 'person') {
+      var person = Store.personById(id);
+      if (!person) return false;
+      person[key] = value;
+    } else if (group === 'task') {
+      var task = Store.taskById(id);
+      if (!task) return false;
+      if (key === 'peoplePerSlot') value = U.clamp(parseInt(value, 10) || 1, 1, 10);
+      if (key === 'slotMinutes') value = Math.max(5, parseInt(value, 10) || 60);
+      task[key] = value;
+    } else if (group === 'absence') {
+      var absence = null;
+      state.absences.forEach(function (a) { if (a.id === id) absence = a; });
+      if (!absence) return false;
+      absence[key] = value;
+    } else {
+      return false;
+    }
+
+    if (group !== 'export') Store.invalidateSchedule();
+    Store.save();
+    return true;
+  }
+
+  /* ---------------- Ereignisse ---------------- */
+
+  /**
+   * Aktualisiert nur die abgeleiteten Textbausteine des aktuellen
+   * Schritts. Bewusst kein Neuaufbau des DOM: Ein Neuaufbau während
+   * eines laufenden Klicks (Feld verlassen -> change -> Klick auf
+   * Button) würde den Klick verschlucken.
+   */
+  function updateDerived(target) {
+    var state = Store.get();
+    var id = target && target.dataset ? (target.dataset.id || '') : '';
+
+    var duration = U.$('#eventDuration');
+    if (duration) duration.innerHTML = UI.eventDurationHtml(state);
+
+    var count = U.$('#peopleCount');
+    if (count) count.textContent = UI.peopleCountText(state);
+
+    if (state.step === 3) {
+      state.tasks.forEach(function (task, index) {
+        var preview = U.$('#taskPreview_' + task.id);
+        if (preview) preview.innerHTML = UI.previewSlots(state, task);
+        var title = U.$('#taskTitle_' + task.id);
+        if (title) title.textContent = UI.taskTitleText(task, index);
+      });
+    }
+
+    if (state.step === 5) {
+      var demand = UI.totalDemand(state);
+      var box = U.$('#demandPreview');
+      if (box) box.innerHTML = '<strong>Bedarfsvorschau:</strong> ' + demand.text;
+      var warn = U.$('#demandWarning');
+      if (warn) {
+        warn.innerHTML = demand.warning;
+        warn.hidden = !demand.warning;
+      }
+    }
+    return id;
+  }
+
+  document.addEventListener('input', function (ev) {
+    var target = ev.target;
+    if (!target.dataset || !target.dataset.bind) return;
+    applyBinding(target);
+    updateDerived(target);
+    if (lastErrors.length) showErrors(Store.validateStep(Store.get().step));
+  });
+
+  document.addEventListener('change', function (ev) {
+    var target = ev.target;
+    if (!target.dataset) return;
+
+    if (target.dataset.action === 'seat') {
+      handleSeatChange(target);
+      return;
+    }
+    if (target === fileInput) {
+      if (fileInput.files && fileInput.files[0]) importJson(fileInput.files[0]);
+      fileInput.value = '';
+      return;
+    }
+    if (!target.dataset.bind) return;
+
+    if (applyBinding(target)) {
+      updateDerived(target);
+      // Nur dieser Schalter blendet Felder ein bzw. aus und braucht
+      // deshalb einen echten Neuaufbau.
+      if (target.dataset.bind === 'task.wholeEvent') render(focusHintFrom(target));
+    }
+  });
+
+  function handleSeatChange(select) {
+    var state = Store.get();
+    var schedule = state.schedule;
+    if (!schedule) return;
+    var slotId = select.dataset.slot;
+    var seat = parseInt(select.dataset.seat, 10);
+    var personId = select.value || null;
+
+    var slot = null;
+    schedule.slots.forEach(function (s) { if (s.id === slotId) slot = s; });
+    if (!slot) return;
+
+    slot.assigned[seat] = personId;
+    if (slot.manual) slot.manual[seat] = true;
+    window.Scheduler.refresh(state, schedule);
+    Store.save();
+    render();
+    toast(personId ? 'Schicht neu zugeteilt.' : 'Platz freigegeben.', 'ok');
+  }
+
+  document.addEventListener('click', function (ev) {
+    var target = ev.target.closest('[data-action]');
+    if (!target) return;
+    var action = target.dataset.action;
+    var id = target.dataset.id;
+    var state = Store.get();
+
+    switch (action) {
+      case 'next': next(); break;
+      case 'prev': prev(); break;
+      case 'goto-step': goTo(parseInt(target.dataset.step, 10)); break;
+
+      case 'add-person':
+        Store.addPerson('');
+        render();
+        var inputs = U.$$('[data-bind="person.name"]', content);
+        if (inputs.length) inputs[inputs.length - 1].focus();
+        break;
+      case 'remove-person': Store.removePerson(id); render(); break;
+      case 'add-bulk': addBulkNames(); break;
+
+      case 'add-task': Store.addTask(); render(); break;
+      case 'add-preset':
+        var preset = UI.TASK_PRESETS[parseInt(target.dataset.preset, 10)];
+        Store.addTask(Object.assign({}, preset, {
+          startTime: preset.wholeEvent ? state.event.startTime : state.event.startTime,
+          endTime: preset.wholeEvent ? state.event.endTime : state.event.endTime
+        }));
+        render();
+        break;
+      case 'remove-task': Store.removeTask(id); render(); break;
+
+      case 'add-absence': Store.addAbsence(id); render(); break;
+      case 'remove-absence': Store.removeAbsence(id); render(); break;
+
+      case 'compute': compute(); break;
+      case 'download-xlsx': downloadXlsx(); break;
+      case 'download-csv': downloadCsv(); break;
+      case 'print': window.print(); break;
+
+      case 'tab':
+        UI.view.tab = target.dataset.tab;
+        render();
+        break;
+
+      case 'load-demo':
+        if (state.people.length || state.tasks.length) {
+          if (!window.confirm('Die aktuellen Eingaben werden durch das Beispiel ersetzt. Fortfahren?')) return;
+        }
+        Store.loadDemo();
+        render();
+        toast('Beispieldaten geladen.', 'ok');
+        break;
+      case 'reset-all':
+        if (!window.confirm('Wirklich alle Eingaben löschen?')) return;
+        Store.reset();
+        render();
+        toast('Alles zurückgesetzt.', 'ok');
+        break;
+      case 'export-json': exportJson(); break;
+      case 'import-json': fileInput.click(); break;
+      default: break;
+    }
+  });
+
+  /* ---------------- Start ---------------- */
+
+  Store.load();
+  render();
+})();
+
+</script>
+</body>
+</html>

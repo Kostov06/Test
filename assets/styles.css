@@ -1,6 +1,15 @@
 /* ============================================================
    Schichtplaner – Stylesheet
-   Reines CSS, keine Frameworks. Hell/Dunkel über prefers-color-scheme.
+   Reines CSS, keine Frameworks.
+
+   Farben liegen ausschließlich als Custom Properties vor. Das helle
+   Set steht auf :root, das dunkle wird an drei Stellen gesetzt:
+     1. @media (prefers-color-scheme: dark) – Systemeinstellung
+     2. :root[data-theme="dark"]            – ausdrücklicher Umschalter
+     3. :root[data-theme="light"]           – zurück auf hell, auch wenn
+                                              das System dunkel meldet
+   Die Attributselektoren sind spezifischer als :root und gewinnen
+   deshalb in beide Richtungen gegen die Systemeinstellung.
    ============================================================ */
 
 :root {
@@ -50,6 +59,52 @@
     --shadow:        0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
     --shadow-sm:     0 1px 2px rgba(0,0,0,.4);
   }
+}
+
+/* Ausdrücklich gewähltes dunkles Erscheinungsbild */
+:root[data-theme="dark"] {
+  --bg:            #12151c;
+  --bg-elev:       #1a1e27;
+  --bg-sunken:     #15181f;
+  --border:        #2b313e;
+  --border-strong: #3b4353;
+  --text:          #e8ebf2;
+  --text-muted:    #9aa4b8;
+  --text-faint:    #77819a;
+  --accent:        #6b8bff;
+  --accent-hover:  #85a0ff;
+  --accent-soft:   #1e2740;
+  --ok:            #4ec98a;
+  --ok-soft:       #16301f;
+  --warn:          #e0a458;
+  --warn-soft:     #33260f;
+  --danger:        #ff8478;
+  --danger-soft:   #341a19;
+  --shadow:        0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --shadow-sm:     0 1px 2px rgba(0,0,0,.4);
+}
+
+/* Ausdrücklich gewähltes helles Erscheinungsbild */
+:root[data-theme="light"] {
+  --bg:            #f4f6fb;
+  --bg-elev:       #ffffff;
+  --bg-sunken:     #eef1f8;
+  --border:        #dbe0ec;
+  --border-strong: #c2cadb;
+  --text:          #1b2233;
+  --text-muted:    #626c85;
+  --text-faint:    #8b94a8;
+  --accent:        #3457d5;
+  --accent-hover:  #2b47b4;
+  --accent-soft:   #e8edfd;
+  --ok:            #1c8a53;
+  --ok-soft:       #e3f6ec;
+  --warn:          #a56100;
+  --warn-soft:     #fdf0dc;
+  --danger:        #c0362c;
+  --danger-soft:   #fdeae8;
+  --shadow:        0 1px 2px rgba(20, 30, 60, .06), 0 8px 24px rgba(20, 30, 60, .07);
+  --shadow-sm:     0 1px 2px rgba(20, 30, 60, .08);
 }
 
 * { box-sizing: border-box; }
@@ -388,6 +443,46 @@ td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
   .stepnav-item { flex: none; width: auto; }
   .stepnav-desc { display: none; }
   .field.span-2 { grid-column: auto; }
+}
+
+/* ---------- Handy ---------- */
+
+@media (max-width: 640px) {
+  .app-header { padding: 10px 14px; gap: 8px; }
+  .brand h1 { font-size: 16px; }
+  .brand-sub { display: none; }
+  .header-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .header-actions .btn { flex: none; }
+
+  .layout { padding: 16px 14px 108px; gap: 16px; }
+  .panel { padding: 16px; }
+  .step-head h2 { font-size: 19px; }
+
+  /* Fußzeile: Buttons nebeneinander in voller Breite, Hinweis nur im Fehlerfall */
+  .wizard-footer-inner { flex-wrap: wrap; padding: 10px 14px; gap: 8px; }
+  .wizard-footer-inner .btn { flex: 1 1 0; justify-content: center; }
+  .footer-hint { display: none; order: -1; width: 100%; flex-basis: 100%; font-size: 12.5px; }
+  .footer-hint.is-error { display: block; }
+
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat { padding: 10px 12px; }
+  .stat .v { font-size: 17px; }
+
+  .toast-host { right: 12px; left: 12px; bottom: 84px; }
+  .toast { max-width: none; }
+
+  /* Eingabezeilen umbrechen lassen, statt sie zu quetschen */
+  .row-item { flex-wrap: wrap; }
+  .row-item input[type="text"] { min-width: 60%; max-width: none !important; }
+  .row-item input[type="time"] { max-width: 46% !important; }
+
+  table.data th, table.data td { padding: 7px 9px; }
 }
 
 @media print {

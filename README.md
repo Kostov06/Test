@@ -4,14 +4,29 @@ Eine kleine Web-App, die Schritt für Schritt durch die Schichtplanung einer Ver
 führt, automatisch einen möglichst fairen Plan berechnet und ihn als **XLSX-Datei** zum
 Weiterbearbeiten exportiert.
 
-**Keine Installation, kein Server, keine Bibliotheken.** `index.html` im Browser öffnen –
-fertig. Alle Daten bleiben im Browser (localStorage), es werden keine Daten übertragen.
+**Keine Installation, kein Server, keine Bibliotheken.** Alle Daten bleiben auf dem eigenen
+Gerät (localStorage des Browsers), es wird nichts übertragen.
 
-```
-index.html öffnen          # Doppelklick genügt
-# oder mit lokalem Server:
-python3 -m http.server 8000   →  http://localhost:8000
-```
+## So öffnest du die App
+
+**Am einfachsten – eine einzige Datei:** [`schichtplaner.html`](schichtplaner.html) herunterladen
+und antippen bzw. doppelklicken. Darin steckt die komplette App; sie funktioniert auch ohne
+Internet und lässt sich per Mail oder Messenger weitergeben.
+
+*Auf dem Handy:* in GitHub die Datei `schichtplaner.html` öffnen → **Download raw file** →
+im Downloads-/Dateien-Ordner antippen. Danach im Browser als Lesezeichen speichern
+(iPhone: Teilen → „Zum Home-Bildschirm“), dann liegt sie wie eine App auf dem Startbildschirm.
+
+*Am Rechner:* Datei doppelklicken – sie öffnet sich im Standardbrowser.
+
+**Als eigene Internetadresse (GitHub Pages):** im Repository auf *Settings → Pages*,
+unter *Branch* diesen Branch und *„/ (root)“* auswählen, *Save*. Nach ein paar Minuten ist die
+App unter `https://<benutzername>.github.io/<repository>/` erreichbar – ein Link, der auf jedem
+Gerät funktioniert. (Bei privaten Repositories setzt GitHub dafür ein kostenpflichtiges Konto voraus.)
+
+**Zum Weiterentwickeln:** `index.html` im Browser öffnen – dort liegen CSS und JavaScript in
+einzelnen Dateien. Nach Änderungen `node build/build-single-file.js` ausführen, damit
+`schichtplaner.html` wieder aktuell ist.
 
 Testlauf ohne Browser: `node tests/run-tests.js` (49 Prüfungen: Zeitlogik, Planungsregeln,
 Randfälle, Validierung, Excel-Erzeugung).
@@ -293,6 +308,8 @@ Zusatzblätter lassen sich in Schritt 6 einzeln abwählen. Alternativ gibt es CS
 
 ```
 index.html            Grundgerüst, lädt die Skripte in fester Reihenfolge
+schichtplaner.html    erzeugte Einzeldatei (alles inline) – zum Weitergeben
+build/build-single-file.js   baut die Einzeldatei aus den Quelldateien
 assets/styles.css     Gestaltung, hell/dunkel, responsiv, Druck
 src/util.js           Zeit-, Datums-, Zufalls- und DOM-Hilfen
 src/store.js          Datenmodell, localStorage, Validierung, Demodaten

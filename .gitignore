@@ -3,3 +3,4 @@ tests/out/
 *.xlsx
 *.log
 .DS_Store
+build/out/
