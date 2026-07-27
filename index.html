@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schichtplaner – Faire Schichtpläne für Veranstaltungen</title>
+<meta name="description" content="Wizard zum Erstellen fairer Schichtpläne für Veranstaltungen inkl. Excel-Export.">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🗓️</span>
+    <div>
+      <h1>Schichtplaner</h1>
+      <p class="brand-sub">Faire Schichtpläne für Veranstaltungen</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-ghost" data-action="load-demo">Beispiel laden</button>
+    <button type="button" class="btn btn-ghost" data-action="export-json">Speichern (JSON)</button>
+    <button type="button" class="btn btn-ghost" data-action="import-json">Laden (JSON)</button>
+    <button type="button" class="btn btn-ghost btn-danger" data-action="reset-all">Zurücksetzen</button>
+    <input type="file" id="jsonFileInput" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="stepnav" id="stepNav" aria-label="Schritte"></nav>
+  <main class="content" id="stepContent" tabindex="-1"></main>
+</div>
+
+<footer class="wizard-footer">
+  <div class="wizard-footer-inner">
+    <button type="button" class="btn btn-secondary" data-action="prev">‹ Zurück</button>
+    <div class="footer-hint" id="footerHint"></div>
+    <button type="button" class="btn btn-primary" data-action="next">Weiter ›</button>
+  </div>
+</footer>
+
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+<script src="src/util.js"></script>
+<script src="src/store.js"></script>
+<script src="src/scheduler.js"></script>
+<script src="src/xlsx.js"></script>
+<script src="src/export.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
