@@ -27,13 +27,20 @@ window.Store = (function () {
 
   var U = window.Util;
   var STORAGE_KEY = 'schichtplaner.state.v1';
-  var VERSION = 1;
+  var VERSION = 2;
 
   function defaultState() {
     return {
       version: VERSION,
       step: 1,
-      event: { name: '', date: U.todayIso(), startTime: '08:00', endTime: '22:00', notes: '' },
+      event: {
+        name: '',
+        date: U.todayIso(),        // erster Tag
+        endDate: U.todayIso(),     // letzter Tag (gleich = eintägig)
+        startTime: '08:00',
+        endTime: '22:00',
+        notes: ''
+      },
       people: [],
       tasks: [],
       absences: [],
@@ -74,28 +81,42 @@ window.Store = (function () {
     }
   }
 
-  /** Fehlende Felder ergänzen – hält alte gespeicherte Stände lauffähig. */
+  /**
+   * Fehlende Felder ergänzen – hält alte gespeicherte Stände lauffähig.
+   * Version 1 → 2: Enddatum der Veranstaltung, Rhythmus je Aufgabe
+   * (`wholeEvent` → `mode`), Datum je Abwesenheit und je An-/Abreise.
+   */
   function migrate(raw) {
     var base = defaultState();
     if (!raw || typeof raw !== 'object') return base;
+    var rawEvent = raw.event || {};
+    var event = Object.assign({}, base.event, rawEvent);
+    // Version 1 kannte kein Enddatum: eintägig, also gleich dem Startdatum
+    if (!rawEvent.endDate) event.endDate = event.date;
+
     var next = {
       version: VERSION,
       step: U.clamp(parseInt(raw.step, 10) || 1, 1, 6),
-      event: Object.assign({}, base.event, raw.event || {}),
+      event: event,
       people: (raw.people || []).map(function (p) {
         return {
           id: p.id || U.uid('p'),
           name: String(p.name || ''),
           arrival: p.arrival || '',
+          arrivalDate: p.arrivalDate || '',      // leer = erster Tag
           departure: p.departure || '',
+          departureDate: p.departureDate || '',  // leer = letzter Tag
           note: String(p.note || '')
         };
       }),
       tasks: (raw.tasks || []).map(function (t) {
+        var mode = t.mode;
+        if (!mode) mode = (t.wholeEvent !== false) ? 'continuous' : 'daily';
         return {
           id: t.id || U.uid('t'),
           name: String(t.name || ''),
-          wholeEvent: t.wholeEvent !== false,
+          mode: mode,                            // continuous | daily | once
+          day: t.day || '',                      // nur bei mode = once
           startTime: t.startTime || '',
           endTime: t.endTime || '',
           slotMinutes: parseInt(t.slotMinutes, 10) || 60,
@@ -107,6 +128,7 @@ window.Store = (function () {
         return {
           id: a.id || U.uid('a'),
           personId: a.personId || '',
+          date: a.date || '',                    // leer = erster Tag
           startTime: a.startTime || '',
           endTime: a.endTime || '',
           reason: String(a.reason || '')
@@ -174,13 +196,20 @@ window.Store = (function () {
     var task = Object.assign({
       id: U.uid('t'),
       name: '',
-      wholeEvent: true,
+      mode: 'continuous',
+      day: '',
       startTime: state.event.startTime,
       endTime: state.event.endTime,
       slotMinutes: 60,
       peoplePerSlot: 1,
       note: ''
     }, preset || {});
+    // Vorlagen aus Version 1 können noch `wholeEvent` mitbringen
+    if (preset && preset.mode === undefined && preset.wholeEvent !== undefined) {
+      task.mode = preset.wholeEvent ? 'continuous' : 'daily';
+    }
+    delete task.wholeEvent;
+    if (!task.day) task.day = state.event.date;
     task.id = U.uid('t');
     state.tasks.push(task);
     invalidateSchedule();
@@ -198,6 +227,7 @@ window.Store = (function () {
     var absence = {
       id: U.uid('a'),
       personId: personId,
+      date: state.event.date,
       startTime: state.event.startTime,
       endTime: state.event.endTime,
       reason: ''
@@ -225,6 +255,35 @@ window.Store = (function () {
 
   /* ---------- Validierung ---------- */
 
+  /** Liste der Veranstaltungstage: [{ index, iso, label, short }] */
+  function eventDays() {
+    var ev = state.event;
+    if (!ev.date) return [];
+    var last = U.daysBetween(ev.date, ev.endDate || ev.date);
+    if (!(last >= 0)) last = 0;
+    // Endet die Veranstaltung am Starttag nach Mitternacht, gehört der
+    // Folgetag noch dazu.
+    var s = U.parseTime(ev.startTime), e = U.parseTime(ev.endTime);
+    if (last === 0 && s !== null && e !== null && e <= s) last = 1;
+
+    var days = [];
+    for (var i = 0; i <= last; i++) {
+      var iso = U.addDays(ev.date, i);
+      days.push({
+        index: i,
+        iso: iso,
+        label: U.weekdayName(iso) + ', ' + U.formatDate(iso),
+        short: U.weekdayShort(iso) + ', ' + U.formatDate(iso).slice(0, 6)
+      });
+    }
+    return days;
+  }
+
+  /** Geht die Veranstaltung über mehr als einen Kalendertag? */
+  function isMultiDay() {
+    return eventDays().length > 1;
+  }
+
   /** Prüft einen Wizard-Schritt. Rückgabe: Array von Fehlermeldungen. */
   function validateStep(step) {
     var errors = [];
@@ -232,12 +291,16 @@ window.Store = (function () {
 
     if (step === 1) {
       if (!ev.name.trim()) errors.push('Bitte einen Namen für die Veranstaltung eingeben.');
-      if (!ev.date) errors.push('Bitte ein Datum auswählen.');
+      if (!ev.date) errors.push('Bitte ein Startdatum auswählen.');
+      if (!ev.endDate) errors.push('Bitte ein Enddatum auswählen (bei eintägigen Veranstaltungen dasselbe Datum).');
+      if (ev.date && ev.endDate && U.daysBetween(ev.date, ev.endDate) < 0) {
+        errors.push('Das Enddatum liegt vor dem Startdatum.');
+      }
       var s = U.parseTime(ev.startTime), e = U.parseTime(ev.endTime);
       if (s === null) errors.push('Startzeit ist ungültig (Format HH:MM).');
       if (e === null) errors.push('Endzeit ist ungültig (Format HH:MM).');
-      if (s !== null && e !== null && s === e) {
-        errors.push('Start- und Endzeit dürfen nicht identisch sein.');
+      if (s !== null && e !== null && s === e && U.daysBetween(ev.date, ev.endDate) === 0) {
+        errors.push('Start- und Endzeit dürfen am selben Tag nicht identisch sein.');
       }
     }
 
@@ -254,12 +317,13 @@ window.Store = (function () {
 
     if (step === 3) {
       if (!state.tasks.length) errors.push('Bitte mindestens eine Aufgabe anlegen.');
+      var days = eventDays();
       state.tasks.forEach(function (t, i) {
         var label = t.name.trim() || 'Aufgabe ' + (i + 1);
         if (!t.name.trim()) errors.push('Aufgabe ' + (i + 1) + ': Bitte einen Namen eingeben.');
         if (!(t.slotMinutes > 0)) errors.push(label + ': Schichtlänge muss größer als 0 sein.');
         if (!(t.peoplePerSlot >= 1)) errors.push(label + ': Es wird mindestens 1 Person pro Schicht benötigt.');
-        if (!t.wholeEvent) {
+        if (t.mode !== 'continuous') {
           var ts = U.parseTime(t.startTime), te = U.parseTime(t.endTime);
           if (ts === null || te === null) {
             errors.push(label + ': Zeitraum ist unvollständig oder ungültig.');
@@ -267,10 +331,15 @@ window.Store = (function () {
             errors.push(label + ': Start- und Endzeit dürfen nicht identisch sein.');
           }
         }
+        if (t.mode === 'once') {
+          var known = days.some(function (d) { return d.iso === t.day; });
+          if (!known) errors.push(label + ': Bitte einen Tag der Veranstaltung auswählen.');
+        }
       });
     }
 
     if (step === 4) {
+      var dayList = eventDays();
       state.absences.forEach(function (a) {
         var name = personName(a.personId) || 'Unbekannt';
         var as = U.parseTime(a.startTime), ae = U.parseTime(a.endTime);
@@ -278,6 +347,9 @@ window.Store = (function () {
           errors.push(name + ': Abwesenheit hat eine ungültige Uhrzeit.');
         } else if (as === ae) {
           errors.push(name + ': Abwesenheit hat identische Start- und Endzeit.');
+        }
+        if (a.date && !dayList.some(function (d) { return d.iso === a.date; })) {
+          errors.push(name + ': Die Abwesenheit liegt an einem Tag außerhalb der Veranstaltung.');
         }
       });
       state.people.forEach(function (p) {
@@ -310,34 +382,100 @@ window.Store = (function () {
 
   /* ---------- Demodaten ---------- */
 
+  function person(name, extra) {
+    return Object.assign({
+      id: U.uid('p'), name: name, arrival: '', arrivalDate: '',
+      departure: '', departureDate: '', note: ''
+    }, extra || {});
+  }
+
+  function task(name, mode, startTime, endTime, slotMinutes, peoplePerSlot, extra) {
+    return Object.assign({
+      id: U.uid('t'), name: name, mode: mode, day: '',
+      startTime: startTime, endTime: endTime,
+      slotMinutes: slotMinutes, peoplePerSlot: peoplePerSlot, note: ''
+    }, extra || {});
+  }
+
+  /** Eintägiges Beispiel */
   function loadDemo() {
     state = defaultState();
+    var day = U.todayIso();
     state.event = {
       name: 'Jugendfreizeit – Sommerfest',
-      date: U.todayIso(),
+      date: day,
+      endDate: day,
       startTime: '08:00',
       endTime: '22:00',
       notes: 'Treffpunkt für alle Schichten ist der Info-Tisch im Foyer.'
     };
-    ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Frank', 'Greta', 'Hannes']
-      .forEach(function (n) { state.people.push({ id: U.uid('p'), name: n, arrival: '', departure: '', note: '' }); });
+    state.people = ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Frank', 'Greta', 'Hannes']
+      .map(function (n) { return person(n); });
 
     state.people[3].arrival = '12:00';   // David kommt später
     state.people[6].departure = '18:00'; // Greta geht früher
 
     state.tasks = [
-      { id: U.uid('t'), name: 'Teeschicht',            wholeEvent: true,  startTime: '08:00', endTime: '22:00', slotMinutes: 120, peoplePerSlot: 1, note: 'Teeküche im Foyer' },
-      { id: U.uid('t'), name: 'Türschicht',            wholeEvent: true,  startTime: '08:00', endTime: '22:00', slotMinutes: 60,  peoplePerSlot: 2, note: 'Immer zu zweit besetzen' },
-      { id: U.uid('t'), name: 'Küchendienst / Essen',  wholeEvent: false, startTime: '11:30', endTime: '14:00', slotMinutes: 75,  peoplePerSlot: 2, note: '' },
-      { id: U.uid('t'), name: 'Frühstücksvorbereitung',wholeEvent: false, startTime: '08:00', endTime: '09:30', slotMinutes: 90,  peoplePerSlot: 2, note: '' },
-      { id: U.uid('t'), name: 'Aufräumen',             wholeEvent: false, startTime: '20:00', endTime: '22:00', slotMinutes: 60,  peoplePerSlot: 2, note: '' },
-      { id: U.uid('t'), name: 'Brötchen besorgen',     wholeEvent: false, startTime: '08:00', endTime: '09:00', slotMinutes: 60,  peoplePerSlot: 1, note: 'Bäckerei Ecke Hauptstraße' }
+      task('Teeschicht',             'continuous', '08:00', '22:00', 120, 1, { note: 'Teeküche im Foyer' }),
+      task('Türschicht',             'continuous', '08:00', '22:00', 60,  2, { note: 'Immer zu zweit besetzen' }),
+      task('Küchendienst / Essen',   'daily',      '11:30', '14:00', 75,  2),
+      task('Frühstücksvorbereitung', 'daily',      '08:00', '09:30', 90,  2),
+      task('Aufräumen',              'daily',      '20:00', '22:00', 60,  2),
+      task('Brötchen besorgen',      'once',       '08:00', '09:00', 60,  1, { day: day, note: 'Bäckerei Ecke Hauptstraße' })
     ];
 
     state.absences = [
-      { id: U.uid('a'), personId: state.people[0].id, startTime: '14:00', endTime: '16:00', reason: 'Workshop-Leitung' },
-      { id: U.uid('a'), personId: state.people[2].id, startTime: '17:00', endTime: '19:00', reason: 'Probe' },
-      { id: U.uid('a'), personId: state.people[5].id, startTime: '09:00', endTime: '11:00', reason: 'Anreise Gäste' }
+      { id: U.uid('a'), personId: state.people[0].id, date: day, startTime: '14:00', endTime: '16:00', reason: 'Workshop-Leitung' },
+      { id: U.uid('a'), personId: state.people[2].id, date: day, startTime: '17:00', endTime: '19:00', reason: 'Probe' },
+      { id: U.uid('a'), personId: state.people[5].id, date: day, startTime: '09:00', endTime: '11:00', reason: 'Anreise Gäste' }
+    ];
+
+    state.step = 1;
+    save();
+  }
+
+  /** Mehrtägiges Beispiel: Freitagabend bis Sonntagmittag */
+  function loadDemoWeekend() {
+    state = defaultState();
+    // Nächsten Freitag suchen, damit das Beispiel plausibel wirkt
+    var friday = U.todayIso();
+    for (var i = 0; i < 7; i++) {
+      if (U.weekdayShort(friday) === 'Fr') break;
+      friday = U.addDays(friday, 1);
+    }
+    var saturday = U.addDays(friday, 1);
+    var sunday = U.addDays(friday, 2);
+
+    state.event = {
+      name: 'Gemeindefreizeit (Wochenende)',
+      date: friday,
+      endDate: sunday,
+      startTime: '17:00',
+      endTime: '14:00',
+      notes: 'Anreise Freitagnachmittag, Abreise nach dem Mittagessen am Sonntag.'
+    };
+
+    state.people = ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Frank', 'Greta', 'Hannes', 'Ida', 'Jonas']
+      .map(function (n) { return person(n); });
+    state.people[3].arrival = '20:00';                                   // David kommt Freitagabend später
+    state.people[3].arrivalDate = friday;
+    state.people[8].departure = '09:00';                                 // Ida fährt Sonntagfrüh
+    state.people[8].departureDate = sunday;
+
+    state.tasks = [
+      task('Teeschicht',             'daily', '15:00', '22:00', 120, 1, { note: 'Teeküche im Foyer' }),
+      task('Türschicht',             'daily', '08:00', '22:00', 120, 2, { note: 'Immer zu zweit besetzen' }),
+      task('Nachtwache',             'daily', '23:00', '07:00', 240, 1, { note: 'Zwei Schichten je Nacht' }),
+      task('Frühstücksvorbereitung', 'daily', '07:00', '08:30', 90,  2),
+      task('Küchendienst / Essen',   'daily', '11:30', '14:00', 75,  2),
+      task('Brötchen besorgen',      'daily', '07:00', '08:00', 60,  1, { note: 'Bäckerei Ecke Hauptstraße' }),
+      task('Aufräumen',              'once',  '12:00', '14:00', 60,  2, { day: sunday, note: 'Endreinigung' })
+    ];
+
+    state.absences = [
+      { id: U.uid('a'), personId: state.people[0].id, date: saturday, startTime: '14:00', endTime: '17:00', reason: 'Workshop-Leitung' },
+      { id: U.uid('a'), personId: state.people[2].id, date: saturday, startTime: '20:00', endTime: '22:00', reason: 'Bandprobe' },
+      { id: U.uid('a'), personId: state.people[5].id, date: sunday,   startTime: '09:00', endTime: '11:00', reason: 'Gottesdienst-Technik' }
     ];
 
     state.step = 1;
@@ -365,8 +503,11 @@ window.Store = (function () {
     invalidateSchedule: invalidateSchedule,
     validateStep: validateStep,
     activePeople: activePeople,
+    eventDays: eventDays,
+    isMultiDay: isMultiDay,
     toJson: toJson,
     fromJson: fromJson,
-    loadDemo: loadDemo
+    loadDemo: loadDemo,
+    loadDemoWeekend: loadDemoWeekend
   };
 })();

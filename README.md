@@ -28,8 +28,8 @@ Gerät funktioniert. (Bei privaten Repositories setzt GitHub dafür ein kostenpf
 einzelnen Dateien. Nach Änderungen `node build/build-single-file.js` ausführen, damit
 `schichtplaner.html` wieder aktuell ist.
 
-Testlauf ohne Browser: `node tests/run-tests.js` (49 Prüfungen: Zeitlogik, Planungsregeln,
-Randfälle, Validierung, Excel-Erzeugung).
+Testlauf ohne Browser: `node tests/run-tests.js` (79 Prüfungen: Zeitlogik, Planungsregeln,
+Randfälle, mehrtägige Veranstaltungen, Altbestand, Validierung, Excel-Erzeugung).
 
 ---
 
@@ -40,10 +40,11 @@ Randfälle, Validierung, Excel-Erzeugung).
 | Nr. | Anforderung | Umgesetzt in |
 |-----|-------------|--------------|
 | F1 | Veranstaltung mit Name, Datum, Start-/Endzeit und optionalen Bemerkungen anlegen | Schritt 1 |
+| F1b | **Mehrtägige Veranstaltungen** (z. B. Freitag bis Sonntag) über ein Enddatum | Schritt 1 |
 | F2 | Beliebig viele Personen erfassen (einzeln oder als Namensliste auf einmal) | Schritt 2 |
 | F3 | Aufgaben/Schichtarten definieren: Name, Zeitraum, Schichtlänge, Personen pro Schicht | Schritt 3 |
-| F4 | Aufgabe wahlweise über die gesamte Veranstaltung oder nur in einem Teilzeitraum | Schritt 3 (`wholeEvent`) |
-| F5 | Abwesenheiten je Person mit Von-/Bis-Zeit und Grund | Schritt 4 |
+| F4 | Aufgabe wahlweise durchgehend, täglich wiederkehrend oder einmalig an einem Tag | Schritt 3 (`mode`) |
+| F5 | Abwesenheiten je Person mit Tag, Von-/Bis-Zeit und Grund | Schritt 4 |
 | F6 | „Kommt später“ / „geht früher“ je Person | Schritt 4 |
 | F7 | Automatische, faire Verteilung auf Knopfdruck | Schritt 5 → `src/scheduler.js` |
 | F8 | Übersichtliche Anzeige des Ergebnisses (Zeitplan, je Person, Probleme) | Schritt 6 |
@@ -83,9 +84,10 @@ offene Schicht mit Begründung ausgewiesen.
 
 ### 1.4 Bewusst nicht enthalten
 
-Mehrtägige Veranstaltungen mit unterschiedlichen Tagesplänen (eine Veranstaltung =
-ein Zeitraum, Mitternachtsüberlauf ist abgedeckt), Rollen/Qualifikationen, Benutzerkonten,
-Mehrbenutzerbetrieb, Serverspeicherung, E-Mail-Versand.
+Rollen und Qualifikationen (wer darf welche Aufgabe?), Benutzerkonten, Mehrbenutzerbetrieb,
+Serverspeicherung, E-Mail-Versand. Ebenfalls nicht vorgesehen: mehrere getrennte
+Veranstaltungen in einer Datei – dafür wird der Zwischenstand als JSON gespeichert und
+später wieder geladen.
 
 ---
 
@@ -96,37 +98,42 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
 
 ```jsonc
 {
-  "version": 1,
+  "version": 2,
   "step": 3,                       // aktueller Wizard-Schritt (1–6)
 
   "event": {
-    "name":      "Sommerfest",
-    "date":      "2026-07-27",     // ISO-Datum
-    "startTime": "08:00",          // "HH:MM"
-    "endTime":   "22:00",          // liegt sie vor startTime → Folgetag
+    "name":      "Gemeindefreizeit",
+    "date":      "2026-07-31",     // erster Tag (ISO-Datum)
+    "endDate":   "2026-08-02",     // letzter Tag; gleich = eintägig
+    "startTime": "17:00",          // Beginn am ersten Tag
+    "endTime":   "14:00",          // Ende am letzten Tag
     "notes":     "Treffpunkt Foyer"
   },
 
   "people": [
     { "id": "p_1", "name": "Anna",
-      "arrival":   "",             // optional: kommt erst ab
-      "departure": "18:00",        // optional: geht früher
-      "note":      "" }
+      "arrival":       "",         // optional: kommt erst ab dieser Uhrzeit
+      "arrivalDate":   "",         // optional: an diesem Tag (leer = erster Tag)
+      "departure":     "09:00",    // optional: geht ab dieser Uhrzeit
+      "departureDate": "2026-08-02",
+      "note":          "" }
   ],
 
   "tasks": [
     { "id": "t_1", "name": "Türschicht",
-      "wholeEvent":    true,       // false → eigener Teilzeitraum
-      "startTime":     "08:00",    // nur bei wholeEvent = false relevant
+      "mode":          "daily",    // continuous | daily | once
+      "day":           "",         // nur bei mode = "once": Tag der Aufgabe
+      "startTime":     "08:00",    // bei mode = "continuous" ohne Bedeutung
       "endTime":       "22:00",
-      "slotMinutes":   60,         // Länge einer einzelnen Schicht
+      "slotMinutes":   120,        // Länge einer einzelnen Schicht
       "peoplePerSlot": 2,          // 1, 2, … gleichzeitig benötigt
       "note":          "immer zu zweit" }
   ],
 
   "absences": [
     { "id": "a_1", "personId": "p_1",
-      "startTime": "14:00", "endTime": "16:00", "reason": "Workshop" }
+      "date": "2026-08-01",        // Tag der Abwesenheit (leer = erster Tag)
+      "startTime": "14:00", "endTime": "17:00", "reason": "Workshop" }
   ],
 
   "options": {
@@ -140,12 +147,13 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
   },
 
   "schedule": {                    // Ergebnis der Berechnung
-    "generatedAt": "2026-07-27T10:00:00Z",
+    "generatedAt": "2026-07-31T10:00:00Z",
     "seed": 42,
-    "window": { "start": 480, "end": 1320 },   // Minuten seit Mitternacht
+    "multiDay": true,
+    "window": { "start": 1020, "end": 3720 },   // Minuten ab Mitternacht des ersten Tags
     "slots": [
       { "id": "s_1", "taskId": "t_1", "taskName": "Türschicht",
-        "start": 480, "end": 540,              // Minuten seit Mitternacht des Starttags
+        "start": 1920, "end": 2040,            // 08:00–10:00 am zweiten Tag
         "required": 2,
         "assigned": ["p_1", null],             // null = offener Platz
         "manual":   [false, false] }           // von Hand gesetzt?
@@ -156,16 +164,30 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
 }
 ```
 
-**Zeitmodell.** Alle Uhrzeiten werden als `"HH:MM"` erfasst und intern in *Minuten seit
-Mitternacht des Starttags* umgerechnet. Liegt eine Endzeit rechnerisch vor ihrer Startzeit,
-wird ein Tag addiert – damit funktionieren Veranstaltungen über Mitternacht (20:00–02:00)
-ohne Sonderfälle. Für die Anzeige wird ein Folgetag als `01:00 (+1)` markiert, im Excel
-steht das korrekte Kalenderdatum in der Datumsspalte.
+**Rhythmus einer Aufgabe** (`mode`) – der Kern der Mehrtagesunterstützung:
 
-**Erweiterbarkeit.** Aufgaben und Personen sind flache Listen mit stabilen IDs; eine neue
-Eigenschaft (z. B. `requiredSkill`, `location`, `priority`) ist ein zusätzliches Feld plus
-eine Zeile in `migrate()`. Alte gespeicherte Stände bleiben lauffähig, weil `migrate()`
-fehlende Felder aus dem Standardzustand ergänzt.
+| Wert | Bedeutung | Beispiel |
+|------|-----------|----------|
+| `continuous` | einmal durchgehend über die ganze Veranstaltung, auch nachts | Rufbereitschaft |
+| `daily` | an jedem Veranstaltungstag im selben Zeitfenster; am ersten und letzten Tag auf die Veranstaltungszeit gekürzt | Türschicht 08:00–22:00, Nachtwache 23:00–07:00 |
+| `once` | einmalig am Tag `day` | Endreinigung am Sonntag |
+
+**Zeitmodell.** Alle Uhrzeiten werden als `"HH:MM"` erfasst und intern in *Minuten seit
+Mitternacht des ersten Tags* umgerechnet – 08:00 am zweiten Tag ist also 1920. Dieses eine
+Raster deckt alles ab: eintägige Veranstaltungen, Veranstaltungen über Mitternacht
+(20:00–02:00, das Ende wird automatisch auf den Folgetag gelegt) und mehrtägige
+Veranstaltungen über das Enddatum. Kalenderdaten entstehen erst bei der Ausgabe aus
+`Startdatum + ganze Tage`; im Excel steht deshalb in jeder Zeile das richtige Datum und
+der Wochentag. Läuft eine Schicht über Mitternacht, wird die Endzeit als `03:00 (Sa)`
+bzw. bei eintägigen Veranstaltungen als `02:00 (+1)` gekennzeichnet.
+
+**Erweiterbarkeit und Altbestand.** Aufgaben und Personen sind flache Listen mit stabilen
+IDs; eine neue Eigenschaft (z. B. `requiredSkill`, `location`, `priority`) ist ein
+zusätzliches Feld plus eine Zeile in `migrate()`. `migrate()` hebt gespeicherte Stände der
+Version 1 automatisch auf Version 2: fehlendes `endDate` wird zum Startdatum (also
+eintägig), `wholeEvent: true/false` wird zu `mode: "continuous"/"daily"`, Abwesenheiten
+ohne Datum gelten am ersten Tag. Ein alter Plan liefert dadurch exakt dasselbe Ergebnis
+wie zuvor.
 
 ---
 
@@ -175,11 +197,16 @@ fehlende Felder aus dem Standardzustand ergänzt.
 
 ### Phase 0 – Kontext und Schichten
 
-Aus jeder Aufgabe entsteht eine Kette von Schichten (`slots`): vom Beginn des Aufgaben-
-zeitraums in Schritten von `slotMinutes` bis zum Ende. Eine sehr kurze Restschicht
-(< halbe Schichtlänge) wird auf Wunsch an die vorherige angehängt. Je Schicht gibt es
-`peoplePerSlot` Plätze. Aufgabenzeiträume werden auf das Veranstaltungsfenster begrenzt;
-liegt eine Aufgabe komplett außerhalb, erscheint ein Hinweis in der Problemliste.
+Aus jeder Aufgabe werden zunächst ihre **Zeiträume** bestimmt (`taskPeriods`): einer bei
+`continuous`, einer je Veranstaltungstag bei `daily`, genau einer bei `once`. Jeder
+Zeitraum wird auf das Veranstaltungsfenster begrenzt – der Freitag beginnt also erst mit
+der Anreise, der Sonntag endet mit der Abfahrt; Zeiträume über Mitternacht (23:00–07:00)
+laufen korrekt in den nächsten Tag. Liegt ein Zeitraum komplett außerhalb, erscheint ein
+Hinweis in der Problemliste.
+
+Innerhalb jedes Zeitraums entsteht eine Kette von Schichten (`slots`) in Schritten von
+`slotMinutes`. Eine sehr kurze Restschicht (< halbe Schichtlänge) wird auf Wunsch an die
+vorherige angehängt. Je Schicht gibt es `peoplePerSlot` Plätze.
 
 Parallel werden je Person die **Sperrzeiten** gesammelt: Abwesenheiten, Zeit vor der
 Ankunft, Zeit nach dem Gehen. Daraus ergibt sich die insgesamt verfügbare Zeit je Person.
@@ -262,18 +289,19 @@ blockieren das Weitergehen und werden konkret benannt.
 
 | Schritt | Titel | Inhalt | Ergebnis |
 |---------|-------|--------|----------|
-| **1** | Veranstaltung | Name, Datum, Start-/Endzeit, Bemerkungen | Live-Anzeige von Wochentag, Dauer und Mitternachtsüberlauf |
+| **1** | Veranstaltung | Name, erster und letzter Tag, Start-/Endzeit, Bemerkungen | Live-Anzeige von Wochentag, Gesamtdauer und Anzahl Tage |
 | **2** | Personen | Namensliste mit Notiz, Einzel- oder Sammeleingabe | Personenzähler |
-| **3** | Aufgaben | Karte je Aufgabe: Name, ganzer/teilweiser Zeitraum, Schichtlänge, Personen pro Schicht, Bemerkung. Vorlagen für Tee-, Türschicht, Küche, Frühstück, Aufräumen, Einkauf | Vorschau „ergibt *n* Schichten à *x*, Personenstunden gesamt“ |
-| **4** | Verfügbarkeit | Je Person: „kommt erst ab“, „geht früher“, beliebig viele Abwesenheiten mit Grund | Zähler je Person |
+| **3** | Aufgaben | Karte je Aufgabe: Name, Rhythmus (durchgehend / jeden Tag / an einem bestimmten Tag), Zeitfenster, Schichtlänge, Personen pro Schicht, Bemerkung. Vorlagen für Tee-, Türschicht, Küche, Frühstück, Aufräumen, Einkauf | Vorschau „ergibt *n* Schichten à *x* an *m* Tagen, Personenstunden gesamt“ |
+| **4** | Verfügbarkeit | Je Person: „kommt erst ab“, „geht früher“, beliebig viele Abwesenheiten mit Grund – bei mehrtägigen Veranstaltungen jeweils mit Tagesauswahl | Zähler je Person |
 | **5** | Planungsregeln | Mindestpause, Höchstzahl Schichten, Zufallsstartwert, Blöcke, Aufgabenmischung, Restschichten | Bedarfsvorschau inkl. Warnung, wenn der Bedarf die verfügbare Zeit übersteigt |
 | **6** | Plan & Export | Kennzahlen, drei Ansichten (Zeitplan / Nach Person / Probleme), manuelle Nachbesetzung, XLSX-, CSV- und Druckausgabe | fertige Datei |
 
 Ansichten in Schritt 6:
 
-* **Zeitplan** – chronologische Tabelle; je Platz ein Auswahlfeld. Nicht wählbare Personen
-  sind ausgegraut *mit Grund* („kommt später“, „andere Schicht zur gleichen Zeit“).
-  Offene Schichten sind rot, teilbesetzte gelb hinterlegt.
+* **Zeitplan** – chronologische Tabelle, bei mehrtägigen Veranstaltungen mit einer
+  Zwischenüberschrift je Tag („Samstag, 01.08.2026“); je Platz ein Auswahlfeld. Nicht
+  wählbare Personen sind ausgegraut *mit Grund* („kommt später“, „andere Schicht zur
+  gleichen Zeit“). Offene Schichten sind rot, teilbesetzte gelb hinterlegt.
 * **Nach Person** – Karte je Person mit Auslastungsbalken, verfügbarer Zeit und Schichtliste.
 * **Probleme** – alle offenen Punkte mit Begründung und Hinweisen zur Behebung.
 
@@ -290,12 +318,13 @@ in der Zelle, damit die Datei anschließend frei bearbeitbar ist.
 
 | Blatt | Spalten |
 |-------|---------|
-| **Schichtplan** | Datum · Aufgabe · Startzeit · Endzeit · Dauer (min) · Person 1 … Person *n* · Bemerkung |
+| **Schichtplan** | Datum · *Wochentag* · Aufgabe · Startzeit · Endzeit · Dauer (min) · Person 1 … Person *n* · Bemerkung |
 | **Teilnehmende** | Name · Kommt ab · Geht bis · Notiz · Anzahl Schichten · Gesamtzeit (h) · Aufgabenverteilung |
-| **Verfügbarkeiten** | Person · Art · Nicht verfügbar von · bis · Grund |
+| **Verfügbarkeiten** | Person · Art · *Tag* · Nicht verfügbar von · bis · Grund |
 | **Offene Schichten** | Aufgabe · Datum · Von · Bis · Benötigt · Besetzt · Fehlt · Hinweis |
 | **Veranstaltung** | Rahmendaten und Kennzahlen des Plans |
 
+Die Spalte *Wochentag* und die Spalte *Tag* erscheinen nur bei mehrtägigen Veranstaltungen.
 Die Zahl der Personenspalten richtet sich automatisch nach der am stärksten besetzten
 Aufgabe. Kopfzeile fixiert, Autofilter gesetzt, Spaltenbreiten vorbelegt; offene Plätze
 sind rot hinterlegt und mit `— offen —` beschriftet, teilbesetzte Zeilen gelb. Die
@@ -327,6 +356,8 @@ Klassische `<script>`-Einbindung statt ES-Modulen, damit die App auch direkt per
 
 ### Ansatzpunkte für Erweiterungen
 
+* **Neuer Rhythmus** (z. B. „nur an Wochenendtagen“): Zweig in `taskPeriods()` ergänzen und
+  als Option in `UI.taskCard()` anbieten – der Rest der Kette bleibt unverändert.
 * **Neue Regel:** Term in `cost()` ergänzen und optional in `candidateScore()` spiegeln.
 * **Neue Aufgabeneigenschaft:** Feld in `Store.addTask()` + `migrate()`, Eingabe in
   `UI.taskCard()`, Auswertung in `isEligible()`.

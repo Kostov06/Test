@@ -17,6 +17,16 @@
 
   var lastErrors = [];
 
+  /*
+   * Bindungen, die den Aufbau der Seite verändern (Felder erscheinen
+   * oder verschwinden). Nur sie lösen einen Neuaufbau aus – alle
+   * anderen aktualisieren gezielt einzelne Textstellen, damit ein
+   * laufender Klick nicht verloren geht. Es sind ausschließlich
+   * Auswahlfelder und Schalter, bei denen die Änderung mit dem Klick
+   * abgeschlossen ist.
+   */
+  var RERENDER_BINDS = ['task.mode'];
+
   /* ---------------- Rendering ---------------- */
 
   function render(focusHint) {
@@ -215,6 +225,10 @@
 
     if (group === 'event') {
       state.event[key] = value;
+      // Enddatum mitführen, solange die Veranstaltung eintägig ist
+      if (key === 'date' && (!state.event.endDate || U.daysBetween(value, state.event.endDate) < 0)) {
+        state.event.endDate = value;
+      }
     } else if (group === 'option') {
       state.options[key] = value;
     } else if (group === 'export') {
@@ -257,6 +271,11 @@
 
     var duration = U.$('#eventDuration');
     if (duration) duration.innerHTML = UI.eventDurationHtml(state);
+
+    var hintStart = U.$('#dayHintStart');
+    if (hintStart) hintStart.textContent = UI.dayHint(state.event.date);
+    var hintEnd = U.$('#dayHintEnd');
+    if (hintEnd) hintEnd.textContent = UI.dayHint(state.event.endDate || state.event.date, true);
 
     var count = U.$('#peopleCount');
     if (count) count.textContent = UI.peopleCountText(state);
@@ -308,9 +327,9 @@
 
     if (applyBinding(target)) {
       updateDerived(target);
-      // Nur dieser Schalter blendet Felder ein bzw. aus und braucht
-      // deshalb einen echten Neuaufbau.
-      if (target.dataset.bind === 'task.wholeEvent') render(focusHintFrom(target));
+      // Diese Felder blenden andere Felder ein bzw. aus und brauchen
+      // deshalb einen echten Neuaufbau der Ansicht.
+      if (RERENDER_BINDS.indexOf(target.dataset.bind) !== -1) render(focusHintFrom(target));
     }
   });
 
@@ -380,12 +399,15 @@
         break;
 
       case 'load-demo':
+      case 'load-demo-weekend':
         if (state.people.length || state.tasks.length) {
           if (!window.confirm('Die aktuellen Eingaben werden durch das Beispiel ersetzt. Fortfahren?')) return;
         }
-        Store.loadDemo();
+        if (action === 'load-demo-weekend') Store.loadDemoWeekend(); else Store.loadDemo();
         render();
-        toast('Beispieldaten geladen.', 'ok');
+        toast(action === 'load-demo-weekend'
+          ? 'Beispiel für ein Wochenende geladen (Freitag bis Sonntag).'
+          : 'Beispiel für einen Tag geladen.', 'ok');
         break;
       case 'reset-all':
         if (!window.confirm('Wirklich alle Eingaben löschen?')) return;

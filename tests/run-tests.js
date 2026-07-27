@@ -253,6 +253,143 @@ check('Aufgabe außerhalb wird gemeldet',
   /außerhalb/.test(outsidePlan.issues[0].message));
 
 /* ============================================================
+   3b. Mehrtägige Veranstaltungen
+   ============================================================ */
+section('3b. Mehrtägige Veranstaltungen (Fr–So)');
+{
+
+
+check('daysBetween', Util.daysBetween('2026-07-24', '2026-07-26') === 2 &&
+  Util.daysBetween('2026-07-26', '2026-07-24') === -2);
+check('weekdayShort', Util.weekdayShort('2026-07-24') === 'Fr');
+
+Store.reset();
+const we = Store.get();
+we.event = { name: 'Wochenende', date: '2026-07-24', endDate: '2026-07-26', startTime: '17:00', endTime: '14:00', notes: '' };
+['A', 'B', 'C', 'D', 'E', 'F'].forEach((n) => Store.addPerson(n));
+
+const weWin = Scheduler.eventWindow(we.event);
+check('Zeitfenster über drei Tage', weWin.start === 1020 && weWin.end === 2 * 1440 + 840,
+  weWin.start + "–" + weWin.end);
+check('Gesamtdauer 45 h', (weWin.end - weWin.start) / 60 === 45, ((weWin.end - weWin.start) / 60) + ' h');
+check('Tage-Liste hat drei Einträge', Store.eventDays().length === 3);
+check('isMultiDay erkennt Wochenende', Store.isMultiDay() === true);
+
+// Tägliche Aufgabe: an jedem Tag, an den Rändern gekürzt
+Store.addTask({ name: 'Türschicht', mode: 'daily', startTime: '08:00', endTime: '20:00', slotMinutes: 120, peoplePerSlot: 2 });
+let wePlan = Scheduler.compute(we);
+let weDoorSlots = wePlan.slots.filter((s) => s.taskName === 'Türschicht');
+const dayOf = (m) => Math.floor(m / 1440);
+check('Tägliche Aufgabe an allen drei Tagen',
+  new Set(weDoorSlots.map((s) => dayOf(s.start))).size === 3,
+  'Tage: ' + [...new Set(weDoorSlots.map((s) => dayOf(s.start)))].join(','));
+check('Freitag erst ab Veranstaltungsbeginn',
+  Math.min(...weDoorSlots.filter((s) => dayOf(s.start) === 0).map((s) => s.start)) === 1020);
+check('Sonntag endet mit der Veranstaltung',
+  Math.max(...weDoorSlots.filter((s) => dayOf(s.start) === 2).map((s) => s.end)) === 2 * 1440 + 840);
+check('Samstag voll (08:00–20:00)',
+  Math.min(...weDoorSlots.filter((s) => dayOf(s.start) === 1).map((s) => s.start)) === 1440 + 480 &&
+  Math.max(...weDoorSlots.filter((s) => dayOf(s.start) === 1).map((s) => s.end)) === 1440 + 1200);
+
+// Nachtschicht über Mitternacht
+Store.addTask({ name: 'Nachtwache', mode: 'daily', startTime: '23:00', endTime: '07:00', slotMinutes: 240, peoplePerSlot: 1 });
+wePlan = Scheduler.compute(we);
+const night = wePlan.slots.filter((s) => s.taskName === 'Nachtwache').sort((a, b) => a.start - b.start);
+check('Nachtwache: zwei Nächte à zwei Schichten', night.length === 4, 'ist ' + night.length);
+check('Nachtwache erste Schicht Fr 23:00', night[0].start === 1380);
+check('Nachtwache läuft über Mitternacht', night[0].end === 1620 && dayOf(night[0].end - 1) === 1);
+check('Nachtwache letzte Schicht endet So 07:00',
+  night[night.length - 1].end === 2 * 1440 + 420, 'ist ' + night[night.length - 1].end);
+
+// Einmalige Aufgabe an einem bestimmten Tag
+Store.addTask({ name: 'Endreinigung', mode: 'once', day: '2026-07-26', startTime: '12:00', endTime: '14:00', slotMinutes: 60, peoplePerSlot: 2 });
+wePlan = Scheduler.compute(we);
+const clean = wePlan.slots.filter((s) => s.taskName === 'Endreinigung');
+check('Einmalige Aufgabe nur am gewählten Tag',
+  clean.length === 2 && clean.every((s) => dayOf(s.start) === 2), 'ist ' + clean.length);
+check('Einmalige Aufgabe: richtiges Kalenderdatum',
+  Util.dateForMinutes(we.event.date, clean[0].start) === '2026-07-26');
+
+// Abwesenheit an einem bestimmten Tag
+const personB = we.people[1];
+we.absences.push({ id: 'a_we', personId: personB.id, date: '2026-07-25', startTime: '08:00', endTime: '20:00', reason: 'Auswärtstermin' });
+wePlan = Scheduler.compute(we);
+const bSaturday = wePlan.slots.filter(
+  (s) => s.assigned.includes(personB.id) && dayOf(s.start) === 1 && s.start >= 1440 + 480 && s.end <= 1440 + 1200);
+check('Datierte Abwesenheit wird beachtet', bSaturday.length === 0, bSaturday.length + ' Schichten am Samstag');
+const bOther = wePlan.slots.filter((s) => s.assigned.includes(personB.id));
+check('Person ist an den anderen Tagen eingeteilt', bOther.length > 0);
+
+// Späte Anreise mit Datum
+const personC = we.people[2];
+personC.arrival = '10:00';
+personC.arrivalDate = '2026-07-25';
+wePlan = Scheduler.compute(we);
+const cShifts = wePlan.slots.filter((s) => s.assigned.includes(personC.id));
+check('Anreise am zweiten Tag wird beachtet',
+  cShifts.every((s) => s.start >= 1440 + 600),
+  'früheste ' + Math.min(...cShifts.map((s) => s.start)));
+personC.arrival = ''; personC.arrivalDate = '';
+
+// Harte Regeln bleiben auch mehrtägig gültig
+wePlan = Scheduler.compute(we);
+const weCtx = Scheduler.buildContext(we);
+let weViolations = 0;
+const wePerPerson = {};
+wePlan.slots.forEach((slot) => {
+  slot.assigned.filter(Boolean).forEach((pid) => {
+    if (!Scheduler.isAvailable(weCtx, pid, slot.start, slot.end)) weViolations++;
+    (wePerPerson[pid] = wePerPerson[pid] || []).push(slot);
+  });
+});
+Object.keys(wePerPerson).forEach((pid) => {
+  const list = wePerPerson[pid].slice().sort((a, b) => a.start - b.start);
+  for (let i = 1; i < list.length; i++) if (list[i].start < list[i - 1].end) weViolations++;
+});
+check('Mehrtägig: keine Regelverstöße', weViolations === 0, weViolations + ' Verstöße');
+check('Mehrtägig: alles besetzt', wePlan.stats.openSeats === 0, wePlan.stats.openSeats + ' offen');
+check('Mehrtägig: Kennzeichnung multiDay', wePlan.multiDay === true);
+console.log('   Wochenende:', wePlan.stats.totalSlots, 'Schichten,',
+  (wePlan.stats.minMinutes / 60).toFixed(2) + '–' + (wePlan.stats.maxMinutes / 60).toFixed(2), 'h je Person');
+
+// Wochenend-Demodaten
+Store.loadDemoWeekend();
+const demoWe = Store.get();
+check('Wochenend-Beispiel ist gültig',
+  [1, 2, 3, 4].every((s) => Store.validateStep(s).length === 0),
+  JSON.stringify([1, 2, 3, 4].map((s) => Store.validateStep(s))));
+const demoWePlan = Scheduler.compute(demoWe);
+check('Wochenend-Beispiel: Plan über drei Tage',
+  new Set(demoWePlan.slots.map((s) => dayOf(s.start))).size === 3);
+check('Wochenend-Beispiel: höchstens vereinzelt offene Plätze',
+  demoWePlan.stats.openSeats <= 2, demoWePlan.stats.openSeats + ' offen');
+console.log('   Wochenend-Beispiel:', demoWePlan.stats.totalSlots, 'Schichten,',
+  demoWePlan.stats.filledSeats + '/' + demoWePlan.stats.requiredSeats, 'Plätze,',
+  (demoWePlan.stats.minMinutes / 60).toFixed(2) + '–' + (demoWePlan.stats.maxMinutes / 60).toFixed(2), 'h je Person');
+
+// Altbestand (Version 1) muss weiter laufen
+Store.fromJson(JSON.stringify({
+  version: 1,
+  event: { name: 'Alt', date: '2026-07-24', startTime: '08:00', endTime: '12:00' },
+  people: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }],
+  tasks: [
+    { id: 't1', name: 'Durchgehend', wholeEvent: true, slotMinutes: 60, peoplePerSlot: 1 },
+    { id: 't2', name: 'Teilzeit', wholeEvent: false, startTime: '09:00', endTime: '11:00', slotMinutes: 60, peoplePerSlot: 1 }
+  ],
+  absences: [{ id: 'x1', personId: 'p1', startTime: '08:00', endTime: '09:00', reason: 'alt' }]
+}));
+const old = Store.get();
+check('Altdaten: Enddatum ergänzt', old.event.endDate === '2026-07-24');
+check('Altdaten: wholeEvent → mode', old.tasks[0].mode === 'continuous' && old.tasks[1].mode === 'daily');
+check('Altdaten: Abwesenheit ohne Datum bleibt gültig', old.absences.length === 1);
+const oldPlan = Scheduler.compute(old);
+check('Altdaten: Plan wird berechnet', oldPlan.stats.totalSlots === 6 && oldPlan.stats.openSeats === 0,
+  oldPlan.stats.totalSlots + ' Schichten, ' + oldPlan.stats.openSeats + ' offen');
+check('Altdaten: alte Abwesenheit wirkt',
+  !oldPlan.slots.filter((s) => s.start < 540).some((s) => s.assigned.includes('p1')));
+}
+
+/* ============================================================
    4. Validierung
    ============================================================ */
 section('4. Validierung');

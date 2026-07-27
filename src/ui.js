@@ -56,30 +56,49 @@ window.UI = (function () {
 
   /* ---------------- Schritt 1: Veranstaltung ---------------- */
 
-  /** Live-Hinweis zur Dauer der Veranstaltung (wird gezielt aktualisiert) */
+  /** Live-Hinweis zum Zeitraum der Veranstaltung (wird gezielt aktualisiert) */
   function eventDurationHtml(state) {
     var ev = state.event;
     var s = U.parseTime(ev.startTime), en = U.parseTime(ev.endTime);
-    if (s === null || en === null || s === en) return '';
-    var w = U.normalizeWindow(s, en);
-    return 'Dauer: <strong>' + U.formatDuration(w.end - w.start) + '</strong>' +
-      (w.end > U.MIN_PER_DAY ? ' · endet am Folgetag um ' + U.formatTime(w.end) : '') +
-      (ev.date ? ' · ' + U.weekdayName(ev.date) + ', ' + U.formatDate(ev.date) : '');
+    if (s === null || en === null || !ev.date) return '';
+    if (ev.endDate && U.daysBetween(ev.date, ev.endDate) < 0) {
+      return '<span style="color:var(--danger)">Das Enddatum liegt vor dem Startdatum.</span>';
+    }
+    var w = window.Scheduler.eventWindow(ev);
+    var days = window.Store.eventDays().length;
+    var lastIso = U.dateForMinutes(ev.date, w.end - 1);
+    return 'Von <strong>' + U.weekdayShort(ev.date) + ', ' + U.formatDate(ev.date) + ', ' + U.formatTime(w.start) +
+      '</strong> bis <strong>' + U.weekdayShort(lastIso) + ', ' + U.formatDate(lastIso) + ', ' + U.formatTime(w.end) +
+      '</strong> · Dauer ' + U.formatDuration(w.end - w.start) +
+      (days > 1 ? ' · <strong>' + days + ' Tage</strong>' : '');
+  }
+
+  /** Hinweistext unter den Datumsfeldern */
+  function dayHint(iso, isEnd) {
+    if (!iso) return '';
+    var state = window.Store.get();
+    var text = U.weekdayName(iso);
+    if (isEnd && U.daysBetween(state.event.date, iso) === 0) text += ' · gleicher Tag = eintägig';
+    return text;
   }
 
   function step1(state) {
     var ev = state.event;
+    var multi = U.daysBetween(ev.date, ev.endDate || ev.date) > 0;
 
     return '<section class="panel">' +
       head(1, 'Veranstaltung anlegen',
-        'Rahmendaten der Veranstaltung. Der hier festgelegte Zeitraum ist die Obergrenze für alle Schichten.') +
+        'Rahmendaten der Veranstaltung. Der hier festgelegte Zeitraum ist die Obergrenze für alle Schichten. ' +
+        'Für ein Wochenende einfach ein späteres Enddatum wählen.') +
       '<div class="field-grid">' +
         field('Name der Veranstaltung *', '<input type="text" data-bind="event.name" value="' + e(ev.name) + '" placeholder="z. B. Sommerfest der Gemeinde" autocomplete="off">', '', 'span-2') +
-        field('Datum *', '<input type="date" data-bind="event.date" value="' + e(ev.date) + '">',
-          ev.date ? U.weekdayName(ev.date) : '') +
-        field('Startzeit *', '<input type="time" data-bind="event.startTime" value="' + e(ev.startTime) + '">') +
-        field('Endzeit *', '<input type="time" data-bind="event.endTime" value="' + e(ev.endTime) + '">',
-          'Liegt die Endzeit vor der Startzeit, endet die Veranstaltung am Folgetag.') +
+        field('Erster Tag *', '<input type="date" data-bind="event.date" value="' + e(ev.date) + '">',
+          '<span id="dayHintStart">' + e(dayHint(ev.date)) + '</span>') +
+        field('Letzter Tag *', '<input type="date" data-bind="event.endDate" value="' + e(ev.endDate || ev.date) + '">',
+          '<span id="dayHintEnd">' + e(dayHint(ev.endDate || ev.date, true)) + '</span>') +
+        field('Beginn am ersten Tag *', '<input type="time" data-bind="event.startTime" value="' + e(ev.startTime) + '">') +
+        field('Ende am letzten Tag *', '<input type="time" data-bind="event.endTime" value="' + e(ev.endTime) + '">',
+          multi ? '' : 'Liegt die Endzeit vor der Startzeit, endet die Veranstaltung nach Mitternacht.') +
         field('Bemerkungen (optional)', '<textarea data-bind="event.notes" placeholder="Hinweise, die im Plan und im Excel-Export erscheinen">' + e(ev.notes) + '</textarea>', '', 'span-2') +
       '</div>' +
       '<p class="small muted mt-16" id="eventDuration">' + eventDurationHtml(state) + '</p>' +
@@ -151,6 +170,21 @@ window.UI = (function () {
   }
 
   function taskCard(state, task, index) {
+    var multi = window.Store.isMultiDay();
+    var mode = task.mode || 'continuous';
+    var days = window.Store.eventDays();
+
+    var modeOptions =
+      '<option value="continuous"' + (mode === 'continuous' ? ' selected' : '') + '>' +
+        (multi ? 'Durchgehend, Tag und Nacht' : 'Über die gesamte Veranstaltung') + '</option>' +
+      '<option value="daily"' + (mode === 'daily' ? ' selected' : '') + '>' +
+        (multi ? 'Jeden Tag zur gleichen Zeit' : 'Nur in einem bestimmten Zeitraum') + '</option>' +
+      (multi ? '<option value="once"' + (mode === 'once' ? ' selected' : '') + '>Nur an einem bestimmten Tag</option>' : '');
+
+    var dayOptions = days.map(function (d) {
+      return '<option value="' + e(d.iso) + '"' + (d.iso === task.day ? ' selected' : '') + '>' + e(d.label) + '</option>';
+    }).join('');
+
     return '<div class="card">' +
       '<div class="card-head">' +
         '<h4 id="taskTitle_' + task.id + '">' + e(taskTitleText(task, index)) + '</h4>' +
@@ -158,11 +192,16 @@ window.UI = (function () {
       '</div>' +
       '<div class="field-grid">' +
         field('Name der Aufgabe *', '<input type="text" data-bind="task.name" data-id="' + task.id + '" value="' + e(task.name) + '" placeholder="z. B. Teeschicht" autocomplete="off">', '', 'span-2') +
-        field('Zeitraum', '<label class="check"><input type="checkbox" data-bind="task.wholeEvent" data-id="' + task.id + '"' + (task.wholeEvent ? ' checked' : '') + '> Läuft über die gesamte Veranstaltung</label>',
-          task.wholeEvent ? e(state.event.startTime) + '–' + e(state.event.endTime) : '') +
-        (task.wholeEvent ? '' :
+        field('Wann wird sie gebraucht? *',
+          '<select data-bind="task.mode" data-id="' + task.id + '">' + modeOptions + '</select>',
+          mode === 'continuous' ? 'Ohne Unterbrechung von Anfang bis Ende' : '') +
+        (mode === 'once'
+          ? field('An welchem Tag? *', '<select data-bind="task.day" data-id="' + task.id + '">' + dayOptions + '</select>')
+          : '') +
+        (mode === 'continuous' ? '' :
           field('Benötigt von *', '<input type="time" data-bind="task.startTime" data-id="' + task.id + '" value="' + e(task.startTime) + '">') +
-          field('bis *', '<input type="time" data-bind="task.endTime" data-id="' + task.id + '" value="' + e(task.endTime) + '">')) +
+          field('bis *', '<input type="time" data-bind="task.endTime" data-id="' + task.id + '" value="' + e(task.endTime) + '">',
+            mode === 'daily' && multi ? 'Gilt an jedem Tag; Zeiten über Mitternacht sind möglich (z. B. 23:00–07:00).' : '')) +
         field('Länge einer Schicht (Minuten) *', '<input type="number" min="5" step="5" data-bind="task.slotMinutes" data-id="' + task.id + '" value="' + e(task.slotMinutes) + '">', U.formatDuration(task.slotMinutes)) +
         field('Personen pro Schicht *', '<input type="number" min="1" max="10" step="1" data-bind="task.peoplePerSlot" data-id="' + task.id + '" value="' + e(task.peoplePerSlot) + '">') +
         field('Bemerkung (optional)', '<input type="text" data-bind="task.note" data-id="' + task.id + '" value="' + e(task.note) + '" placeholder="erscheint im Excel-Export">', '', 'span-2') +
@@ -173,27 +212,39 @@ window.UI = (function () {
 
   /** Kleine Vorschau: wie viele Schichten entstehen aus dieser Aufgabe? */
   function previewSlots(state, task) {
-    var evs = U.parseTime(state.event.startTime), eve = U.parseTime(state.event.endTime);
-    if (evs === null || eve === null) return '';
-    var win = U.normalizeWindow(evs, eve);
-    var start, end;
-    if (task.wholeEvent) { start = win.start; end = win.end; }
-    else {
-      var ts = U.parseTime(task.startTime), te = U.parseTime(task.endTime);
-      if (ts === null || te === null) return '';
-      start = U.alignToWindow(ts, win.start);
-      end = U.alignToWindow(te, start);
-      if (end <= start) end += U.MIN_PER_DAY;
-      start = Math.max(start, win.start);
-      end = Math.min(end, win.end);
-      if (end <= start) return '<span style="color:var(--danger)">Zeitraum liegt außerhalb der Veranstaltung.</span>';
+    var demand = taskDemand(state, task);
+    if (demand.error) return '<span style="color:var(--danger)">' + e(demand.error) + '</span>';
+    if (!demand.slots) return '';
+    return 'Ergibt <strong>' + demand.slots + '</strong> Schicht(en) à ' + U.formatDuration(demand.slotLength) +
+      (demand.periods > 1 ? ' an ' + demand.periods + ' Tagen' : '') +
+      ' · erste Schicht ' + demand.firstLabel +
+      ' · Personenstunden gesamt: <strong>' + U.hoursText(demand.personMinutes) + ' h</strong>';
+  }
+
+  /** Bedarf einer Aufgabe – gemeinsame Grundlage für Vorschau und Summe */
+  function taskDemand(state, task) {
+    if (!state.event.date) return { slots: 0 };
+    var ctx = window.Scheduler.buildContext(state);
+    var warnings = [];
+    var periods = window.Scheduler.taskPeriods(state, ctx, task, warnings);
+    if (!periods.length) {
+      return { slots: 0, error: warnings.length ? warnings[0].message : '' };
     }
     var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
-    var count = Math.ceil((end - start) / len);
     var required = U.clamp(parseInt(task.peoplePerSlot, 10) || 1, 1, 10);
-    return 'Ergibt <strong>' + count + '</strong> Schicht(en) à ' + U.formatDuration(len) +
-      ' von ' + U.formatTime(start) + ' bis ' + U.formatTimeDay(end) +
-      ' · Personenstunden gesamt: <strong>' + U.hoursText((end - start) * required) + ' h</strong>';
+    var slots = 0, minutes = 0;
+    periods.forEach(function (p) {
+      slots += Math.ceil((p.end - p.start) / len);
+      minutes += (p.end - p.start);
+    });
+    return {
+      slots: slots,
+      periods: periods.length,
+      slotLength: len,
+      personMinutes: minutes * required,
+      firstLabel: (window.Store.isMultiDay() ? U.dayLabel(state.event.date, periods[0].start) + ' ' : '') +
+        U.formatTime(periods[0].start) + '–' + U.formatTime(periods[0].end)
+    };
   }
 
   /* ---------------- Schritt 4: Verfügbarkeiten ---------------- */
@@ -205,10 +256,21 @@ window.UI = (function () {
         '<div class="empty">Keine Personen vorhanden – zurück zu Schritt 2.</div></section>';
     }
 
+    var multi = window.Store.isMultiDay();
+    var days = window.Store.eventDays();
+    var daySelect = function (bind, id, selected, fallback) {
+      var opts = days.map(function (d) {
+        return '<option value="' + e(d.iso) + '"' +
+          ((selected || fallback) === d.iso ? ' selected' : '') + '>' + e(d.short) + '</option>';
+      }).join('');
+      return '<select data-bind="' + bind + '" data-id="' + id + '" style="max-width:150px">' + opts + '</select>';
+    };
+
     var cards = people.map(function (p) {
       var absences = state.absences.filter(function (a) { return a.personId === p.id; });
       var rows = absences.map(function (a) {
         return '<div class="row-item">' +
+          (multi ? daySelect('absence.date', a.id, a.date, state.event.date) : '') +
           '<span class="small muted">nicht da von</span>' +
           '<input type="time" data-bind="absence.startTime" data-id="' + a.id + '" value="' + e(a.startTime) + '" style="max-width:130px">' +
           '<span class="small muted">bis</span>' +
@@ -218,12 +280,20 @@ window.UI = (function () {
           '</div>';
       }).join('');
 
+      var lastDay = days.length ? days[days.length - 1].iso : state.event.date;
+
       return '<div class="card">' +
         '<div class="card-head"><h4>' + e(p.name) + '</h4>' +
         '<span class="card-meta">' + (absences.length ? absences.length + ' Abwesenheit(en)' : 'durchgehend verfügbar') + '</span></div>' +
         '<div class="field-grid">' +
-          field('Kommt erst ab (optional)', '<input type="time" data-bind="person.arrival" data-id="' + p.id + '" value="' + e(p.arrival) + '">') +
-          field('Geht früher ab (optional)', '<input type="time" data-bind="person.departure" data-id="' + p.id + '" value="' + e(p.departure) + '">') +
+          field('Kommt erst ab (optional)',
+            (multi ? daySelect('person.arrivalDate', p.id, p.arrivalDate, state.event.date) + ' ' : '') +
+            '<input type="time" data-bind="person.arrival" data-id="' + p.id + '" value="' + e(p.arrival) + '">',
+            multi ? 'Tag und Uhrzeit der Ankunft' : '') +
+          field('Geht früher ab (optional)',
+            (multi ? daySelect('person.departureDate', p.id, p.departureDate, lastDay) + ' ' : '') +
+            '<input type="time" data-bind="person.departure" data-id="' + p.id + '" value="' + e(p.departure) + '">',
+            multi ? 'Tag und Uhrzeit der Abreise' : '') +
         '</div>' +
         (rows ? '<div class="row-list mt-16">' + rows + '</div>' : '') +
         '<div class="actions-row mt-16">' +
@@ -276,28 +346,14 @@ window.UI = (function () {
   }
 
   function totalDemand(state) {
-    var evs = U.parseTime(state.event.startTime), eve = U.parseTime(state.event.endTime);
-    if (evs === null || eve === null) return { text: 'Zeitraum unvollständig.', warning: '' };
-    var win = U.normalizeWindow(evs, eve);
+    if (U.parseTime(state.event.startTime) === null || U.parseTime(state.event.endTime) === null) {
+      return { text: 'Zeitraum unvollständig.', warning: '' };
+    }
     var personMinutes = 0, slotCount = 0;
-
     state.tasks.forEach(function (t) {
-      var start, end;
-      if (t.wholeEvent) { start = win.start; end = win.end; }
-      else {
-        var ts = U.parseTime(t.startTime), te = U.parseTime(t.endTime);
-        if (ts === null || te === null) return;
-        start = U.alignToWindow(ts, win.start);
-        end = U.alignToWindow(te, start);
-        if (end <= start) end += U.MIN_PER_DAY;
-        start = Math.max(start, win.start);
-        end = Math.min(end, win.end);
-        if (end <= start) return;
-      }
-      var len = Math.max(5, parseInt(t.slotMinutes, 10) || 60);
-      var required = U.clamp(parseInt(t.peoplePerSlot, 10) || 1, 1, 10);
-      personMinutes += (end - start) * required;
-      slotCount += Math.ceil((end - start) / len);
+      var d = taskDemand(state, t);
+      personMinutes += d.personMinutes || 0;
+      slotCount += d.slots || 0;
     });
 
     var ctx = window.Scheduler.buildContext(state);
@@ -407,15 +463,30 @@ window.UI = (function () {
     var headCells = '<th>Zeit</th><th>Aufgabe</th>';
     for (var i = 0; i < maxSeats; i++) headCells += '<th>Person ' + (i + 1) + '</th>';
     headCells += '<th>Status</th>';
+    var columnCount = maxSeats + 3;
 
     var lastStart = null;
+    var lastDay = null;
     var body = slots.map(function (slot) {
+      var prefix = '';
+      // Bei mehrtägigen Veranstaltungen je Tag eine Zwischenüberschrift
+      if (schedule.multiDay) {
+        var day = U.dayIndex(slot.start);
+        if (day !== lastDay) {
+          prefix = '<tr class="day-row"><th colspan="' + columnCount + '">' +
+            e(U.dayLabelLong(state.event.date, slot.start)) + '</th></tr>';
+          lastDay = day;
+          lastStart = null;
+        }
+      }
+
       var filled = slot.assigned.filter(Boolean).length;
       var cls = filled === 0 ? 'is-open' : (filled < slot.required ? 'is-partial' : '');
       if (lastStart !== null && slot.start !== lastStart) cls += ' row-gap';
       lastStart = slot.start;
 
-      var cells = '<td class="time">' + U.formatTime(slot.start) + '–' + U.formatTimeDay(slot.end) +
+      var cells = '<td class="time">' + U.formatTime(slot.start) + '–' +
+        U.endLabel(state.event.date, slot.start, slot.end, schedule.multiDay) +
         '<br><span class="small muted">' + U.formatDuration(slot.end - slot.start) + '</span></td>' +
         '<td>' + e(slot.taskName) + (slot.taskNote ? '<br><span class="small muted">' + e(slot.taskNote) + '</span>' : '') + '</td>';
 
@@ -430,7 +501,7 @@ window.UI = (function () {
           ? '<span class="badge badge-danger">offen</span>'
           : '<span class="badge badge-warn">' + (slot.required - filled) + ' fehlt</span>')) + '</td>';
 
-      return '<tr class="' + cls + '">' + cells + '</tr>';
+      return prefix + '<tr class="' + cls + '">' + cells + '</tr>';
     }).join('');
 
     return '<div class="table-wrap"><table class="data"><thead><tr>' + headCells + '</tr></thead>' +
@@ -468,7 +539,9 @@ window.UI = (function () {
         .filter(Boolean)
         .sort(function (a, b) { return a.start - b.start; })
         .map(function (slot) {
-          return '<li><span class="t">' + U.formatTime(slot.start) + '–' + U.formatTimeDay(slot.end) + '</span>' +
+          var day = schedule.multiDay ? U.weekdayShort(U.dateForMinutes(state.event.date, slot.start)) + ' ' : '';
+          return '<li><span class="t">' + day + U.formatTime(slot.start) + '–' +
+            U.endLabel(state.event.date, slot.start, slot.end, schedule.multiDay) + '</span>' +
             '<span>' + e(slot.taskName) + '</span></li>';
         }).join('');
 
@@ -494,7 +567,9 @@ window.UI = (function () {
       return '<tr class="' + (issue.severity === 'error' ? 'is-open' : 'is-partial') + '">' +
         '<td>' + e(issue.taskName || '') + '</td>' +
         '<td class="time">' + (issue.start != null
-          ? U.formatTime(issue.start) + '–' + U.formatTimeDay(issue.end) : '–') + '</td>' +
+          ? (schedule.multiDay ? U.dayLabel(state.event.date, issue.start) + ' ' : '') +
+            U.formatTime(issue.start) + '–' +
+            U.endLabel(state.event.date, issue.start, issue.end, schedule.multiDay) : '–') + '</td>' +
         '<td class="num">' + (issue.required ? issue.filled + ' / ' + issue.required : '–') + '</td>' +
         '<td>' + e(issue.message) + '</td>' +
         '</tr>';
@@ -536,6 +611,7 @@ window.UI = (function () {
     primaryLabel: primaryLabel,
     // Bausteine für gezielte Aktualisierungen ohne Neuaufbau des DOM
     eventDurationHtml: eventDurationHtml,
+    dayHint: dayHint,
     peopleCountText: peopleCountText,
     taskTitleText: taskTitleText,
     previewSlots: previewSlots,

@@ -44,39 +44,73 @@ window.Scheduler = (function () {
    * Bereitet alle Zeitangaben in Minuten relativ zum Veranstaltungstag auf.
    * Ergebnis enthält u. a. die Nichtverfügbarkeiten je Person.
    */
+  /**
+   * Zeitfenster der Veranstaltung in Minuten seit Mitternacht des
+   * Starttags. Deckt eintägige Veranstaltungen (auch über Mitternacht)
+   * und mehrtägige Veranstaltungen ab.
+   */
+  function eventWindow(event) {
+    var start = U.parseTime(event.startTime);
+    var end = U.parseTime(event.endTime);
+    if (start === null) start = 0;
+    if (end === null) end = start + 60;
+
+    var spanDays = U.daysBetween(event.date, event.endDate || event.date);
+    if (!(spanDays >= 0)) spanDays = 0;
+
+    var absoluteEnd = spanDays * U.MIN_PER_DAY + end;
+    // Gleicher Tag und Ende rechnerisch vor dem Start -> Folgetag
+    if (absoluteEnd <= start) absoluteEnd += U.MIN_PER_DAY;
+    return { start: start, end: absoluteEnd, spanDays: spanDays };
+  }
+
+  /**
+   * Rechnet Datum + Uhrzeit in das Minutenraster der Veranstaltung um.
+   * Ohne Datum (Altbestand) gilt der Starttag; bei eintägigen
+   * Veranstaltungen über Mitternacht wird wie bisher automatisch auf
+   * den Folgetag geschoben.
+   */
+  function toMinutes(event, win, dateIso, time, fallbackIso) {
+    var t = U.parseTime(time);
+    if (t === null) return null;
+    var iso = dateIso || fallbackIso || event.date;
+    var offset = U.daysBetween(event.date, iso);
+    if (!isFinite(offset)) offset = 0;
+    var value = offset * U.MIN_PER_DAY + t;
+    var singleDay = U.daysBetween(event.date, event.endDate || event.date) === 0;
+    if (singleDay && !dateIso && value < win.start) value += U.MIN_PER_DAY;
+    return value;
+  }
+
   function buildContext(state) {
     var ev = state.event;
-    var evStart = U.parseTime(ev.startTime);
-    var evEnd = U.parseTime(ev.endTime);
-    if (evStart === null) evStart = 0;
-    if (evEnd === null) evEnd = evStart + 60;
-    var win = U.normalizeWindow(evStart, evEnd);
+    var win = eventWindow(ev);
 
     var people = state.people.filter(function (p) { return p.name.trim(); });
     var unavailable = {};
     var availableMinutes = {};
+    var lastDayIso = U.dateForMinutes(ev.date, win.end - 1);
 
     people.forEach(function (p) {
       var blocks = [];
 
       // Kommt erst später / geht früher -> Randzeiten sperren
       if (p.arrival && U.parseTime(p.arrival) !== null) {
-        var arr = U.alignToWindow(U.parseTime(p.arrival), win.start);
+        var arr = toMinutes(ev, win, p.arrivalDate, p.arrival, ev.date);
         if (arr > win.start) blocks.push({ start: win.start, end: Math.min(arr, win.end), reason: 'kommt später' });
       }
       if (p.departure && U.parseTime(p.departure) !== null) {
-        var dep = U.alignToWindow(U.parseTime(p.departure), win.start);
+        var dep = toMinutes(ev, win, p.departureDate, p.departure, lastDayIso);
         if (dep < win.end) blocks.push({ start: Math.max(dep, win.start), end: win.end, reason: 'geht früher' });
       }
 
       // Eingetragene Abwesenheiten
       state.absences.forEach(function (a) {
         if (a.personId !== p.id) return;
-        var s = U.parseTime(a.startTime), e = U.parseTime(a.endTime);
-        if (s === null || e === null) return;
-        var as = U.alignToWindow(s, win.start);
-        var ae = U.alignToWindow(e, as);
-        if (ae <= as) ae += U.MIN_PER_DAY;
+        var as = toMinutes(ev, win, a.date, a.startTime, ev.date);
+        var ae = toMinutes(ev, win, a.date, a.endTime, ev.date);
+        if (as === null || ae === null) return;
+        if (ae <= as) ae += U.MIN_PER_DAY;   // Abwesenheit über Mitternacht
         blocks.push({ start: as, end: ae, reason: a.reason || 'abwesend' });
       });
 
@@ -98,6 +132,7 @@ window.Scheduler = (function () {
       unavailable: unavailable,
       availableMinutes: availableMinutes,
       options: state.options,
+      event: ev,
       date: ev.date
     };
   }
@@ -122,77 +157,105 @@ window.Scheduler = (function () {
 
   /* ---------------- Schichten erzeugen ---------------- */
 
+  /**
+   * Zeiträume, in denen eine Aufgabe benötigt wird – je nach Rhythmus:
+   *   continuous  einmal über die gesamte Veranstaltung
+   *   daily       an jedem Veranstaltungstag zur gleichen Uhrzeit
+   *   once        einmalig an einem bestimmten Tag
+   * Alle Zeiträume werden auf das Veranstaltungsfenster begrenzt.
+   */
+  function taskPeriods(state, ctx, task, warnings) {
+    var win = ctx.window;
+    var ev = state.event;
+    var mode = task.mode || 'continuous';
+
+    if (mode === 'continuous') return [{ start: win.start, end: win.end }];
+
+    var ts = U.parseTime(task.startTime), te = U.parseTime(task.endTime);
+    if (ts === null || te === null) {
+      warnings.push({ taskName: task.name, message: 'Zeitraum unvollständig – Aufgabe wurde übersprungen.' });
+      return [];
+    }
+
+    var raw = [];
+    if (mode === 'once') {
+      var offset = U.daysBetween(ev.date, task.day || ev.date);
+      if (!isFinite(offset)) offset = 0;
+      raw.push(offset * U.MIN_PER_DAY + ts);
+    } else {
+      var lastDay = Math.floor((win.end - 1) / U.MIN_PER_DAY);
+      for (var d = 0; d <= lastDay; d++) raw.push(d * U.MIN_PER_DAY + ts);
+    }
+
+    var periods = [];
+    var clippedAny = false;
+    raw.forEach(function (start) {
+      var end = start - ts + te;
+      if (end <= start) end += U.MIN_PER_DAY;         // Zeitraum über Mitternacht
+      var s = Math.max(start, win.start);
+      var e = Math.min(end, win.end);
+      if (e <= s) return;                             // liegt komplett außerhalb
+      if (s !== start || e !== end) clippedAny = true;
+      periods.push({ start: s, end: e });
+    });
+
+    if (!periods.length) {
+      warnings.push({
+        taskName: task.name,
+        message: mode === 'once'
+          ? 'Der gewählte Tag liegt außerhalb der Veranstaltung – Aufgabe wurde übersprungen.'
+          : 'Zeitraum liegt außerhalb der Veranstaltung – Aufgabe wurde übersprungen.'
+      });
+    } else if (clippedAny) {
+      warnings.push({
+        taskName: task.name,
+        message: 'Der Zeitraum wurde am Anfang bzw. Ende auf die Veranstaltungszeit gekürzt.'
+      });
+    }
+    return periods;
+  }
+
   function buildSlots(state, ctx) {
     var slots = [];
     var warnings = [];
-    var win = ctx.window;
     var merge = state.options.mergeShortLastSlot !== false;
 
     state.tasks.forEach(function (task) {
-      var start, end;
-      if (task.wholeEvent) {
-        start = win.start;
-        end = win.end;
-      } else {
-        var ts = U.parseTime(task.startTime), te = U.parseTime(task.endTime);
-        if (ts === null || te === null) {
-          warnings.push({ type: 'task', taskName: task.name, message: 'Zeitraum unvollständig – Aufgabe wurde übersprungen.' });
-          return;
-        }
-        start = U.alignToWindow(ts, win.start);
-        end = U.alignToWindow(te, start);
-        if (end <= start) end += U.MIN_PER_DAY;
-        // auf das Veranstaltungsfenster begrenzen
-        var clippedStart = Math.max(start, win.start);
-        var clippedEnd = Math.min(end, win.end);
-        if (clippedEnd <= clippedStart) {
-          warnings.push({
-            type: 'task', taskName: task.name,
-            message: 'Zeitraum liegt außerhalb der Veranstaltung – Aufgabe wurde übersprungen.'
-          });
-          return;
-        }
-        if (clippedStart !== start || clippedEnd !== end) {
-          warnings.push({
-            type: 'task', taskName: task.name,
-            message: 'Zeitraum wurde auf die Veranstaltungszeit gekürzt (' +
-              U.formatTime(clippedStart) + '–' + U.formatTime(clippedEnd) + ').'
-          });
-        }
-        start = clippedStart;
-        end = clippedEnd;
-      }
-
       var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
       var required = U.clamp(parseInt(task.peoplePerSlot, 10) || 1, 1, 10);
-      var taskSlots = [];
-      var cursor = start;
-      while (cursor < end) {
-        var slotEnd = Math.min(cursor + len, end);
-        taskSlots.push({ start: cursor, end: slotEnd });
-        cursor = slotEnd;
-      }
-      // Sehr kurze Restschicht an die vorherige anhängen
-      if (merge && taskSlots.length > 1) {
-        var last = taskSlots[taskSlots.length - 1];
-        if ((last.end - last.start) < len / 2) {
-          taskSlots[taskSlots.length - 2].end = last.end;
-          taskSlots.pop();
-        }
-      }
+      var counter = 0;
 
-      taskSlots.forEach(function (s, i) {
-        slots.push({
-          id: U.uid('s'),
-          taskId: task.id,
-          taskName: task.name.trim() || 'Aufgabe',
-          taskNote: task.note || '',
-          index: i + 1,
-          start: s.start,
-          end: s.end,
-          required: required,
-          assigned: new Array(required).fill(null),
-          manual: new Array(required).fill(false)
+      taskPeriods(state, ctx, task, warnings).forEach(function (period) {
+        var taskSlots = [];
+        var cursor = period.start;
+        while (cursor < period.end) {
+          var slotEnd = Math.min(cursor + len, period.end);
+          taskSlots.push({ start: cursor, end: slotEnd });
+          cursor = slotEnd;
+        }
+        // Sehr kurze Restschicht an die vorherige anhängen
+        if (merge && taskSlots.length > 1) {
+          var last = taskSlots[taskSlots.length - 1];
+          if ((last.end - last.start) < len / 2) {
+            taskSlots[taskSlots.length - 2].end = last.end;
+            taskSlots.pop();
+          }
+        }
+
+        taskSlots.forEach(function (s) {
+          counter++;
+          slots.push({
+            id: U.uid('s'),
+            taskId: task.id,
+            taskName: task.name.trim() || 'Aufgabe',
+            taskNote: task.note || '',
+            index: counter,
+            start: s.start,
+            end: s.end,
+            required: required,
+            assigned: new Array(required).fill(null),
+            manual: new Array(required).fill(false)
+          });
         });
       });
     });
@@ -671,6 +734,8 @@ window.Scheduler = (function () {
       seed: seed,
       window: ctx.window,
       date: state.event.date,
+      endDate: state.event.endDate || state.event.date,
+      multiDay: U.dayIndex(ctx.window.end - 1) > 0,
       slots: slots,
       stats: buildStats(state, ctx, slots),
       issues: buildIssues(ctx, slots, built.warnings),
@@ -741,6 +806,8 @@ window.Scheduler = (function () {
     seatOptions: seatOptions,
     refresh: refresh,
     buildContext: buildContext,
+    eventWindow: eventWindow,
+    taskPeriods: taskPeriods,
     isAvailable: isAvailable
   };
 })();

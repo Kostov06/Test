@@ -97,11 +97,55 @@ window.Util = (function () {
   }
 
   var WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  var WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+  function isoToUtc(iso) {
+    var p = String(iso).split('-');
+    return Date.UTC(+p[0], +p[1] - 1, +p[2]);
+  }
+
   function weekdayName(iso) {
     if (!iso) return '';
-    var p = String(iso).split('-');
-    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
-    return WEEKDAYS[d.getUTCDay()] || '';
+    return WEEKDAYS[new Date(isoToUtc(iso)).getUTCDay()] || '';
+  }
+
+  function weekdayShort(iso) {
+    if (!iso) return '';
+    return WEEKDAYS_SHORT[new Date(isoToUtc(iso)).getUTCDay()] || '';
+  }
+
+  /** Ganze Tage zwischen zwei ISO-Daten (b − a); negativ, wenn b vor a liegt. */
+  function daysBetween(isoA, isoB) {
+    if (!isoA || !isoB) return 0;
+    return Math.round((isoToUtc(isoB) - isoToUtc(isoA)) / 86400000);
+  }
+
+  /** Tagesnummer (0 = erster Tag) eines Minutenwerts */
+  function dayIndex(minutes) { return Math.floor(minutes / MIN_PER_DAY); }
+
+  /**
+   * Endzeit einer Schicht. Ein Zusatz erscheint nur, wenn die Schicht
+   * über Mitternacht in den nächsten Kalendertag läuft – bei
+   * mehrtägigen Veranstaltungen als Wochentag ("07:00 (Sa)"), sonst
+   * als "(+1)".
+   */
+  function endLabel(startIso, start, end, multiDay) {
+    var text = formatTime(end);
+    if (dayIndex(end - 1) === dayIndex(start)) return text;
+    if (multiDay) return text + ' (' + weekdayShort(dateForMinutes(startIso, end - 1)) + ')';
+    return text + ' (+1)';
+  }
+
+  /** "Fr, 25.07." – Tagesbeschriftung für Zeitpunkte im Veranstaltungsraster */
+  function dayLabel(startIso, minutes) {
+    var iso = dateForMinutes(startIso, minutes);
+    return weekdayShort(iso) + ', ' + formatDate(iso).slice(0, 6);
+  }
+
+  /** "Fr, 25.07.2026" – ausführliche Tagesbeschriftung */
+  function dayLabelLong(startIso, minutes) {
+    var iso = dateForMinutes(startIso, minutes);
+    return weekdayName(iso) + ', ' + formatDate(iso);
   }
 
   function todayIso() {
@@ -203,6 +247,12 @@ window.Util = (function () {
     addDays: addDays,
     dateForMinutes: dateForMinutes,
     weekdayName: weekdayName,
+    weekdayShort: weekdayShort,
+    daysBetween: daysBetween,
+    dayIndex: dayIndex,
+    dayLabel: dayLabel,
+    endLabel: endLabel,
+    dayLabelLong: dayLabelLong,
     todayIso: todayIso,
     pad2: pad2,
     uid: uid,

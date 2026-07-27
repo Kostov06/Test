@@ -362,6 +362,23 @@ table.data tbody tr:hover { background: var(--bg-sunken); }
 table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 table.data td.time { font-variant-numeric: tabular-nums; white-space: nowrap; }
 tr.row-gap td { border-top: 2px solid var(--border-strong); }
+
+/* Tagesüberschrift bei mehrtägigen Veranstaltungen */
+tr.day-row th {
+  position: sticky;
+  top: 33px;
+  z-index: 1;
+  background: var(--accent-soft);
+  border-top: 2px solid var(--accent);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 11px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: .01em;
+  color: var(--text);
+  white-space: nowrap;
+}
 tr.is-open td { background: var(--danger-soft); }
 tr.is-partial td { background: var(--warn-soft); }
 
