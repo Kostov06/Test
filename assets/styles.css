@@ -498,6 +498,8 @@ td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
   .row-item { flex-wrap: wrap; }
   .row-item input[type="text"] { min-width: 60%; max-width: none !important; }
   .row-item input[type="time"] { max-width: 46% !important; }
+  .row-item select { flex: 1 1 100%; max-width: none !important; }
+  .row-item .btn-icon { margin-left: auto; }
 
   table.data th, table.data td { padding: 7px 9px; }
 }
@@ -508,3 +510,7 @@ td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
   .panel { box-shadow: none; border: none; padding: 0; }
   table.data { font-size: 11px; }
 }
+
+/* Kennzeichnung fest zugeteilter Plätze */
+td.seat { white-space: nowrap; }
+.pin { margin-right: 4px; font-size: 12px; opacity: .8; }

@@ -1,25 +1,32 @@
 /* ============================================================
    store.js – Datenmodell, Persistenz, Validierung
    ------------------------------------------------------------
-   Datenmodell (Version 1):
+   Datenmodell (Version 2):
 
    state = {
-     version: 1,
-     step:    Number,                       // aktueller Wizard-Schritt (1..6)
-     event:   { name, date, startTime, endTime, notes },
-     people:  [ { id, name, arrival, departure, note } ],
-     tasks:   [ { id, name, wholeEvent, startTime, endTime,
+     version: 2,
+     step:    Number,                       // aktueller Wizard-Schritt (1..7)
+     event:   { name, date, endDate, startTime, endTime, notes },
+     people:  [ { id, name, arrival, arrivalDate,
+                  departure, departureDate, note } ],
+     tasks:   [ { id, name, mode, day, startTime, endTime,
                   slotMinutes, peoplePerSlot, note } ],
-     absences:[ { id, personId, startTime, endTime, reason } ],
+     absences:[ { id, personId, date, startTime, endTime, reason } ],
+     fixed:   [ { id, personId, taskId, scope, day, startTime } ],
      options: { seed, minRestMinutes, preferBlocks, maxShiftsPerPerson,
-                mergeShortLastSlot, balanceTaskTypes },
+                mergeShortLastSlot, balanceTaskTypes, exportSheets },
      schedule: null | Ergebnisobjekt aus scheduler.js
    }
 
    Uhrzeiten werden als "HH:MM" gespeichert und beim Rechnen in
-   Minuten seit Veranstaltungsbeginn umgerechnet. Endet eine Zeit
-   rechnerisch vor ihrem Start, liegt sie am Folgetag – damit sind
-   Veranstaltungen über Mitternacht abgedeckt.
+   Minuten seit Mitternacht des ersten Tages umgerechnet – 08:00 am
+   zweiten Tag ist also 1920. Damit sind eintägige Veranstaltungen,
+   Veranstaltungen über Mitternacht und mehrtägige Veranstaltungen
+   mit demselben Raster abgedeckt.
+
+   `fixed` hält Vorabfestlegungen ("X macht Y"), etwa wenn sich
+   jemand freiwillig meldet. Sie werden vor der automatischen
+   Verteilung eingetragen und danach nicht mehr verändert.
    ============================================================ */
 
 window.Store = (function () {
@@ -44,6 +51,7 @@ window.Store = (function () {
       people: [],
       tasks: [],
       absences: [],
+      fixed: [],
       options: {
         seed: 42,
         minRestMinutes: 0,
@@ -96,7 +104,7 @@ window.Store = (function () {
 
     var next = {
       version: VERSION,
-      step: U.clamp(parseInt(raw.step, 10) || 1, 1, 6),
+      step: U.clamp(parseInt(raw.step, 10) || 1, 1, 7),
       event: event,
       people: (raw.people || []).map(function (p) {
         return {
@@ -134,15 +142,28 @@ window.Store = (function () {
           reason: String(a.reason || '')
         };
       }),
+      fixed: (raw.fixed || []).map(function (f) {
+        return {
+          id: f.id || U.uid('f'),
+          personId: f.personId || '',
+          taskId: f.taskId || '',
+          scope: f.scope || 'slot',          // slot | any | all
+          day: f.day || '',
+          startTime: f.startTime || ''
+        };
+      }),
       options: Object.assign({}, base.options, raw.options || {}, {
         exportSheets: Object.assign({}, base.options.exportSheets, (raw.options || {}).exportSheets || {})
       }),
       schedule: raw.schedule || null
     };
-    // Abwesenheiten ohne existierende Person verwerfen.
+    // Einträge ohne existierende Person bzw. Aufgabe verwerfen.
     var ids = {};
     next.people.forEach(function (p) { ids[p.id] = true; });
+    var taskIds = {};
+    next.tasks.forEach(function (t) { taskIds[t.id] = true; });
     next.absences = next.absences.filter(function (a) { return ids[a.personId]; });
+    next.fixed = next.fixed.filter(function (f) { return ids[f.personId] && taskIds[f.taskId]; });
     return next;
   }
 
@@ -178,7 +199,10 @@ window.Store = (function () {
   /* ---------- Mutationen ---------- */
 
   function addPerson(name) {
-    var person = { id: U.uid('p'), name: name || '', arrival: '', departure: '', note: '' };
+    var person = {
+      id: U.uid('p'), name: name || '',
+      arrival: '', arrivalDate: '', departure: '', departureDate: '', note: ''
+    };
     state.people.push(person);
     invalidateSchedule();
     save();
@@ -188,6 +212,7 @@ window.Store = (function () {
   function removePerson(id) {
     state.people = state.people.filter(function (p) { return p.id !== id; });
     state.absences = state.absences.filter(function (a) { return a.personId !== id; });
+    state.fixed = state.fixed.filter(function (f) { return f.personId !== id; });
     invalidateSchedule();
     save();
   }
@@ -219,6 +244,7 @@ window.Store = (function () {
 
   function removeTask(id) {
     state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+    state.fixed = state.fixed.filter(function (f) { return f.taskId !== id; });
     invalidateSchedule();
     save();
   }
@@ -242,6 +268,33 @@ window.Store = (function () {
     state.absences = state.absences.filter(function (a) { return a.id !== id; });
     invalidateSchedule();
     save();
+  }
+
+  function addFixed() {
+    var first = state.people.filter(function (p) { return p.name.trim(); })[0];
+    var entry = {
+      id: U.uid('f'),
+      personId: first ? first.id : '',
+      taskId: state.tasks.length ? state.tasks[0].id : '',
+      scope: 'any',
+      day: state.event.date,
+      startTime: ''
+    };
+    state.fixed.push(entry);
+    invalidateSchedule();
+    save();
+    return entry;
+  }
+
+  function removeFixed(id) {
+    state.fixed = state.fixed.filter(function (f) { return f.id !== id; });
+    invalidateSchedule();
+    save();
+  }
+
+  function fixedById(id) {
+    for (var i = 0; i < state.fixed.length; i++) if (state.fixed[i].id === id) return state.fixed[i];
+    return null;
   }
 
   function absencesFor(personId) {
@@ -362,6 +415,17 @@ window.Store = (function () {
       });
     }
 
+    if (step === 5) {
+      state.fixed.forEach(function (f, i) {
+        var label = 'Feste Zuteilung ' + (i + 1);
+        if (!f.personId || !personById(f.personId)) errors.push(label + ': Bitte eine Person auswählen.');
+        if (!f.taskId || !taskById(f.taskId)) errors.push(label + ': Bitte eine Aufgabe auswählen.');
+        if (f.scope === 'slot' && (!f.startTime || U.parseTime(f.startTime) === null)) {
+          errors.push(label + ': Bitte eine konkrete Schicht auswählen.');
+        }
+      });
+    }
+
     return errors;
   }
 
@@ -424,6 +488,12 @@ window.Store = (function () {
       task('Brötchen besorgen',      'once',       '08:00', '09:00', 60,  1, { day: day, note: 'Bäckerei Ecke Hauptstraße' })
     ];
 
+    // Vorabfestlegungen: Frank holt immer die Brötchen, Ben meldet sich für die Küche
+    state.fixed = [
+      { id: U.uid('f'), personId: state.people[5].id, taskId: state.tasks[5].id, scope: 'all', day: day, startTime: '' },
+      { id: U.uid('f'), personId: state.people[1].id, taskId: state.tasks[2].id, scope: 'any', day: day, startTime: '' }
+    ];
+
     state.absences = [
       { id: U.uid('a'), personId: state.people[0].id, date: day, startTime: '14:00', endTime: '16:00', reason: 'Workshop-Leitung' },
       { id: U.uid('a'), personId: state.people[2].id, date: day, startTime: '17:00', endTime: '19:00', reason: 'Probe' },
@@ -472,6 +542,16 @@ window.Store = (function () {
       task('Aufräumen',              'once',  '12:00', '14:00', 60,  2, { day: sunday, note: 'Endreinigung' })
     ];
 
+    // Vorabfestlegungen: wer sich schon gemeldet hat
+    state.fixed = [
+      // Frank übernimmt das Brötchenholen an allen Tagen
+      { id: U.uid('f'), personId: state.people[5].id, taskId: state.tasks[5].id, scope: 'all', day: '', startTime: '' },
+      // Jonas macht die Endreinigung am Sonntag (eine bestimmte Schicht)
+      { id: U.uid('f'), personId: state.people[9].id, taskId: state.tasks[6].id, scope: 'slot', day: sunday, startTime: '12:00' },
+      // Clara meldet sich freiwillig für eine Nachtwache – welche, sucht die App aus
+      { id: U.uid('f'), personId: state.people[2].id, taskId: state.tasks[2].id, scope: 'any', day: '', startTime: '' }
+    ];
+
     state.absences = [
       { id: U.uid('a'), personId: state.people[0].id, date: saturday, startTime: '14:00', endTime: '17:00', reason: 'Workshop-Leitung' },
       { id: U.uid('a'), personId: state.people[2].id, date: saturday, startTime: '20:00', endTime: '22:00', reason: 'Bandprobe' },
@@ -499,6 +579,9 @@ window.Store = (function () {
     removeTask: removeTask,
     addAbsence: addAbsence,
     removeAbsence: removeAbsence,
+    addFixed: addFixed,
+    removeFixed: removeFixed,
+    fixedById: fixedById,
     absencesFor: absencesFor,
     invalidateSchedule: invalidateSchedule,
     validateStep: validateStep,

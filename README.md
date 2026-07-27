@@ -28,8 +28,9 @@ Gerät funktioniert. (Bei privaten Repositories setzt GitHub dafür ein kostenpf
 einzelnen Dateien. Nach Änderungen `node build/build-single-file.js` ausführen, damit
 `schichtplaner.html` wieder aktuell ist.
 
-Testlauf ohne Browser: `node tests/run-tests.js` (79 Prüfungen: Zeitlogik, Planungsregeln,
-Randfälle, mehrtägige Veranstaltungen, Altbestand, Validierung, Excel-Erzeugung).
+Testlauf ohne Browser: `node tests/run-tests.js` (104 Prüfungen: Zeitlogik, Planungsregeln,
+Randfälle, mehrtägige Veranstaltungen, feste Zuteilungen, Altbestand, Validierung,
+Excel-Erzeugung).
 
 ---
 
@@ -46,10 +47,11 @@ Randfälle, mehrtägige Veranstaltungen, Altbestand, Validierung, Excel-Erzeugun
 | F4 | Aufgabe wahlweise durchgehend, täglich wiederkehrend oder einmalig an einem Tag | Schritt 3 (`mode`) |
 | F5 | Abwesenheiten je Person mit Tag, Von-/Bis-Zeit und Grund | Schritt 4 |
 | F6 | „Kommt später“ / „geht früher“ je Person | Schritt 4 |
-| F7 | Automatische, faire Verteilung auf Knopfdruck | Schritt 5 → `src/scheduler.js` |
-| F8 | Übersichtliche Anzeige des Ergebnisses (Zeitplan, je Person, Probleme) | Schritt 6 |
-| F9 | Nicht besetzbare Schichten sichtbar markieren | Schritt 6 + Blatt „Offene Schichten“ |
-| F10 | Manuelle Nachbesetzung im fertigen Plan | Schritt 6, Auswahlfelder je Platz |
+| F6b | **Vorab festlegen, wer was übernimmt** (Freiwillige) – eine bestimmte Schicht, eine beliebige Schicht oder alle Schichten einer Aufgabe | Schritt 5 |
+| F7 | Automatische, faire Verteilung auf Knopfdruck | Schritt 6 → `src/scheduler.js` |
+| F8 | Übersichtliche Anzeige des Ergebnisses (Zeitplan, je Person, Probleme) | Schritt 7 |
+| F9 | Nicht besetzbare Schichten sichtbar markieren | Schritt 7 + Blatt „Offene Schichten“ |
+| F10 | Manuelle Nachbesetzung im fertigen Plan | Schritt 7, Auswahlfelder je Platz |
 | F11 | Excel-Export (XLSX), manuell weiterbearbeitbar | `src/export.js`, `src/xlsx.js` |
 | F12 | Zwischenstand sichern und wieder laden | JSON-Export/-Import in der Kopfzeile |
 
@@ -60,16 +62,20 @@ Randfälle, mehrtägige Veranstaltungen, Altbestand, Validierung, Excel-Erzeugun
 1. Niemand wird in einem Zeitraum eingeplant, in dem er/sie nicht verfügbar ist.
 2. Niemand hat zwei sich überschneidende Schichten.
 3. Niemand steht zweimal in derselben Schicht.
-4. Eine optionale Obergrenze an Schichten pro Person wird eingehalten.
+4. Eine optionale Obergrenze an Schichten pro Person wird eingehalten
+   (feste Zuteilungen sind davon ausgenommen – eine ausdrückliche Ansage sticht eine Faustregel).
 5. Schichten liegen immer innerhalb des Veranstaltungszeitraums.
+6. Feste Zuteilungen aus Schritt 5 werden vor allem anderen eingetragen und danach nicht
+   mehr verändert. Übernommen werden sie nur, wenn Regel 1–3 dabei gewahrt bleiben; sonst
+   bleibt der Platz frei und der Konflikt wird mit Begründung gemeldet.
 
 **Weich** (fließen als Kosten in die Optimierung ein):
 
-6. Alle Personen bekommen möglichst gleich viel **Gesamtarbeitszeit**.
-7. Alle Personen bekommen möglichst gleich viele **Schichten**.
-8. Die **Aufgabenarten** werden gleichmäßig gestreut (nicht eine Person nur Türdienst).
-9. Optionale **Mindestpause** zwischen zwei Schichten.
-10. Optional **Blöcke bevorzugen** (Schichten am Stück) statt sie zu vermeiden.
+7. Alle Personen bekommen möglichst gleich viel **Gesamtarbeitszeit**.
+8. Alle Personen bekommen möglichst gleich viele **Schichten**.
+9. Die **Aufgabenarten** werden gleichmäßig gestreut (nicht eine Person nur Türdienst).
+10. Optionale **Mindestpause** zwischen zwei Schichten.
+11. Optional **Blöcke bevorzugen** (Schichten am Stück) statt sie zu vermeiden.
 
 Ist keine vollständige Besetzung möglich, wird die bestmögliche Lösung erzeugt und jede
 offene Schicht mit Begründung ausgewiesen.
@@ -99,7 +105,7 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
 ```jsonc
 {
   "version": 2,
-  "step": 3,                       // aktueller Wizard-Schritt (1–6)
+  "step": 3,                       // aktueller Wizard-Schritt (1–7)
 
   "event": {
     "name":      "Gemeindefreizeit",
@@ -134,6 +140,13 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
     { "id": "a_1", "personId": "p_1",
       "date": "2026-08-01",        // Tag der Abwesenheit (leer = erster Tag)
       "startTime": "14:00", "endTime": "17:00", "reason": "Workshop" }
+  ],
+
+  "fixed": [                       // Vorabfestlegungen ("X macht Y")
+    { "id": "f_1", "personId": "p_1", "taskId": "t_1",
+      "scope": "slot",             // slot | any | all
+      "day": "2026-08-02",         // nur bei scope = "slot"
+      "startTime": "12:00" }       // nur bei scope = "slot"
   ],
 
   "options": {
@@ -171,6 +184,17 @@ im localStorage gespeichert und kann als Datei exportiert/importiert werden.
 | `continuous` | einmal durchgehend über die ganze Veranstaltung, auch nachts | Rufbereitschaft |
 | `daily` | an jedem Veranstaltungstag im selben Zeitfenster; am ersten und letzten Tag auf die Veranstaltungszeit gekürzt | Türschicht 08:00–22:00, Nachtwache 23:00–07:00 |
 | `once` | einmalig am Tag `day` | Endreinigung am Sonntag |
+
+**Umfang einer festen Zuteilung** (`scope`) – für Freiwillige und Absprachen:
+
+| Wert | Bedeutung | Beispiel |
+|------|-----------|----------|
+| `slot` | genau die Schicht, die am Tag `day` um `startTime` beginnt | „Ich mache Samstag 14–16 Uhr die Türschicht.“ |
+| `any` | irgendeine Schicht dieser Aufgabe – die App sucht die passendste aus | „Ich helfe beim Küchendienst mit.“ |
+| `all` | jede Schicht dieser Aufgabe | „Das Brötchenholen übernehme ich jeden Morgen.“ |
+
+Die belegten Plätze werden im Ergebnis als `manual` geführt; die Ausgleichsläufe fassen sie
+nicht mehr an, und im Zeitplan sind sie mit 📌 gekennzeichnet.
 
 **Zeitmodell.** Alle Uhrzeiten werden als `"HH:MM"` erfasst und intern in *Minuten seit
 Mitternacht des ersten Tags* umgerechnet – 08:00 am zweiten Tag ist also 1920. Dieses eine
@@ -210,6 +234,19 @@ vorherige angehängt. Je Schicht gibt es `peoplePerSlot` Plätze.
 
 Parallel werden je Person die **Sperrzeiten** gesammelt: Abwesenheiten, Zeit vor der
 Ankunft, Zeit nach dem Gehen. Daraus ergibt sich die insgesamt verfügbare Zeit je Person.
+
+### Phase 0b – Feste Zuteilungen eintragen
+
+Vor jeder automatischen Verteilung werden die Vorabfestlegungen gesetzt: erst die konkreten
+Schichten (`slot`), dann `all`, zuletzt `any` – so bekommen die genauesten Ansagen den
+Vortritt. Vor jedem Eintrag wird geprüft, ob die Person verfügbar und noch frei ist; sonst
+bleibt der Platz für die automatische Verteilung offen und es entsteht eine Meldung mit
+Begründung („ist zu dieser Zeit nicht verfügbar (Arzt)“, „steht zur gleichen Zeit schon fest
+für eine andere Aufgabe“). Bei `any` wird die früheste passende Schicht gewählt, bei `all`
+werden alle machbaren belegt und die übersprungenen zusammengefasst gemeldet.
+
+Diese Plätze zählen ganz normal zur Arbeitszeit der Person – wer sich viel vornimmt, bekommt
+vom Rest entsprechend weniger zugeteilt.
 
 ### Phase 1 – Greedy-Erstbelegung („knappste Schicht zuerst“)
 
@@ -257,7 +294,7 @@ erst bei Gleichstand den Ausschlag geben. In mehreren Durchläufen wird versucht
 
 Übernommen wird nur, was die Kosten senkt (Hill-Climbing). Danach läuft die Reparatur
 erneut, weil durch das Umsortieren neue Besetzungsmöglichkeiten entstehen können.
-Von Hand gesetzte Zuteilungen (`manual`) werden dabei nicht angerührt.
+Feste Zuteilungen (`manual`) werden dabei nie angerührt – weder verschoben noch getauscht.
 
 ### Phase 4 – Kennzahlen und Probleme
 
@@ -293,8 +330,9 @@ blockieren das Weitergehen und werden konkret benannt.
 | **2** | Personen | Namensliste mit Notiz, Einzel- oder Sammeleingabe | Personenzähler |
 | **3** | Aufgaben | Karte je Aufgabe: Name, Rhythmus (durchgehend / jeden Tag / an einem bestimmten Tag), Zeitfenster, Schichtlänge, Personen pro Schicht, Bemerkung. Vorlagen für Tee-, Türschicht, Küche, Frühstück, Aufräumen, Einkauf | Vorschau „ergibt *n* Schichten à *x* an *m* Tagen, Personenstunden gesamt“ |
 | **4** | Verfügbarkeit | Je Person: „kommt erst ab“, „geht früher“, beliebig viele Abwesenheiten mit Grund – bei mehrtägigen Veranstaltungen jeweils mit Tagesauswahl | Zähler je Person |
-| **5** | Planungsregeln | Mindestpause, Höchstzahl Schichten, Zufallsstartwert, Blöcke, Aufgabenmischung, Restschichten | Bedarfsvorschau inkl. Warnung, wenn der Bedarf die verfügbare Zeit übersteigt |
-| **6** | Plan & Export | Kennzahlen, drei Ansichten (Zeitplan / Nach Person / Probleme), manuelle Nachbesetzung, XLSX-, CSV- und Druckausgabe | fertige Datei |
+| **5** | Freiwillige | Zeile je Absprache: *Person* macht *Aufgabe* im gewählten *Umfang*; bei „eine bestimmte Schicht“ eine Auswahlliste der tatsächlich entstehenden Schichten. Der Schritt darf leer bleiben | – |
+| **6** | Planungsregeln | Mindestpause, Höchstzahl Schichten, Zufallsstartwert, Blöcke, Aufgabenmischung, Restschichten | Bedarfsvorschau inkl. Warnung, wenn der Bedarf die verfügbare Zeit übersteigt |
+| **7** | Plan & Export | Kennzahlen, drei Ansichten (Zeitplan / Nach Person / Probleme), manuelle Nachbesetzung, XLSX-, CSV- und Druckausgabe | fertige Datei |
 
 Ansichten in Schritt 6:
 
@@ -306,7 +344,10 @@ Ansichten in Schritt 6:
 * **Probleme** – alle offenen Punkte mit Begründung und Hinweisen zur Behebung.
 
 Änderungen an den Stammdaten nach einer Berechnung markieren den Plan als veraltet und
-blenden einen Hinweis „Plan neu berechnen“ ein.
+blenden einen Hinweis „Plan neu berechnen“ ein. Der Unterschied zwischen den beiden Arten
+manueller Eingriffe: Eine **feste Zuteilung** (Schritt 5) gehört zu den Eingabedaten und
+übersteht jedes Neuberechnen; eine Änderung direkt im **Auswahlfeld der Tabelle** gilt nur
+für den gerade angezeigten Plan.
 
 ---
 
@@ -318,7 +359,7 @@ in der Zelle, damit die Datei anschließend frei bearbeitbar ist.
 
 | Blatt | Spalten |
 |-------|---------|
-| **Schichtplan** | Datum · *Wochentag* · Aufgabe · Startzeit · Endzeit · Dauer (min) · Person 1 … Person *n* · Bemerkung |
+| **Schichtplan** | Datum · *Wochentag* · Aufgabe · Startzeit · Endzeit · Dauer (min) · Person 1 … Person *n* · Bemerkung (offene Plätze, feste Zuteilungen, Aufgabennotiz) |
 | **Teilnehmende** | Name · Kommt ab · Geht bis · Notiz · Anzahl Schichten · Gesamtzeit (h) · Aufgabenverteilung |
 | **Verfügbarkeiten** | Person · Art · *Tag* · Nicht verfügbar von · bis · Grund |
 | **Offene Schichten** | Aufgabe · Datum · Von · Bis · Benötigt · Besetzt · Fehlt · Hinweis |
@@ -363,5 +404,7 @@ Klassische `<script>`-Einbindung statt ES-Modulen, damit die App auch direkt per
   `UI.taskCard()`, Auswertung in `isEligible()`.
 * **Qualifikationen:** `person.skills` und `task.requiredSkill` ergänzen, in `isEligible()`
   prüfen – die harten Regeln greifen dann automatisch in allen Phasen.
+* **Weiterer Umfang für Freiwillige** (z. B. „höchstens zwei Schichten dieser Aufgabe“):
+  Zweig in `applyFixed()` ergänzen und als Option in `UI.fixedRow()` anbieten.
 * **Weiteres Tabellenblatt:** Funktion in `src/export.js` schreiben und in
   `buildWorkbook()` einhängen.

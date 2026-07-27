@@ -390,6 +390,128 @@ check('Altdaten: alte Abwesenheit wirkt',
 }
 
 /* ============================================================
+   3c. Feste Zuteilungen (Freiwillige)
+   ============================================================ */
+section('3c. Feste Zuteilungen');
+
+{
+  Store.reset();
+  const fx = Store.get();
+  fx.event = { name: 'Fest', date: '2026-07-24', endDate: '2026-07-24', startTime: '08:00', endTime: '16:00', notes: '' };
+  ['A', 'B', 'C', 'D'].forEach((n) => Store.addPerson(n));
+  const [pa, pb, pc] = fx.people;
+  const tTee = Store.addTask({ name: 'Tee', mode: 'daily', startTime: '08:00', endTime: '16:00', slotMinutes: 120, peoplePerSlot: 1 });
+  const tTuer = Store.addTask({ name: 'Tür', mode: 'daily', startTime: '08:00', endTime: '16:00', slotMinutes: 120, peoplePerSlot: 1 });
+
+  // (a) eine bestimmte Schicht
+  fx.fixed = [{ id: 'f1', personId: pa.id, taskId: tTee.id, scope: 'slot', day: '2026-07-24', startTime: '12:00' }];
+  let plan = Scheduler.compute(fx);
+  const slotAt12 = plan.slots.find((s) => s.taskId === tTee.id && s.start === 720);
+  check('Bestimmte Schicht: Person sitzt genau dort', slotAt12.assigned[0] === pa.id);
+  check('Bestimmte Schicht ist als fest markiert', slotAt12.manual[0] === true);
+  check('Bestimmte Schicht: keine offenen Plätze', plan.stats.openSeats === 0);
+
+  // Determinismus trotz Vorgabe
+  const fingerprint2 = (sch) => sch.slots.map((s) => s.taskName + s.start + ':' + s.assigned.join(',')).join('|');
+  check('Feste Zuteilung bleibt bei erneuter Berechnung', fingerprint2(plan) === fingerprint2(Scheduler.compute(fx)));
+
+  // (b) irgendeine Schicht
+  fx.fixed = [{ id: 'f2', personId: pb.id, taskId: tTuer.id, scope: 'any', day: '', startTime: '' }];
+  plan = Scheduler.compute(fx);
+  const bTuer = plan.slots.filter((s) => s.taskId === tTuer.id && s.assigned.includes(pb.id));
+  check('Egal welche Schicht: genau eine wird fest vergeben', bTuer.length >= 1);
+  check('Egal welche Schicht: als fest markiert',
+    bTuer.some((s) => s.manual[s.assigned.indexOf(pb.id)] === true));
+
+  // (c) alle Schichten
+  fx.fixed = [{ id: 'f3', personId: pc.id, taskId: tTee.id, scope: 'all', day: '', startTime: '' }];
+  plan = Scheduler.compute(fx);
+  const teeSlots = plan.slots.filter((s) => s.taskId === tTee.id);
+  check('Alle Schichten: Person übernimmt jede davon',
+    teeSlots.every((s) => s.assigned[0] === pc.id), teeSlots.map((s) => s.assigned[0]).join(','));
+  check('Alle Schichten: Rest bleibt besetzt', plan.stats.openSeats === 0);
+
+  // (d) Abwesenheit schlägt feste Zuteilung – mit Meldung
+  fx.fixed = [{ id: 'f4', personId: pa.id, taskId: tTee.id, scope: 'slot', day: '2026-07-24', startTime: '12:00' }];
+  fx.absences = [{ id: 'ax', personId: pa.id, date: '2026-07-24', startTime: '11:00', endTime: '15:00', reason: 'Arzt' }];
+  plan = Scheduler.compute(fx);
+  const slot12 = plan.slots.find((s) => s.taskId === tTee.id && s.start === 720);
+  check('Abwesenheit hat Vorrang vor fester Zuteilung', slot12.assigned[0] !== pa.id);
+  const fixedIssue = plan.issues.find((i) => i.fixed);
+  check('Konflikt wird gemeldet', !!fixedIssue && /nicht verfügbar/.test(fixedIssue.message),
+    fixedIssue ? fixedIssue.message : 'keine Meldung');
+  check('Trotz Konflikt bleibt der Plan besetzt', plan.stats.openSeats === 0);
+  fx.absences = [];
+
+  // (e) zwei Personen auf dieselbe Schicht
+  fx.fixed = [
+    { id: 'f5', personId: pa.id, taskId: tTee.id, scope: 'slot', day: '2026-07-24', startTime: '08:00' },
+    { id: 'f6', personId: pb.id, taskId: tTee.id, scope: 'slot', day: '2026-07-24', startTime: '08:00' }
+  ];
+  plan = Scheduler.compute(fx);
+  const first = plan.slots.find((s) => s.taskId === tTee.id && s.start === 480);
+  check('Nur eine Person passt in eine Ein-Personen-Schicht', first.assigned.filter(Boolean).length === 1);
+  check('Die zweite Zuteilung wird als Problem gemeldet',
+    plan.issues.some((i) => i.fixed && /voll besetzt|gleichen Zeit/.test(i.message)),
+    plan.issues.filter((i) => i.fixed).map((i) => i.message).join(' | '));
+
+  // (f) Zeitkonflikt zwischen zwei festen Zuteilungen derselben Person
+  fx.fixed = [
+    { id: 'f7', personId: pa.id, taskId: tTee.id, scope: 'slot', day: '2026-07-24', startTime: '08:00' },
+    { id: 'f8', personId: pa.id, taskId: tTuer.id, scope: 'slot', day: '2026-07-24', startTime: '08:00' }
+  ];
+  plan = Scheduler.compute(fx);
+  const doppelt = plan.slots.filter((s) => s.start === 480 && s.assigned.includes(pa.id));
+  check('Keine Person gleichzeitig auf zwei festen Schichten', doppelt.length === 1);
+
+  // (g) Fairness: feste Zeit wird angerechnet
+  Store.reset();
+  const fair = Store.get();
+  fair.event = { name: 'Fair', date: '2026-07-24', endDate: '2026-07-24', startTime: '08:00', endTime: '16:00', notes: '' };
+  ['A', 'B', 'C', 'D'].forEach((n) => Store.addPerson(n));
+  const bigTask = Store.addTask({ name: 'Dienst', mode: 'daily', startTime: '08:00', endTime: '16:00', slotMinutes: 60, peoplePerSlot: 1 });
+  fair.fixed = [
+    { id: 'g1', personId: fair.people[0].id, taskId: bigTask.id, scope: 'slot', day: '2026-07-24', startTime: '08:00' },
+    { id: 'g2', personId: fair.people[0].id, taskId: bigTask.id, scope: 'slot', day: '2026-07-24', startTime: '09:00' }
+  ];
+  const fairPlan = Scheduler.compute(fair);
+  const loadA = fairPlan.stats.perPerson.find((r) => r.personId === fair.people[0].id);
+  check('Feste Schichten zählen zur Arbeitszeit', loadA.count >= 2, 'count=' + loadA.count);
+  check('Restverteilung bleibt fair', fairPlan.stats.spreadMinutes <= 60,
+    'Spanne ' + fairPlan.stats.spreadMinutes + ' min');
+  check('Vorgabe wurde eingehalten',
+    fairPlan.slots.filter((s) => s.start === 480 || s.start === 540)
+      .every((s) => s.assigned[0] === fair.people[0].id));
+
+  // (h) Beispieldaten enthalten Freiwillige und bleiben gültig
+  Store.loadDemo();
+  check('Tages-Beispiel hat feste Zuteilungen', Store.get().fixed.length === 2);
+  check('Tages-Beispiel ist gültig', [1, 2, 3, 4, 5].every((n) => Store.validateStep(n).length === 0),
+    JSON.stringify([1, 2, 3, 4, 5].map((n) => Store.validateStep(n))));
+  const demoPlan = Scheduler.compute(Store.get());
+  const demoState = Store.get();
+  const brot = demoState.tasks[5];
+  const frank = demoState.people[5];
+  check('Beispiel: Frank holt die Brötchen',
+    demoPlan.slots.filter((s) => s.taskId === brot.id).every((s) => s.assigned.includes(frank.id)));
+  check('Beispiel bleibt vollständig besetzt', demoPlan.stats.openSeats === 0);
+
+  Store.loadDemoWeekend();
+  const we2 = Store.get();
+  check('Wochenend-Beispiel hat feste Zuteilungen', we2.fixed.length === 3);
+  check('Wochenend-Beispiel ist gültig', [1, 2, 3, 4, 5].every((n) => Store.validateStep(n).length === 0));
+  const wePlan2 = Scheduler.compute(we2);
+  const jonas = we2.people[9], reinigung = we2.tasks[6];
+  check('Wochenende: Jonas macht die Endreinigung',
+    wePlan2.slots.filter((s) => s.taskId === reinigung.id).some((s) => s.assigned.includes(jonas.id)));
+  check('Wochenende: weiterhin fair',
+    (wePlan2.stats.maxMinutes - wePlan2.stats.minMinutes) / 60 <= 2,
+    ((wePlan2.stats.maxMinutes - wePlan2.stats.minMinutes) / 60).toFixed(2) + ' h');
+  console.log('   Mit Freiwilligen:', wePlan2.stats.filledSeats + '/' + wePlan2.stats.requiredSeats, 'Plätze,',
+    (wePlan2.stats.minMinutes / 60).toFixed(2) + '–' + (wePlan2.stats.maxMinutes / 60).toFixed(2), 'h je Person');
+}
+
+/* ============================================================
    4. Validierung
    ============================================================ */
 section('4. Validierung');

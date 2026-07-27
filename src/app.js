@@ -25,7 +25,7 @@
    * Auswahlfelder und Schalter, bei denen die Änderung mit dem Klick
    * abgeschlossen ist.
    */
-  var RERENDER_BINDS = ['task.mode'];
+  var RERENDER_BINDS = ['task.mode', 'fixed.scope', 'fixed.taskId'];
 
   /* ---------------- Rendering ---------------- */
 
@@ -77,8 +77,9 @@
       2: 'Alle Personen erfassen, die eingeplant werden dürfen.',
       3: 'Aufgaben mit Zeitraum, Schichtlänge und Personenzahl anlegen.',
       4: 'Abwesenheiten eintragen – wer immer da ist, braucht keinen Eintrag.',
-      5: 'Regeln prüfen und den Plan berechnen.',
-      6: 'Plan prüfen, bei Bedarf anpassen und als Excel herunterladen.'
+      5: 'Freiwillige eintragen – dieser Schritt ist optional.',
+      6: 'Regeln prüfen und den Plan berechnen.',
+      7: 'Plan prüfen, bei Bedarf anpassen und als Excel herunterladen.'
     };
     footerHint.textContent = texts[state.step] || '';
   }
@@ -106,7 +107,7 @@
 
   function goTo(step) {
     var state = Store.get();
-    state.step = U.clamp(step, 1, 6);
+    state.step = U.clamp(step, 1, UI.STEP_COUNT);
     Store.save();
     lastErrors = [];
     render();
@@ -116,8 +117,8 @@
 
   function next() {
     var state = Store.get();
-    if (state.step === 5) { compute(); return; }
-    if (state.step === 6) { downloadXlsx(); return; }
+    if (state.step === 6) { compute(); return; }
+    if (state.step === UI.STEP_COUNT) { downloadXlsx(); return; }
 
     var errors = Store.validateStep(state.step);
     if (errors.length) { showErrors(errors); toast(errors[0], 'error'); return; }
@@ -135,7 +136,7 @@
     var state = Store.get();
     // Alle vorherigen Schritte prüfen, bevor gerechnet wird
     var errors = [];
-    for (var s = 1; s <= 4; s++) errors = errors.concat(Store.validateStep(s));
+    for (var s = 1; s <= 5; s++) errors = errors.concat(Store.validateStep(s));
     if (errors.length) {
       showErrors(errors);
       toast(errors[0], 'error');
@@ -144,7 +145,7 @@
 
     var t0 = performance.now();
     state.schedule = window.Scheduler.compute(state);
-    state.step = 6;
+    state.step = UI.STEP_COUNT;
     UI.view.tab = 'timeline';
     Store.save();
     render();
@@ -243,6 +244,19 @@
       if (key === 'peoplePerSlot') value = U.clamp(parseInt(value, 10) || 1, 1, 10);
       if (key === 'slotMinutes') value = Math.max(5, parseInt(value, 10) || 60);
       task[key] = value;
+    } else if (group === 'fixed') {
+      var entry = Store.fixedById(id);
+      if (!entry) return false;
+      if (key === 'slotChoice') {
+        // Wert der Schichtauswahl ist "YYYY-MM-TT|HH:MM"
+        var parts = String(value).split('|');
+        entry.day = parts[0] || '';
+        entry.startTime = parts[1] || '';
+      } else {
+        entry[key] = value;
+        // Aufgabe gewechselt: die alte Schichtauswahl passt nicht mehr
+        if (key === 'taskId') { entry.day = ''; entry.startTime = ''; }
+      }
     } else if (group === 'absence') {
       var absence = null;
       state.absences.forEach(function (a) { if (a.id === id) absence = a; });
@@ -387,6 +401,9 @@
 
       case 'add-absence': Store.addAbsence(id); render(); break;
       case 'remove-absence': Store.removeAbsence(id); render(); break;
+
+      case 'add-fixed': Store.addFixed(); render(); break;
+      case 'remove-fixed': Store.removeFixed(id); render(); break;
 
       case 'compute': compute(); break;
       case 'download-xlsx': downloadXlsx(); break;

@@ -68,6 +68,11 @@ window.Exporter = (function () {
       }
       var remark = [];
       if (open > 0) remark.push(open === 1 ? '1 Platz offen' : open + ' Plätze offen');
+      var pinned = [];
+      slot.assigned.forEach(function (pid, idx) {
+        if (pid && slot.manual && slot.manual[idx]) pinned.push(nameOf(state, pid));
+      });
+      if (pinned.length) remark.push('fest zugeteilt: ' + pinned.join(', '));
       if (slot.taskNote) remark.push(slot.taskNote);
       row.push(c(remark.join(' · '), open > 0 ? 'bad' : 'wrap'));
       rows.push(row);

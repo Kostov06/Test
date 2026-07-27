@@ -15,9 +15,12 @@ window.UI = (function () {
     { n: 2, label: 'Personen',        desc: 'Wer kann eingeteilt werden?' },
     { n: 3, label: 'Aufgaben',        desc: 'Schichtarten und Längen' },
     { n: 4, label: 'Verfügbarkeit',   desc: 'Abwesenheiten eintragen' },
-    { n: 5, label: 'Planungsregeln',  desc: 'Feineinstellungen' },
-    { n: 6, label: 'Plan & Export',   desc: 'Ergebnis und Excel' }
+    { n: 5, label: 'Freiwillige',     desc: 'Wer macht schon fest was?' },
+    { n: 6, label: 'Planungsregeln',  desc: 'Feineinstellungen' },
+    { n: 7, label: 'Plan & Export',   desc: 'Ergebnis und Excel' }
   ];
+
+  var STEP_COUNT = STEPS.length;
 
   var TASK_PRESETS = [
     { name: 'Teeschicht',             slotMinutes: 120, peoplePerSlot: 1, wholeEvent: true },
@@ -49,7 +52,7 @@ window.UI = (function () {
 
   function head(step, title, text) {
     return '<div class="step-head">' +
-      '<div class="step-kicker">Schritt ' + step + ' von 6</div>' +
+      '<div class="step-kicker">Schritt ' + step + ' von ' + STEP_COUNT + '</div>' +
       '<h2>' + e(title) + '</h2>' +
       '<p>' + text + '</p></div>';
   }
@@ -304,19 +307,130 @@ window.UI = (function () {
 
     return '<section class="panel">' +
       head(4, 'Verfügbarkeiten und Abwesenheiten festlegen',
-        'Zeiten, in denen jemand <strong>nicht</strong> eingeplant werden darf. Wer immer da ist, braucht keinen Eintrag.') +
+        'Zeiten, in denen jemand <strong>nicht</strong> eingeplant werden darf. Wer immer da ist, braucht keinen Eintrag. ' +
+        'Wer sich umgekehrt für etwas <strong>gemeldet</strong> hat, wird im nächsten Schritt eingetragen.') +
       cards +
       '</section>';
   }
 
-  /* ---------------- Schritt 5: Planungsregeln ---------------- */
+  /* ---------------- Schritt 5: Feste Zuteilungen ---------------- */
 
-  function step5(state) {
+  var SCOPE_LABELS = {
+    slot: 'eine bestimmte Schicht',
+    any: 'eine Schicht – egal welche',
+    all: 'alle Schichten dieser Aufgabe'
+  };
+
+  function step5Fixed(state) {
+    var people = state.people.filter(function (p) { return p.name.trim(); });
+    var multi = window.Store.isMultiDay();
+
+    if (!people.length || !state.tasks.length) {
+      return '<section class="panel">' +
+        head(5, 'Freiwillige und feste Zuteilungen',
+          'Hier wird eingetragen, wer schon fest etwas übernimmt.') +
+        '<div class="empty">Dafür werden zuerst Personen (Schritt 2) und Aufgaben (Schritt 3) gebraucht.</div>' +
+        '</section>';
+    }
+
+    var rows = state.fixed.map(function (f, i) { return fixedRow(state, f, i, people, multi); }).join('');
+
+    return '<section class="panel">' +
+      head(5, 'Freiwillige und feste Zuteilungen',
+        'Wenn sich jemand freiwillig meldet oder eine Aufgabe fest übernimmt, kann das hier vorab ' +
+        'eingetragen werden. Diese Einteilungen stehen fest – die App verteilt alles Übrige ' +
+        'drumherum und rechnet die feste Zeit auf die Arbeitszeit der Person an. ' +
+        'Dieser Schritt ist freiwillig: ohne Eintrag verteilt die App einfach alles selbst.') +
+
+      (state.fixed.length
+        ? '<div class="row-list">' + rows + '</div>'
+        : '<div class="empty">Noch keine festen Zuteilungen – die App verteilt dann alle Schichten automatisch.</div>') +
+
+      '<div class="actions-row mt-16">' +
+        '<button type="button" class="btn btn-secondary" data-action="add-fixed">+ Freiwillige/n eintragen</button>' +
+      '</div>' +
+
+      '<div class="note note-info mt-16">' +
+        '<strong>Die drei Möglichkeiten:</strong>' +
+        '<ul>' +
+          '<li><strong>Eine bestimmte Schicht</strong> – „Ich mache Samstag von 14 bis 16 Uhr die Türschicht.“</li>' +
+          '<li><strong>Eine Schicht, egal welche</strong> – „Ich helfe beim Küchendienst mit.“ Die App sucht eine passende Schicht aus.</li>' +
+          '<li><strong>Alle Schichten</strong> – „Das Brötchenholen übernehme ich jeden Morgen.“</li>' +
+        '</ul>' +
+      '</div>' +
+
+      '<p class="small muted">Eine feste Zuteilung wird nur übernommen, wenn die Person zu der Zeit ' +
+      'auch verfügbar ist. Klappt es nicht, bleibt die Schicht frei und der Grund steht im Ergebnis ' +
+      'unter „Probleme“.</p>' +
+      '</section>';
+  }
+
+  function fixedRow(state, entry, index, people, multi) {
+    var personOptions = people.map(function (p) {
+      return '<option value="' + e(p.id) + '"' + (p.id === entry.personId ? ' selected' : '') + '>' +
+        e(p.name.trim()) + '</option>';
+    }).join('');
+
+    var taskOptions = state.tasks.map(function (t) {
+      return '<option value="' + e(t.id) + '"' + (t.id === entry.taskId ? ' selected' : '') + '>' +
+        e(t.name.trim() || 'Aufgabe ohne Namen') + '</option>';
+    }).join('');
+
+    var scopeOptions = ['slot', 'any', 'all'].map(function (key) {
+      return '<option value="' + key + '"' + (entry.scope === key ? ' selected' : '') + '>' +
+        e(SCOPE_LABELS[key]) + '</option>';
+    }).join('');
+
+    var slotPicker = '';
+    if (entry.scope === 'slot') {
+      slotPicker = '<select data-bind="fixed.slotChoice" data-id="' + entry.id + '">' +
+        shiftOptions(state, entry, multi) + '</select>';
+    }
+
+    return '<div class="row-item">' +
+      '<span class="idx">' + (index + 1) + '.</span>' +
+      '<select data-bind="fixed.personId" data-id="' + entry.id + '" style="max-width:190px" aria-label="Person">' + personOptions + '</select>' +
+      '<span class="small muted">macht</span>' +
+      '<select data-bind="fixed.taskId" data-id="' + entry.id + '" style="max-width:220px" aria-label="Aufgabe">' + taskOptions + '</select>' +
+      '<select data-bind="fixed.scope" data-id="' + entry.id + '" style="max-width:220px" aria-label="Umfang">' + scopeOptions + '</select>' +
+      slotPicker +
+      '<button type="button" class="btn btn-icon" data-action="remove-fixed" data-id="' + entry.id + '" title="Eintrag entfernen" aria-label="Eintrag entfernen">✕</button>' +
+      '</div>';
+  }
+
+  /** Auswahlliste der tatsächlich entstehenden Schichten einer Aufgabe */
+  function shiftOptions(state, entry, multi) {
+    var task = window.Store.taskById(entry.taskId);
+    if (!task) return '<option value="">– keine Aufgabe gewählt –</option>';
+    var ctx = window.Scheduler.buildContext(state);
+    var slots = window.Scheduler.slotsForTask(state, ctx, task, []);
+    if (!slots.length) return '<option value="">– diese Aufgabe ergibt keine Schichten –</option>';
+
+    var current = entry.day + '|' + entry.startTime;
+    var found = false;
+    var options = slots.map(function (s) {
+      var iso = U.dateForMinutes(state.event.date, s.start);
+      var value = iso + '|' + U.formatTime(s.start);
+      if (value === current) found = true;
+      var label = (multi ? U.dayLabel(state.event.date, s.start) + ' ' : '') +
+        U.formatTime(s.start) + '–' + U.endLabel(state.event.date, s.start, s.end, multi);
+      return '<option value="' + e(value) + '"' + (value === current ? ' selected' : '') + '>' + e(label) + '</option>';
+    }).join('');
+
+    if (!found) {
+      options = '<option value="" selected>– bitte Schicht auswählen –</option>' + options;
+    }
+    return options;
+  }
+
+  /* ---------------- Schritt 6: Planungsregeln ---------------- */
+
+  function stepOptions(state) {
     var o = state.options;
     var demand = totalDemand(state);
 
     return '<section class="panel">' +
-      head(5, 'Planungsregeln festlegen',
+      head(6, 'Planungsregeln festlegen',
         'Die Grundregeln (keine Abwesenheiten, keine Doppelbelegung, faire Verteilung) gelten immer. Hier lassen sich zusätzliche Wünsche einstellen.') +
       '<div class="field-grid">' +
         field('Mindestpause zwischen zwei Schichten (Minuten)',
@@ -374,14 +488,14 @@ window.UI = (function () {
     return { text: text, warning: warning };
   }
 
-  /* ---------------- Schritt 6: Ergebnis ---------------- */
+  /* ---------------- Schritt 7: Ergebnis ---------------- */
 
-  function step6(state) {
+  function stepResult(state) {
     var schedule = state.schedule;
     if (!schedule) {
       return '<section class="panel">' +
-        head(6, 'Schichtplan & Export', 'Es wurde noch kein Plan berechnet.') +
-        '<div class="empty">Bitte in Schritt 5 auf „Plan berechnen“ klicken.</div>' +
+        head(7, 'Schichtplan & Export', 'Es wurde noch kein Plan berechnet.') +
+        '<div class="empty">Bitte in Schritt 6 auf „Plan berechnen“ klicken.</div>' +
         '<div class="actions-row mt-16"><button type="button" class="btn btn-primary" data-action="compute">⚙️ Plan jetzt berechnen</button></div>' +
         '</section>';
     }
@@ -390,7 +504,7 @@ window.UI = (function () {
     var openIssues = schedule.issues.length;
 
     var html = '<section class="panel">' +
-      head(6, 'Schichtplan & Export',
+      head(7, 'Schichtplan & Export',
         'Der Plan kann hier noch von Hand angepasst werden. Der Excel-Export übernimmt immer den aktuell angezeigten Stand.');
 
     if (schedule.stale) {
@@ -507,11 +621,14 @@ window.UI = (function () {
     return '<div class="table-wrap"><table class="data"><thead><tr>' + headCells + '</tr></thead>' +
       '<tbody>' + body + '</tbody></table></div>' +
       '<p class="small muted mt-16">Über die Auswahlfelder lassen sich Personen manuell tauschen. ' +
-      'Nicht auswählbare Personen sind zu dieser Zeit abwesend oder bereits eingeteilt.</p>';
+      'Nicht auswählbare Personen sind zu dieser Zeit abwesend oder bereits eingeteilt. ' +
+      '📌 kennzeichnet eine feste Zuteilung aus Schritt&nbsp;5 – sie bleibt auch beim Neuberechnen erhalten. ' +
+      'Änderungen direkt in der Tabelle gelten dagegen nur für den angezeigten Plan.</p>';
   }
 
   function seatSelect(slot, seat, candidates) {
     var current = slot.assigned[seat] || '';
+    var pinned = !!(slot.manual && slot.manual[seat] && current);
     var opts = '<option value=""' + (current ? '' : ' selected') + '>— frei —</option>';
     (candidates || []).forEach(function (cand) {
       var selected = cand.personId === current;
@@ -521,7 +638,8 @@ window.UI = (function () {
         e(cand.name) + (cand.ok || selected ? '' : ' – ' + e(cand.reason)) +
         '</option>';
     });
-    return '<select class="' + (current ? '' : 'is-empty') + '" data-action="seat" data-slot="' + e(slot.id) +
+    return (pinned ? '<span class="pin" title="fest zugeteilt">📌</span>' : '') +
+      '<select class="' + (current ? '' : 'is-empty') + '" data-action="seat" data-slot="' + e(slot.id) +
       '" data-seat="' + seat + '" aria-label="Person für ' + e(slot.taskName) + '">' + opts + '</select>';
   }
 
@@ -590,20 +708,22 @@ window.UI = (function () {
       case 2: return step2(state);
       case 3: return step3(state);
       case 4: return step4(state);
-      case 5: return step5(state);
-      case 6: return step6(state);
+      case 5: return step5Fixed(state);
+      case 6: return stepOptions(state);
+      case 7: return stepResult(state);
       default: return step1(state);
     }
   }
 
   function primaryLabel(step) {
-    if (step === 5) return '⚙️ Plan berechnen';
-    if (step === 6) return '⬇️ Excel herunterladen';
+    if (step === 6) return '⚙️ Plan berechnen';
+    if (step === 7) return '⬇️ Excel herunterladen';
     return 'Weiter ›';
   }
 
   return {
     STEPS: STEPS,
+    STEP_COUNT: STEP_COUNT,
     TASK_PRESETS: TASK_PRESETS,
     view: view,
     renderNav: renderNav,

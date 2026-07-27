@@ -507,6 +507,8 @@ td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
   .row-item { flex-wrap: wrap; }
   .row-item input[type="text"] { min-width: 60%; max-width: none !important; }
   .row-item input[type="time"] { max-width: 46% !important; }
+  .row-item select { flex: 1 1 100%; max-width: none !important; }
+  .row-item .btn-icon { margin-left: auto; }
 
   table.data th, table.data td { padding: 7px 9px; }
 }
@@ -517,6 +519,10 @@ td.seat select.is-empty { color: var(--danger); border-color: var(--danger); }
   .panel { box-shadow: none; border: none; padding: 0; }
   table.data { font-size: 11px; }
 }
+
+/* Kennzeichnung fest zugeteilter Plätze */
+td.seat { white-space: nowrap; }
+.pin { margin-right: 4px; font-size: 12px; opacity: .8; }
 
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
@@ -837,25 +843,32 @@ window.Util = (function () {
 /* ============================================================
    store.js – Datenmodell, Persistenz, Validierung
    ------------------------------------------------------------
-   Datenmodell (Version 1):
+   Datenmodell (Version 2):
 
    state = {
-     version: 1,
-     step:    Number,                       // aktueller Wizard-Schritt (1..6)
-     event:   { name, date, startTime, endTime, notes },
-     people:  [ { id, name, arrival, departure, note } ],
-     tasks:   [ { id, name, wholeEvent, startTime, endTime,
+     version: 2,
+     step:    Number,                       // aktueller Wizard-Schritt (1..7)
+     event:   { name, date, endDate, startTime, endTime, notes },
+     people:  [ { id, name, arrival, arrivalDate,
+                  departure, departureDate, note } ],
+     tasks:   [ { id, name, mode, day, startTime, endTime,
                   slotMinutes, peoplePerSlot, note } ],
-     absences:[ { id, personId, startTime, endTime, reason } ],
+     absences:[ { id, personId, date, startTime, endTime, reason } ],
+     fixed:   [ { id, personId, taskId, scope, day, startTime } ],
      options: { seed, minRestMinutes, preferBlocks, maxShiftsPerPerson,
-                mergeShortLastSlot, balanceTaskTypes },
+                mergeShortLastSlot, balanceTaskTypes, exportSheets },
      schedule: null | Ergebnisobjekt aus scheduler.js
    }
 
    Uhrzeiten werden als "HH:MM" gespeichert und beim Rechnen in
-   Minuten seit Veranstaltungsbeginn umgerechnet. Endet eine Zeit
-   rechnerisch vor ihrem Start, liegt sie am Folgetag – damit sind
-   Veranstaltungen über Mitternacht abgedeckt.
+   Minuten seit Mitternacht des ersten Tages umgerechnet – 08:00 am
+   zweiten Tag ist also 1920. Damit sind eintägige Veranstaltungen,
+   Veranstaltungen über Mitternacht und mehrtägige Veranstaltungen
+   mit demselben Raster abgedeckt.
+
+   `fixed` hält Vorabfestlegungen ("X macht Y"), etwa wenn sich
+   jemand freiwillig meldet. Sie werden vor der automatischen
+   Verteilung eingetragen und danach nicht mehr verändert.
    ============================================================ */
 
 window.Store = (function () {
@@ -880,6 +893,7 @@ window.Store = (function () {
       people: [],
       tasks: [],
       absences: [],
+      fixed: [],
       options: {
         seed: 42,
         minRestMinutes: 0,
@@ -932,7 +946,7 @@ window.Store = (function () {
 
     var next = {
       version: VERSION,
-      step: U.clamp(parseInt(raw.step, 10) || 1, 1, 6),
+      step: U.clamp(parseInt(raw.step, 10) || 1, 1, 7),
       event: event,
       people: (raw.people || []).map(function (p) {
         return {
@@ -970,15 +984,28 @@ window.Store = (function () {
           reason: String(a.reason || '')
         };
       }),
+      fixed: (raw.fixed || []).map(function (f) {
+        return {
+          id: f.id || U.uid('f'),
+          personId: f.personId || '',
+          taskId: f.taskId || '',
+          scope: f.scope || 'slot',          // slot | any | all
+          day: f.day || '',
+          startTime: f.startTime || ''
+        };
+      }),
       options: Object.assign({}, base.options, raw.options || {}, {
         exportSheets: Object.assign({}, base.options.exportSheets, (raw.options || {}).exportSheets || {})
       }),
       schedule: raw.schedule || null
     };
-    // Abwesenheiten ohne existierende Person verwerfen.
+    // Einträge ohne existierende Person bzw. Aufgabe verwerfen.
     var ids = {};
     next.people.forEach(function (p) { ids[p.id] = true; });
+    var taskIds = {};
+    next.tasks.forEach(function (t) { taskIds[t.id] = true; });
     next.absences = next.absences.filter(function (a) { return ids[a.personId]; });
+    next.fixed = next.fixed.filter(function (f) { return ids[f.personId] && taskIds[f.taskId]; });
     return next;
   }
 
@@ -1014,7 +1041,10 @@ window.Store = (function () {
   /* ---------- Mutationen ---------- */
 
   function addPerson(name) {
-    var person = { id: U.uid('p'), name: name || '', arrival: '', departure: '', note: '' };
+    var person = {
+      id: U.uid('p'), name: name || '',
+      arrival: '', arrivalDate: '', departure: '', departureDate: '', note: ''
+    };
     state.people.push(person);
     invalidateSchedule();
     save();
@@ -1024,6 +1054,7 @@ window.Store = (function () {
   function removePerson(id) {
     state.people = state.people.filter(function (p) { return p.id !== id; });
     state.absences = state.absences.filter(function (a) { return a.personId !== id; });
+    state.fixed = state.fixed.filter(function (f) { return f.personId !== id; });
     invalidateSchedule();
     save();
   }
@@ -1055,6 +1086,7 @@ window.Store = (function () {
 
   function removeTask(id) {
     state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+    state.fixed = state.fixed.filter(function (f) { return f.taskId !== id; });
     invalidateSchedule();
     save();
   }
@@ -1078,6 +1110,33 @@ window.Store = (function () {
     state.absences = state.absences.filter(function (a) { return a.id !== id; });
     invalidateSchedule();
     save();
+  }
+
+  function addFixed() {
+    var first = state.people.filter(function (p) { return p.name.trim(); })[0];
+    var entry = {
+      id: U.uid('f'),
+      personId: first ? first.id : '',
+      taskId: state.tasks.length ? state.tasks[0].id : '',
+      scope: 'any',
+      day: state.event.date,
+      startTime: ''
+    };
+    state.fixed.push(entry);
+    invalidateSchedule();
+    save();
+    return entry;
+  }
+
+  function removeFixed(id) {
+    state.fixed = state.fixed.filter(function (f) { return f.id !== id; });
+    invalidateSchedule();
+    save();
+  }
+
+  function fixedById(id) {
+    for (var i = 0; i < state.fixed.length; i++) if (state.fixed[i].id === id) return state.fixed[i];
+    return null;
   }
 
   function absencesFor(personId) {
@@ -1198,6 +1257,17 @@ window.Store = (function () {
       });
     }
 
+    if (step === 5) {
+      state.fixed.forEach(function (f, i) {
+        var label = 'Feste Zuteilung ' + (i + 1);
+        if (!f.personId || !personById(f.personId)) errors.push(label + ': Bitte eine Person auswählen.');
+        if (!f.taskId || !taskById(f.taskId)) errors.push(label + ': Bitte eine Aufgabe auswählen.');
+        if (f.scope === 'slot' && (!f.startTime || U.parseTime(f.startTime) === null)) {
+          errors.push(label + ': Bitte eine konkrete Schicht auswählen.');
+        }
+      });
+    }
+
     return errors;
   }
 
@@ -1260,6 +1330,12 @@ window.Store = (function () {
       task('Brötchen besorgen',      'once',       '08:00', '09:00', 60,  1, { day: day, note: 'Bäckerei Ecke Hauptstraße' })
     ];
 
+    // Vorabfestlegungen: Frank holt immer die Brötchen, Ben meldet sich für die Küche
+    state.fixed = [
+      { id: U.uid('f'), personId: state.people[5].id, taskId: state.tasks[5].id, scope: 'all', day: day, startTime: '' },
+      { id: U.uid('f'), personId: state.people[1].id, taskId: state.tasks[2].id, scope: 'any', day: day, startTime: '' }
+    ];
+
     state.absences = [
       { id: U.uid('a'), personId: state.people[0].id, date: day, startTime: '14:00', endTime: '16:00', reason: 'Workshop-Leitung' },
       { id: U.uid('a'), personId: state.people[2].id, date: day, startTime: '17:00', endTime: '19:00', reason: 'Probe' },
@@ -1308,6 +1384,16 @@ window.Store = (function () {
       task('Aufräumen',              'once',  '12:00', '14:00', 60,  2, { day: sunday, note: 'Endreinigung' })
     ];
 
+    // Vorabfestlegungen: wer sich schon gemeldet hat
+    state.fixed = [
+      // Frank übernimmt das Brötchenholen an allen Tagen
+      { id: U.uid('f'), personId: state.people[5].id, taskId: state.tasks[5].id, scope: 'all', day: '', startTime: '' },
+      // Jonas macht die Endreinigung am Sonntag (eine bestimmte Schicht)
+      { id: U.uid('f'), personId: state.people[9].id, taskId: state.tasks[6].id, scope: 'slot', day: sunday, startTime: '12:00' },
+      // Clara meldet sich freiwillig für eine Nachtwache – welche, sucht die App aus
+      { id: U.uid('f'), personId: state.people[2].id, taskId: state.tasks[2].id, scope: 'any', day: '', startTime: '' }
+    ];
+
     state.absences = [
       { id: U.uid('a'), personId: state.people[0].id, date: saturday, startTime: '14:00', endTime: '17:00', reason: 'Workshop-Leitung' },
       { id: U.uid('a'), personId: state.people[2].id, date: saturday, startTime: '20:00', endTime: '22:00', reason: 'Bandprobe' },
@@ -1335,6 +1421,9 @@ window.Store = (function () {
     removeTask: removeTask,
     addAbsence: addAbsence,
     removeAbsence: removeAbsence,
+    addFixed: addFixed,
+    removeFixed: removeFixed,
+    fixedById: fixedById,
     absencesFor: absencesFor,
     invalidateSchedule: invalidateSchedule,
     validateStep: validateStep,
@@ -1568,47 +1657,55 @@ window.Scheduler = (function () {
     return periods;
   }
 
+  /**
+   * Zeitraster einer einzelnen Aufgabe: [{ start, end }].
+   * Gemeinsame Grundlage für die Planung und für die Schichtauswahl
+   * bei festen Zuteilungen in der Oberfläche.
+   */
+  function slotsForTask(state, ctx, task, warnings) {
+    var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
+    var merge = state.options.mergeShortLastSlot !== false;
+    var result = [];
+
+    taskPeriods(state, ctx, task, warnings || []).forEach(function (period) {
+      var taskSlots = [];
+      var cursor = period.start;
+      while (cursor < period.end) {
+        var slotEnd = Math.min(cursor + len, period.end);
+        taskSlots.push({ start: cursor, end: slotEnd });
+        cursor = slotEnd;
+      }
+      // Sehr kurze Restschicht an die vorherige anhängen
+      if (merge && taskSlots.length > 1) {
+        var last = taskSlots[taskSlots.length - 1];
+        if ((last.end - last.start) < len / 2) {
+          taskSlots[taskSlots.length - 2].end = last.end;
+          taskSlots.pop();
+        }
+      }
+      result = result.concat(taskSlots);
+    });
+    return result;
+  }
+
   function buildSlots(state, ctx) {
     var slots = [];
     var warnings = [];
-    var merge = state.options.mergeShortLastSlot !== false;
 
     state.tasks.forEach(function (task) {
-      var len = Math.max(5, parseInt(task.slotMinutes, 10) || 60);
       var required = U.clamp(parseInt(task.peoplePerSlot, 10) || 1, 1, 10);
-      var counter = 0;
-
-      taskPeriods(state, ctx, task, warnings).forEach(function (period) {
-        var taskSlots = [];
-        var cursor = period.start;
-        while (cursor < period.end) {
-          var slotEnd = Math.min(cursor + len, period.end);
-          taskSlots.push({ start: cursor, end: slotEnd });
-          cursor = slotEnd;
-        }
-        // Sehr kurze Restschicht an die vorherige anhängen
-        if (merge && taskSlots.length > 1) {
-          var last = taskSlots[taskSlots.length - 1];
-          if ((last.end - last.start) < len / 2) {
-            taskSlots[taskSlots.length - 2].end = last.end;
-            taskSlots.pop();
-          }
-        }
-
-        taskSlots.forEach(function (s) {
-          counter++;
-          slots.push({
-            id: U.uid('s'),
-            taskId: task.id,
-            taskName: task.name.trim() || 'Aufgabe',
-            taskNote: task.note || '',
-            index: counter,
-            start: s.start,
-            end: s.end,
-            required: required,
-            assigned: new Array(required).fill(null),
-            manual: new Array(required).fill(false)
-          });
+      slotsForTask(state, ctx, task, warnings).forEach(function (s, i) {
+        slots.push({
+          id: U.uid('s'),
+          taskId: task.id,
+          taskName: task.name.trim() || 'Aufgabe',
+          taskNote: task.note || '',
+          index: i + 1,
+          start: s.start,
+          end: s.end,
+          required: required,
+          assigned: new Array(required).fill(null),
+          manual: new Array(required).fill(false)
         });
       });
     });
@@ -1743,6 +1840,172 @@ window.Scheduler = (function () {
       if (isAvailable(ctx, ctx.peopleIds[i], slot.start, slot.end)) n++;
     }
     return n;
+  }
+
+  /* ---------------- Feste Zuteilungen ---------------- */
+
+  /**
+   * Trägt die vorab festgelegten Zuteilungen ein, bevor automatisch
+   * verteilt wird. Diese Plätze gelten als `manual` und werden von den
+   * späteren Ausgleichsläufen nicht mehr angefasst.
+   *
+   * Umfang (`scope`):
+   *   slot  eine bestimmte Schicht (Tag + Uhrzeit)
+   *   any   irgendeine Schicht dieser Aufgabe – die App sucht eine aus
+   *   all   alle Schichten dieser Aufgabe
+   *
+   * Harte Regeln bleiben gültig: Ist die Person zu der Zeit abwesend
+   * oder bereits anderweitig eingeteilt, wird die Zuteilung nicht
+   * eingetragen, sondern als Problem gemeldet.
+   */
+  function applyFixed(st, state, issues) {
+    var ctx = st.ctx;
+    var order = { slot: 0, all: 1, any: 2 };
+
+    var entries = (state.fixed || []).slice().sort(function (a, b) {
+      return (order[a.scope] || 0) - (order[b.scope] || 0);
+    });
+
+    entries.forEach(function (entry) {
+      var person = null;
+      ctx.people.forEach(function (p) { if (p.id === entry.personId) person = p; });
+      var task = null;
+      state.tasks.forEach(function (t) { if (t.id === entry.taskId) task = t; });
+
+      if (!person || !task) {
+        issues.push({
+          severity: 'warn', fixed: true,
+          taskName: task ? task.name : '',
+          message: 'Feste Zuteilung übersprungen: Person oder Aufgabe existiert nicht mehr.'
+        });
+        return;
+      }
+
+      var taskSlots = st.slots.filter(function (s) { return s.taskId === task.id; })
+        .sort(function (a, b) { return a.start - b.start; });
+
+      if (!taskSlots.length) {
+        issues.push({
+          severity: 'warn', fixed: true, taskName: task.name,
+          message: 'Feste Zuteilung für ' + personLabel(person) + ' nicht möglich: ' +
+            'für diese Aufgabe entstehen keine Schichten.'
+        });
+        return;
+      }
+
+      if (entry.scope === 'all') {
+        var placed = 0, skipped = 0;
+        taskSlots.forEach(function (slot) {
+          if (placeFixed(st, slot, person.id)) placed++; else skipped++;
+        });
+        if (!placed) {
+          issues.push({
+            severity: 'error', fixed: true, taskName: task.name,
+            message: personLabel(person) + ' sollte alle Schichten von „' + task.name +
+              '“ übernehmen, ist aber in keiner davon verfügbar.'
+          });
+        } else if (skipped) {
+          issues.push({
+            severity: 'warn', fixed: true, taskName: task.name,
+            message: personLabel(person) + ' übernimmt ' + placed + ' von ' + (placed + skipped) +
+              ' Schichten von „' + task.name + '“. Die übrigen ' + skipped +
+              ' wurden automatisch besetzt (abwesend oder zeitgleich anders eingeteilt).'
+          });
+        }
+        return;
+      }
+
+      if (entry.scope === 'any') {
+        // Die passendste freie Schicht wählen: geringste Last zuerst
+        var candidates = taskSlots.filter(function (slot) { return canPlaceFixed(st, slot, person.id); });
+        if (!candidates.length) {
+          issues.push({
+            severity: 'error', fixed: true, taskName: task.name,
+            message: personLabel(person) + ' hat sich für „' + task.name +
+              '“ gemeldet, ist aber in keiner Schicht dieser Aufgabe verfügbar.'
+          });
+          return;
+        }
+        placeFixed(st, candidates[0], person.id);
+        return;
+      }
+
+      // scope === 'slot'
+      var target = findFixedSlot(state, taskSlots, entry);
+      if (!target) {
+        issues.push({
+          severity: 'error', fixed: true, taskName: task.name,
+          start: null, end: null,
+          message: 'Feste Zuteilung für ' + personLabel(person) + ' nicht möglich: ' +
+            'zur angegebenen Zeit gibt es keine Schicht von „' + task.name +
+            '“ (Zeiten der Aufgabe wurden vermutlich nachträglich geändert).'
+        });
+        return;
+      }
+      if (!placeFixed(st, target, person.id)) {
+        issues.push({
+          severity: 'error', fixed: true, taskName: task.name,
+          start: target.start, end: target.end, required: target.required,
+          filled: target.assigned.filter(Boolean).length,
+          message: 'Feste Zuteilung für ' + personLabel(person) + ' nicht möglich: ' +
+            reasonForRefusal(st, target, person.id)
+        });
+      }
+    });
+  }
+
+  function personLabel(person) { return person.name.trim() || 'Ohne Namen'; }
+
+  /** Schicht zu Tag + Uhrzeit einer festen Zuteilung finden */
+  function findFixedSlot(state, taskSlots, entry) {
+    var minutes = null;
+    if (entry.startTime) {
+      var t = U.parseTime(entry.startTime);
+      if (t !== null) {
+        var offset = U.daysBetween(state.event.date, entry.day || state.event.date);
+        if (!isFinite(offset)) offset = 0;
+        minutes = offset * U.MIN_PER_DAY + t;
+      }
+    }
+    if (minutes === null) return null;
+    var exact = null, containing = null;
+    taskSlots.forEach(function (slot) {
+      if (slot.start === minutes) exact = exact || slot;
+      else if (minutes > slot.start && minutes < slot.end) containing = containing || slot;
+    });
+    return exact || containing;
+  }
+
+  /** Darf die Person hier fest eingetragen werden? (ohne Schichtobergrenze) */
+  function canPlaceFixed(st, slot, personId) {
+    if (slot.assigned.indexOf(null) === -1) return false;      // kein Platz frei
+    if (inSlot(slot, personId)) return false;
+    if (!isAvailable(st.ctx, personId, slot.start, slot.end)) return false;
+    if (hasConflict(st, personId, slot.start, slot.end, slot.id)) return false;
+    return true;
+  }
+
+  function placeFixed(st, slot, personId) {
+    if (!canPlaceFixed(st, slot, personId)) return false;
+    var seat = slot.assigned.indexOf(null);
+    assign(st, slot, seat, personId);
+    slot.manual[seat] = true;
+    return true;
+  }
+
+  function reasonForRefusal(st, slot, personId) {
+    if (inSlot(slot, personId)) return 'die Person steht bereits in dieser Schicht.';
+    if (!isAvailable(st.ctx, personId, slot.start, slot.end)) {
+      var why = blockingReason(st.ctx, personId, slot.start, slot.end);
+      return 'die Person ist zu dieser Zeit nicht verfügbar (' + (why || 'abwesend') + ').';
+    }
+    if (hasConflict(st, personId, slot.start, slot.end, slot.id)) {
+      return 'die Person ist zur gleichen Zeit schon fest für eine andere Aufgabe eingetragen.';
+    }
+    if (slot.assigned.indexOf(null) === -1) {
+      return 'die Schicht ist durch andere feste Zuteilungen bereits voll besetzt.';
+    }
+    return 'die Schicht lässt sich nicht besetzen.';
   }
 
   /* ---------------- Greedy-Erstbelegung ---------------- */
@@ -2074,7 +2337,9 @@ window.Scheduler = (function () {
     if (isNaN(seed)) seed = 42;
     var rand = U.rng(seed);
 
+    var fixedIssues = [];
     if (ctx.peopleIds.length && slots.length) {
+      applyFixed(st, state, fixedIssues);   // Vorabfestlegungen zuerst
       greedyFill(st, rand);
       repairOpenSeats(st);
       balance(st, rand, 8);
@@ -2091,7 +2356,7 @@ window.Scheduler = (function () {
       multiDay: U.dayIndex(ctx.window.end - 1) > 0,
       slots: slots,
       stats: buildStats(state, ctx, slots),
-      issues: buildIssues(ctx, slots, built.warnings),
+      issues: fixedIssues.concat(buildIssues(ctx, slots, built.warnings)),
       stale: false
     };
     return schedule;
@@ -2161,6 +2426,7 @@ window.Scheduler = (function () {
     buildContext: buildContext,
     eventWindow: eventWindow,
     taskPeriods: taskPeriods,
+    slotsForTask: slotsForTask,
     isAvailable: isAvailable
   };
 })();
@@ -2623,6 +2889,11 @@ window.Exporter = (function () {
       }
       var remark = [];
       if (open > 0) remark.push(open === 1 ? '1 Platz offen' : open + ' Plätze offen');
+      var pinned = [];
+      slot.assigned.forEach(function (pid, idx) {
+        if (pid && slot.manual && slot.manual[idx]) pinned.push(nameOf(state, pid));
+      });
+      if (pinned.length) remark.push('fest zugeteilt: ' + pinned.join(', '));
       if (slot.taskNote) remark.push(slot.taskNote);
       row.push(c(remark.join(' · '), open > 0 ? 'bad' : 'wrap'));
       rows.push(row);
@@ -2906,9 +3177,12 @@ window.UI = (function () {
     { n: 2, label: 'Personen',        desc: 'Wer kann eingeteilt werden?' },
     { n: 3, label: 'Aufgaben',        desc: 'Schichtarten und Längen' },
     { n: 4, label: 'Verfügbarkeit',   desc: 'Abwesenheiten eintragen' },
-    { n: 5, label: 'Planungsregeln',  desc: 'Feineinstellungen' },
-    { n: 6, label: 'Plan & Export',   desc: 'Ergebnis und Excel' }
+    { n: 5, label: 'Freiwillige',     desc: 'Wer macht schon fest was?' },
+    { n: 6, label: 'Planungsregeln',  desc: 'Feineinstellungen' },
+    { n: 7, label: 'Plan & Export',   desc: 'Ergebnis und Excel' }
   ];
+
+  var STEP_COUNT = STEPS.length;
 
   var TASK_PRESETS = [
     { name: 'Teeschicht',             slotMinutes: 120, peoplePerSlot: 1, wholeEvent: true },
@@ -2940,7 +3214,7 @@ window.UI = (function () {
 
   function head(step, title, text) {
     return '<div class="step-head">' +
-      '<div class="step-kicker">Schritt ' + step + ' von 6</div>' +
+      '<div class="step-kicker">Schritt ' + step + ' von ' + STEP_COUNT + '</div>' +
       '<h2>' + e(title) + '</h2>' +
       '<p>' + text + '</p></div>';
   }
@@ -3195,19 +3469,130 @@ window.UI = (function () {
 
     return '<section class="panel">' +
       head(4, 'Verfügbarkeiten und Abwesenheiten festlegen',
-        'Zeiten, in denen jemand <strong>nicht</strong> eingeplant werden darf. Wer immer da ist, braucht keinen Eintrag.') +
+        'Zeiten, in denen jemand <strong>nicht</strong> eingeplant werden darf. Wer immer da ist, braucht keinen Eintrag. ' +
+        'Wer sich umgekehrt für etwas <strong>gemeldet</strong> hat, wird im nächsten Schritt eingetragen.') +
       cards +
       '</section>';
   }
 
-  /* ---------------- Schritt 5: Planungsregeln ---------------- */
+  /* ---------------- Schritt 5: Feste Zuteilungen ---------------- */
 
-  function step5(state) {
+  var SCOPE_LABELS = {
+    slot: 'eine bestimmte Schicht',
+    any: 'eine Schicht – egal welche',
+    all: 'alle Schichten dieser Aufgabe'
+  };
+
+  function step5Fixed(state) {
+    var people = state.people.filter(function (p) { return p.name.trim(); });
+    var multi = window.Store.isMultiDay();
+
+    if (!people.length || !state.tasks.length) {
+      return '<section class="panel">' +
+        head(5, 'Freiwillige und feste Zuteilungen',
+          'Hier wird eingetragen, wer schon fest etwas übernimmt.') +
+        '<div class="empty">Dafür werden zuerst Personen (Schritt 2) und Aufgaben (Schritt 3) gebraucht.</div>' +
+        '</section>';
+    }
+
+    var rows = state.fixed.map(function (f, i) { return fixedRow(state, f, i, people, multi); }).join('');
+
+    return '<section class="panel">' +
+      head(5, 'Freiwillige und feste Zuteilungen',
+        'Wenn sich jemand freiwillig meldet oder eine Aufgabe fest übernimmt, kann das hier vorab ' +
+        'eingetragen werden. Diese Einteilungen stehen fest – die App verteilt alles Übrige ' +
+        'drumherum und rechnet die feste Zeit auf die Arbeitszeit der Person an. ' +
+        'Dieser Schritt ist freiwillig: ohne Eintrag verteilt die App einfach alles selbst.') +
+
+      (state.fixed.length
+        ? '<div class="row-list">' + rows + '</div>'
+        : '<div class="empty">Noch keine festen Zuteilungen – die App verteilt dann alle Schichten automatisch.</div>') +
+
+      '<div class="actions-row mt-16">' +
+        '<button type="button" class="btn btn-secondary" data-action="add-fixed">+ Freiwillige/n eintragen</button>' +
+      '</div>' +
+
+      '<div class="note note-info mt-16">' +
+        '<strong>Die drei Möglichkeiten:</strong>' +
+        '<ul>' +
+          '<li><strong>Eine bestimmte Schicht</strong> – „Ich mache Samstag von 14 bis 16 Uhr die Türschicht.“</li>' +
+          '<li><strong>Eine Schicht, egal welche</strong> – „Ich helfe beim Küchendienst mit.“ Die App sucht eine passende Schicht aus.</li>' +
+          '<li><strong>Alle Schichten</strong> – „Das Brötchenholen übernehme ich jeden Morgen.“</li>' +
+        '</ul>' +
+      '</div>' +
+
+      '<p class="small muted">Eine feste Zuteilung wird nur übernommen, wenn die Person zu der Zeit ' +
+      'auch verfügbar ist. Klappt es nicht, bleibt die Schicht frei und der Grund steht im Ergebnis ' +
+      'unter „Probleme“.</p>' +
+      '</section>';
+  }
+
+  function fixedRow(state, entry, index, people, multi) {
+    var personOptions = people.map(function (p) {
+      return '<option value="' + e(p.id) + '"' + (p.id === entry.personId ? ' selected' : '') + '>' +
+        e(p.name.trim()) + '</option>';
+    }).join('');
+
+    var taskOptions = state.tasks.map(function (t) {
+      return '<option value="' + e(t.id) + '"' + (t.id === entry.taskId ? ' selected' : '') + '>' +
+        e(t.name.trim() || 'Aufgabe ohne Namen') + '</option>';
+    }).join('');
+
+    var scopeOptions = ['slot', 'any', 'all'].map(function (key) {
+      return '<option value="' + key + '"' + (entry.scope === key ? ' selected' : '') + '>' +
+        e(SCOPE_LABELS[key]) + '</option>';
+    }).join('');
+
+    var slotPicker = '';
+    if (entry.scope === 'slot') {
+      slotPicker = '<select data-bind="fixed.slotChoice" data-id="' + entry.id + '">' +
+        shiftOptions(state, entry, multi) + '</select>';
+    }
+
+    return '<div class="row-item">' +
+      '<span class="idx">' + (index + 1) + '.</span>' +
+      '<select data-bind="fixed.personId" data-id="' + entry.id + '" style="max-width:190px" aria-label="Person">' + personOptions + '</select>' +
+      '<span class="small muted">macht</span>' +
+      '<select data-bind="fixed.taskId" data-id="' + entry.id + '" style="max-width:220px" aria-label="Aufgabe">' + taskOptions + '</select>' +
+      '<select data-bind="fixed.scope" data-id="' + entry.id + '" style="max-width:220px" aria-label="Umfang">' + scopeOptions + '</select>' +
+      slotPicker +
+      '<button type="button" class="btn btn-icon" data-action="remove-fixed" data-id="' + entry.id + '" title="Eintrag entfernen" aria-label="Eintrag entfernen">✕</button>' +
+      '</div>';
+  }
+
+  /** Auswahlliste der tatsächlich entstehenden Schichten einer Aufgabe */
+  function shiftOptions(state, entry, multi) {
+    var task = window.Store.taskById(entry.taskId);
+    if (!task) return '<option value="">– keine Aufgabe gewählt –</option>';
+    var ctx = window.Scheduler.buildContext(state);
+    var slots = window.Scheduler.slotsForTask(state, ctx, task, []);
+    if (!slots.length) return '<option value="">– diese Aufgabe ergibt keine Schichten –</option>';
+
+    var current = entry.day + '|' + entry.startTime;
+    var found = false;
+    var options = slots.map(function (s) {
+      var iso = U.dateForMinutes(state.event.date, s.start);
+      var value = iso + '|' + U.formatTime(s.start);
+      if (value === current) found = true;
+      var label = (multi ? U.dayLabel(state.event.date, s.start) + ' ' : '') +
+        U.formatTime(s.start) + '–' + U.endLabel(state.event.date, s.start, s.end, multi);
+      return '<option value="' + e(value) + '"' + (value === current ? ' selected' : '') + '>' + e(label) + '</option>';
+    }).join('');
+
+    if (!found) {
+      options = '<option value="" selected>– bitte Schicht auswählen –</option>' + options;
+    }
+    return options;
+  }
+
+  /* ---------------- Schritt 6: Planungsregeln ---------------- */
+
+  function stepOptions(state) {
     var o = state.options;
     var demand = totalDemand(state);
 
     return '<section class="panel">' +
-      head(5, 'Planungsregeln festlegen',
+      head(6, 'Planungsregeln festlegen',
         'Die Grundregeln (keine Abwesenheiten, keine Doppelbelegung, faire Verteilung) gelten immer. Hier lassen sich zusätzliche Wünsche einstellen.') +
       '<div class="field-grid">' +
         field('Mindestpause zwischen zwei Schichten (Minuten)',
@@ -3265,14 +3650,14 @@ window.UI = (function () {
     return { text: text, warning: warning };
   }
 
-  /* ---------------- Schritt 6: Ergebnis ---------------- */
+  /* ---------------- Schritt 7: Ergebnis ---------------- */
 
-  function step6(state) {
+  function stepResult(state) {
     var schedule = state.schedule;
     if (!schedule) {
       return '<section class="panel">' +
-        head(6, 'Schichtplan & Export', 'Es wurde noch kein Plan berechnet.') +
-        '<div class="empty">Bitte in Schritt 5 auf „Plan berechnen“ klicken.</div>' +
+        head(7, 'Schichtplan & Export', 'Es wurde noch kein Plan berechnet.') +
+        '<div class="empty">Bitte in Schritt 6 auf „Plan berechnen“ klicken.</div>' +
         '<div class="actions-row mt-16"><button type="button" class="btn btn-primary" data-action="compute">⚙️ Plan jetzt berechnen</button></div>' +
         '</section>';
     }
@@ -3281,7 +3666,7 @@ window.UI = (function () {
     var openIssues = schedule.issues.length;
 
     var html = '<section class="panel">' +
-      head(6, 'Schichtplan & Export',
+      head(7, 'Schichtplan & Export',
         'Der Plan kann hier noch von Hand angepasst werden. Der Excel-Export übernimmt immer den aktuell angezeigten Stand.');
 
     if (schedule.stale) {
@@ -3398,11 +3783,14 @@ window.UI = (function () {
     return '<div class="table-wrap"><table class="data"><thead><tr>' + headCells + '</tr></thead>' +
       '<tbody>' + body + '</tbody></table></div>' +
       '<p class="small muted mt-16">Über die Auswahlfelder lassen sich Personen manuell tauschen. ' +
-      'Nicht auswählbare Personen sind zu dieser Zeit abwesend oder bereits eingeteilt.</p>';
+      'Nicht auswählbare Personen sind zu dieser Zeit abwesend oder bereits eingeteilt. ' +
+      '📌 kennzeichnet eine feste Zuteilung aus Schritt&nbsp;5 – sie bleibt auch beim Neuberechnen erhalten. ' +
+      'Änderungen direkt in der Tabelle gelten dagegen nur für den angezeigten Plan.</p>';
   }
 
   function seatSelect(slot, seat, candidates) {
     var current = slot.assigned[seat] || '';
+    var pinned = !!(slot.manual && slot.manual[seat] && current);
     var opts = '<option value=""' + (current ? '' : ' selected') + '>— frei —</option>';
     (candidates || []).forEach(function (cand) {
       var selected = cand.personId === current;
@@ -3412,7 +3800,8 @@ window.UI = (function () {
         e(cand.name) + (cand.ok || selected ? '' : ' – ' + e(cand.reason)) +
         '</option>';
     });
-    return '<select class="' + (current ? '' : 'is-empty') + '" data-action="seat" data-slot="' + e(slot.id) +
+    return (pinned ? '<span class="pin" title="fest zugeteilt">📌</span>' : '') +
+      '<select class="' + (current ? '' : 'is-empty') + '" data-action="seat" data-slot="' + e(slot.id) +
       '" data-seat="' + seat + '" aria-label="Person für ' + e(slot.taskName) + '">' + opts + '</select>';
   }
 
@@ -3481,20 +3870,22 @@ window.UI = (function () {
       case 2: return step2(state);
       case 3: return step3(state);
       case 4: return step4(state);
-      case 5: return step5(state);
-      case 6: return step6(state);
+      case 5: return step5Fixed(state);
+      case 6: return stepOptions(state);
+      case 7: return stepResult(state);
       default: return step1(state);
     }
   }
 
   function primaryLabel(step) {
-    if (step === 5) return '⚙️ Plan berechnen';
-    if (step === 6) return '⬇️ Excel herunterladen';
+    if (step === 6) return '⚙️ Plan berechnen';
+    if (step === 7) return '⬇️ Excel herunterladen';
     return 'Weiter ›';
   }
 
   return {
     STEPS: STEPS,
+    STEP_COUNT: STEP_COUNT,
     TASK_PRESETS: TASK_PRESETS,
     view: view,
     renderNav: renderNav,
@@ -3540,7 +3931,7 @@ window.UI = (function () {
    * Auswahlfelder und Schalter, bei denen die Änderung mit dem Klick
    * abgeschlossen ist.
    */
-  var RERENDER_BINDS = ['task.mode'];
+  var RERENDER_BINDS = ['task.mode', 'fixed.scope', 'fixed.taskId'];
 
   /* ---------------- Rendering ---------------- */
 
@@ -3592,8 +3983,9 @@ window.UI = (function () {
       2: 'Alle Personen erfassen, die eingeplant werden dürfen.',
       3: 'Aufgaben mit Zeitraum, Schichtlänge und Personenzahl anlegen.',
       4: 'Abwesenheiten eintragen – wer immer da ist, braucht keinen Eintrag.',
-      5: 'Regeln prüfen und den Plan berechnen.',
-      6: 'Plan prüfen, bei Bedarf anpassen und als Excel herunterladen.'
+      5: 'Freiwillige eintragen – dieser Schritt ist optional.',
+      6: 'Regeln prüfen und den Plan berechnen.',
+      7: 'Plan prüfen, bei Bedarf anpassen und als Excel herunterladen.'
     };
     footerHint.textContent = texts[state.step] || '';
   }
@@ -3621,7 +4013,7 @@ window.UI = (function () {
 
   function goTo(step) {
     var state = Store.get();
-    state.step = U.clamp(step, 1, 6);
+    state.step = U.clamp(step, 1, UI.STEP_COUNT);
     Store.save();
     lastErrors = [];
     render();
@@ -3631,8 +4023,8 @@ window.UI = (function () {
 
   function next() {
     var state = Store.get();
-    if (state.step === 5) { compute(); return; }
-    if (state.step === 6) { downloadXlsx(); return; }
+    if (state.step === 6) { compute(); return; }
+    if (state.step === UI.STEP_COUNT) { downloadXlsx(); return; }
 
     var errors = Store.validateStep(state.step);
     if (errors.length) { showErrors(errors); toast(errors[0], 'error'); return; }
@@ -3650,7 +4042,7 @@ window.UI = (function () {
     var state = Store.get();
     // Alle vorherigen Schritte prüfen, bevor gerechnet wird
     var errors = [];
-    for (var s = 1; s <= 4; s++) errors = errors.concat(Store.validateStep(s));
+    for (var s = 1; s <= 5; s++) errors = errors.concat(Store.validateStep(s));
     if (errors.length) {
       showErrors(errors);
       toast(errors[0], 'error');
@@ -3659,7 +4051,7 @@ window.UI = (function () {
 
     var t0 = performance.now();
     state.schedule = window.Scheduler.compute(state);
-    state.step = 6;
+    state.step = UI.STEP_COUNT;
     UI.view.tab = 'timeline';
     Store.save();
     render();
@@ -3758,6 +4150,19 @@ window.UI = (function () {
       if (key === 'peoplePerSlot') value = U.clamp(parseInt(value, 10) || 1, 1, 10);
       if (key === 'slotMinutes') value = Math.max(5, parseInt(value, 10) || 60);
       task[key] = value;
+    } else if (group === 'fixed') {
+      var entry = Store.fixedById(id);
+      if (!entry) return false;
+      if (key === 'slotChoice') {
+        // Wert der Schichtauswahl ist "YYYY-MM-TT|HH:MM"
+        var parts = String(value).split('|');
+        entry.day = parts[0] || '';
+        entry.startTime = parts[1] || '';
+      } else {
+        entry[key] = value;
+        // Aufgabe gewechselt: die alte Schichtauswahl passt nicht mehr
+        if (key === 'taskId') { entry.day = ''; entry.startTime = ''; }
+      }
     } else if (group === 'absence') {
       var absence = null;
       state.absences.forEach(function (a) { if (a.id === id) absence = a; });
@@ -3902,6 +4307,9 @@ window.UI = (function () {
 
       case 'add-absence': Store.addAbsence(id); render(); break;
       case 'remove-absence': Store.removeAbsence(id); render(); break;
+
+      case 'add-fixed': Store.addFixed(); render(); break;
+      case 'remove-fixed': Store.removeFixed(id); render(); break;
 
       case 'compute': compute(); break;
       case 'download-xlsx': downloadXlsx(); break;
