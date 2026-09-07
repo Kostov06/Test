@@ -1,0 +1,161 @@
+/* Optik der Prototypen: gedecktes Papier, Serifen für Namen, ruhige Flächen.
+   Der einzige Schlagschatten im ganzen Blatt liegt unter dem Farbband. */
+:root{
+  --ink:#1b1d1a; --paper:#e9e6dc; --paper-2:#f6f4ee;
+  --rule:#c3bfb0; --muted:#6c6b62; --accent:#3d5a3f;
+  --warn:#7d3a2e;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0 auto; max-width:560px; background:var(--paper); color:var(--ink);
+  font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:18px 16px 40px;
+}
+h1,h2,.serif{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600}
+h1{font-size:22px;margin:0 0 2px}
+h2{font-size:17px;margin:22px 0 6px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+a{color:var(--ink)}
+
+/* ---------------------------------------------------------- Kopfzeile */
+.kopf{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px}
+.kopf .sub{margin:0}
+.zurueck{font-size:13px;color:var(--muted);background:none;border:0;padding:6px 2px;cursor:pointer;flex:0 0 auto}
+.zurueck:hover{color:var(--ink)}
+
+/* ------------------------------------------------------------- Knöpfe */
+button{
+  font:inherit;font-size:15px;border:1px solid var(--ink);background:var(--paper-2);
+  color:var(--ink);padding:12px 14px;border-radius:3px;flex:1;cursor:pointer;
+  text-align:center;
+}
+button:active{transform:translateY(1px)}
+button.solid{background:var(--ink);color:var(--paper-2)}
+button.ghost{border-color:var(--rule);color:var(--muted);flex:0 0 auto}
+button[disabled]{opacity:.4;cursor:default}
+button[disabled]:active{transform:none}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
+select:focus-visible,li:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--accent);outline-offset:2px
+}
+.row{display:flex;gap:8px;margin-top:14px}
+.row.eng{margin-top:8px}
+.modes{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.modes button{font-size:13.5px;padding:9px 10px}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
+
+/* --------------------------------------------------------- Stapelwahl */
+.stapel{list-style:none;padding:0;margin:0 0 18px}
+.stapel li{border-top:1px solid var(--rule)}
+.stapel li:last-child{border-bottom:1px solid var(--rule)}
+.stapel label{display:flex;gap:12px;align-items:flex-start;padding:13px 2px;cursor:pointer}
+.stapel label > div{flex:1 1 auto;min-width:0}
+.stapel input[type=checkbox]{margin:2px 0 0;width:18px;height:18px;accent-color:var(--accent);flex:0 0 auto}
+.stapel .titel{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:18px;line-height:1.25}
+.stapel .zeile{font-size:13px;color:var(--muted);margin-top:3px}
+.stapel .zeile b{color:var(--ink);font-weight:600}
+
+/* Fächerbalken: fünf Segmente, Fach 5 am dunkelsten. Keine Verläufe. */
+.faecher{display:flex;gap:2px;height:6px;margin-top:8px}
+.faecher span{flex:0 0 auto;min-width:2px}
+.faecher .f0,.faecher .f1{background:#d6d2c4}  /* Fach 1 ist die leere Spur */
+.faecher .f2{background:#b9b09a}
+.faecher .f3{background:#93927f}
+.faecher .f4{background:#6f7861}
+.faecher .f5{background:var(--accent)}
+
+/* -------------------------------------------------------------- Karte */
+.band{
+  height:216px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 1px 0 rgba(0,0,0,.18),0 12px 28px -16px rgba(0,0,0,.55);
+}
+.band span{flex:1 1 0;position:relative;display:block}
+.band span.hell::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09)}
+.prompt{text-align:center;font-size:13px;color:var(--muted);margin:14px 0 0}
+.frage{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:21px;
+  line-height:1.3;margin:0;padding:22px 2px 6px}
+.frage.klein{font-size:18px}
+.antwort{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:16px;margin-top:14px}
+.antwort .farben{font-size:13px;color:var(--muted);margin:0 0 12px}
+.antwort .name{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  font-size:20px;line-height:1.25;margin:0 0 2px}
+.antwort .meta{font-size:13px;color:var(--muted);margin:0}
+.antwort .text{font-size:16px;line-height:1.45;margin:0}
+.antwort .text + .text{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+.eintrag{margin:0 0 12px}
+.eintrag:last-child{margin-bottom:0}
+.multi{font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--rule);
+  padding-bottom:8px;margin:0 0 12px}
+.notiz{font-size:13px;color:var(--muted);line-height:1.45;margin:12px 0 0;
+  padding-top:10px;border-top:1px solid var(--rule)}
+
+/* Der Wechsel zur Antwort ist die einzige Bewegung im Blatt. */
+.antwort{animation:auf .16s ease-out}
+@keyframes auf{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.antwort{animation:none}}
+
+/* --------------------------------------------------------- Lückentext */
+.lueckentext{font-size:16px;line-height:1.9;white-space:pre-wrap;margin:0}
+.luecke{border-bottom:1px solid var(--ink);padding:0 .45em;color:transparent}
+.luecke.gefuellt{border-bottom-color:var(--accent);color:var(--ink);font-weight:600;
+  background:rgba(61,90,63,.09)}
+
+/* --------------------------------------------------------- Reihenfolge */
+.reihe{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.reihe button{
+  display:flex;gap:10px;align-items:baseline;text-align:left;width:100%;
+  border-color:var(--rule);padding:11px 12px;font-size:15px;
+}
+.reihe button[aria-pressed="true"]{border-color:var(--ink)}
+.reihe .nr{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);
+  min-width:1.4em;flex:0 0 auto}
+.reihe button[aria-pressed="true"] .nr{color:var(--ink);font-weight:600}
+.reihe .richtig{border-color:var(--accent)}
+.reihe .falsch{border-color:var(--warn)}
+.reihe .richtig .nr{color:var(--accent)}
+.reihe .falsch .nr{color:var(--warn)}
+
+/* ------------------------------------------------------------- Fußzeile */
+.score{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;
+  color:var(--muted);border-top:1px solid var(--rule);margin-top:22px;padding-top:10px;gap:12px}
+.score b{color:var(--ink);font-weight:600}
+
+/* ------------------------------------------------------------ Statistik */
+.tabelle{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+.tabelle th,.tabelle td{text-align:left;padding:9px 6px 9px 0;border-bottom:1px solid var(--rule)}
+.tabelle th{font-size:12.5px;color:var(--muted);font-weight:400}
+.tabelle td.zahl,.tabelle th.zahl{text-align:right;padding:9px 0 9px 12px;font-variant-numeric:tabular-nums}
+.hakt{list-style:none;padding:0;margin:8px 0 0;font-size:14px}
+.hakt li{padding:8px 0;border-bottom:1px solid var(--rule);display:flex;
+  justify-content:space-between;gap:12px;align-items:center}
+.hakt .was{display:flex;gap:9px;align-items:center;min-width:0;line-height:1.3}
+.hakt .wie{font-size:12.5px;color:var(--muted);flex:0 0 auto}
+.hakt .miniband{display:flex;flex-direction:column;width:34px;height:20px;
+  border-radius:2px;overflow:hidden;flex:0 0 auto}
+.hakt .miniband span{flex:1 1 0}
+
+/* ------------------------------------------------------------ Redaktion */
+.feld{margin:0 0 14px}
+.feld label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+input[type=text],textarea,select{
+  font:inherit;font-size:15px;width:100%;background:var(--paper-2);color:var(--ink);
+  border:1px solid var(--rule);border-radius:3px;padding:10px 11px;
+}
+textarea{line-height:1.5;resize:vertical;min-height:96px}
+textarea.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13.5px}
+.hinweis{font-size:13px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.fehler{font-size:13.5px;color:var(--warn);line-height:1.5;margin:10px 0 0}
+.fehler ul{margin:6px 0 0;padding-left:18px}
+.streifen{display:flex;gap:8px;align-items:center;margin:0 0 6px}
+.streifen input[type=color]{width:44px;height:38px;padding:2px;border:1px solid var(--rule);
+  border-radius:3px;background:var(--paper-2);flex:0 0 auto}
+.streifen input[type=text]{flex:1 1 auto}
+.streifen input.breite{flex:0 0 76px}
+.streifen button{flex:0 0 auto;padding:10px 12px;border-color:var(--rule);color:var(--muted)}
+.leer{color:var(--muted);font-size:14px;line-height:1.5}
+
+/* Auf dem Handy gibt es keine Tastatur — der Hinweis wäre nur Rauschen. */
+@media (hover:none) and (pointer:coarse){ .tasten-hinweis{display:none} }

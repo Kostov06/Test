@@ -1,0 +1,104 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SV-Couleur lernen</title>
+<style>
+  :root{--ink:#1b1d1a;--paper:#e9e6dc;--paper-2:#f6f4ee;--rule:#c3bfb0;--muted:#6c6b62;--accent:#3d5a3f}
+  *{box-sizing:border-box}
+  body{margin:0 auto;max-width:560px;background:var(--paper);color:var(--ink);
+    font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    padding:18px 16px 40px}
+  h1{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600;font-size:22px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+  .band{height:216px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 1px 0 rgba(0,0,0,.18),0 12px 28px -16px rgba(0,0,0,.55)}
+  .band span{flex:1 1 0;position:relative}
+  .band span.pale::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09)}
+  .prompt{text-align:center;font-size:13px;color:var(--muted);margin:14px 0 0}
+  .answer{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:16px;margin-top:14px}
+  .answer .name{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:21px;line-height:1.25;margin:0 0 4px}
+  .answer .meta{font-size:13px;color:var(--muted);margin:0}
+  .answer .farben{font-size:13px;margin:10px 0 0}
+  .row{display:flex;gap:8px;margin-top:14px}
+  button{font:inherit;font-size:15px;border:1px solid var(--ink);background:var(--paper-2);color:var(--ink);
+    padding:12px 14px;border-radius:3px;flex:1;cursor:pointer}
+  button:active{transform:translateY(1px)}
+  button.solid{background:var(--ink);color:var(--paper-2)}
+  button.ghost{border-color:var(--rule);color:var(--muted);flex:0 0 auto}
+  button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .score{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);
+    border-top:1px solid var(--rule);margin-top:22px;padding-top:10px}
+  .score b{color:var(--ink);font-weight:600}
+  .modes{display:flex;gap:8px;margin-bottom:16px}
+  .modes button{font-size:13.5px;padding:9px 10px}
+  .modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
+</style>
+
+<h1>Couleur des SV</h1>
+<p class="sub">Farben sehen, Bund nennen, umdrehen.</p>
+
+<div class="modes">
+  <button id="mAll" aria-pressed="true">Alle 23</button>
+  <button id="mMiss" aria-pressed="false">Nur Fehler</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+const CARDS = [{"name": "AGV München", "ort": "München", "hex": ["#f59dae", "#fefefe"], "farben": "rosa-weiß"}, {"name": "AMB Ingvaeonia", "ort": "Münster", "hex": ["#fe192b", "#e3ae4d", "#0a0a0a", "#fdc356", "#fe182b"], "w": [1, 0.05, 0.9, 0.05, 1], "farben": "rot-schwarz-rot, schwarzer Balken golden durchzogen"}, {"name": "AMDV Caecilia", "ort": "Hamburg", "hex": ["#fe154d", "#fefefe", "#fe8916"], "farben": "karmesinrot-weiß-orange"}, {"name": "AMV Albingia", "ort": "Kiel", "hex": ["#f59cad", "#fefefe", "#0c9526"], "farben": "rosa-weiß-grün"}, {"name": "AMV Arion", "ort": "Aachen", "hex": ["#3e50fe", "#fefefe", "#007e0e"], "farben": "blau-weiß-grün"}, {"name": "AMV Arminia", "ort": "Braunschweig", "hex": ["#7e0037", "#fefefe", "#007f46"], "farben": "weinrot-weiß-meergrün"}, {"name": "AMV Ascania", "ort": "Halle-Clausthal", "hex": ["#089415", "#fefefe", "#fc0000"], "farben": "grün-weiß-rot"}, {"name": "AMV Berlin", "ort": "Berlin", "hex": ["#fc0000", "#fefefe"], "farben": "rot-weiß"}, {"name": "AMV Fridericiana", "ort": "Erlangen", "hex": ["#f59dae", "#fefefe"], "farben": "rosa-weiß"}, {"name": "AMV Fridericiana", "ort": "Marburg", "hex": ["#000000", "#007f47", "#fe0000"], "farben": "schwarz-meergrün-rot"}, {"name": "AMV Innsbruck", "ort": "Innsbruck", "hex": ["#fc0000", "#fefefe", "#fc0000"], "farben": "rot-weiß-rot"}, {"name": "AMV Mainz", "ort": "Mainz", "hex": ["#97d0fd", "#fefefe", "#f59cad"], "farben": "hellblau-weiß-rosa"}, {"name": "AMV Makaria", "ort": "Bonn", "hex": ["#98d1fe", "#fefefe", "#fc0000"], "farben": "hellblau-weiß-rot"}, {"name": "AMV Nordmark", "ort": "Hamburg", "hex": ["#5da7fe", "#fefefe", "#fcc256"], "farben": "hellblau-weiß-gold"}, {"name": "AMV Stauffia", "ort": "Heidelberg", "hex": ["#fc0000", "#fefefe", "#fcc356"], "farben": "rot-weiß-gold"}, {"name": "AMV Stochdorphia", "ort": "Tübingen", "hex": ["#010101", "#fefefe", "#fc0000"], "farben": "schwarz-weiß-rot"}, {"name": "AMV Waltharia", "ort": "Frankfurt", "hex": ["#010000", "#fcb543", "#007f46"], "farben": "schwarz-gold-meergrün"}, {"name": "AMV Würzburg", "ort": "Würzburg", "hex": ["#fc0000", "#fefefe"], "farben": "rot-weiß"}, {"name": "AWV Makaria", "ort": "Stuttgart", "hex": ["#000000", "#fc0000", "#0063fe"], "farben": "schwarz-rot-blau"}, {"name": "MSG Alt-Straßburg", "ort": "Freiburg", "hex": ["#000000", "#fcb543", "#007f46"], "farben": "schwarz-gold-meergrün"}, {"name": "MV Liubicia", "ort": "Lübeck", "hex": ["#fefefe", "#fd0002", "#2e8a57"], "farben": "weiß-rot-meergrün"}, {"name": "StMV Blaue Sänger", "ort": "Göttingen", "hex": ["#98d1fe", "#fefefe", "#98d1fe"], "farben": "hellblau-weiß-hellblau"}, {"name": "musische gruppe auerbach", "ort": "Darmstadt", "hex": ["#98d1fe", "#fefefe", "#fcc256"], "farben": "hellblau-weiß-gold"}];
+const PALE = ["#fefefe","#fcc256","#fcc356","#fcb543","#98d1fe","#97d0fd","#f59dae","#f59cad"];
+let order=[], idx=0, shown=false, right=0, wrong=0, missed=new Set(), onlyMissed=false;
+
+const shuffle = arr => { const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+const pool = () => onlyMissed && missed.size ? [...missed] : CARDS.map((_,i)=>i);
+function build(){ order=shuffle(pool()); idx=0; shown=false; render(); }
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const c = CARDS[order[idx]];
+  const w = c.w || c.hex.map(()=>1);
+  const bands = c.hex.map((h,i) =>
+    `<span style="background:${h};flex:${w[i]} 1 0" class="${PALE.includes(h)?'pale':''}"></span>`).join("");
+  document.getElementById("app").innerHTML = `
+    <div class="band">${bands}</div>
+    ${shown ? `
+      <div class="answer">
+        <p class="name">${esc(c.name)}</p>
+        <p class="meta">${esc(c.ort)}</p>
+        <p class="farben">${esc(c.farben)}</p>
+      </div>
+      <div class="row">
+        <button id="no">Falsch</button>
+        <button class="solid" id="yes">Gewusst</button>
+      </div>` : `
+      <p class="prompt">Welcher Bund?</p>
+      <div class="row">
+        <button class="solid" id="flip">Antwort zeigen</button>
+        <button class="ghost" id="skip">Weiter</button>
+      </div>`}
+    <div class="score">
+      <span>Karte <b>${idx+1}</b> von <b>${order.length}</b></span>
+      <span>Gewusst <b>${right}</b> · Falsch <b>${wrong}</b></span>
+    </div>`;
+  const on=(id,fn)=>{const e=document.getElementById(id); if(e) e.onclick=fn;};
+  on("flip",()=>{shown=true;render();});
+  on("skip",next);
+  on("yes",()=>{right++; missed.delete(order[idx]); next();});
+  on("no",()=>{wrong++; missed.add(order[idx]); next();});
+}
+
+function next(){
+  shown=false; idx++;
+  if(idx>=order.length){ order=shuffle(pool()); idx=0; }
+  render();
+}
+
+document.getElementById("mAll").onclick=()=>{onlyMissed=false;setModes();build();};
+document.getElementById("mMiss").onclick=()=>{ if(!missed.size) return; onlyMissed=true; setModes(); build(); };
+function setModes(){
+  document.getElementById("mAll").setAttribute("aria-pressed",!onlyMissed);
+  document.getElementById("mMiss").setAttribute("aria-pressed",onlyMissed);
+}
+build();
+</script>

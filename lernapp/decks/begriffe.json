@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "id": "begriffe",
+  "titel": "Fachbegriffe",
+  "untertitel": "Was heißt das eigentlich?",
+  "quelle": "Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“",
+  "stand": "2026-09-07",
+  "karten": [
+    { "id": "kommers", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Kommers",
+      "definition": "Umtrunk, dessen äußerer Ablauf mit seinen Trinksitten durch einen Comment geregelt wird — die feierliche Form der Kneipe.",
+      "notiz": "Hat sich aus Bräuchen des 18. und 19. Jahrhunderts entwickelt und ist mehr als eine scherzhafte Parodie des früher streng eingehaltenen allgemeinen Comments." },
+
+    { "id": "kneipe", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Kneipe",
+      "definition": "Lockerer Comment, freiere Gestaltung mit Reden, Einlagen und Gesängen — von unterhaltsamem Charakter." },
+
+    { "id": "kolloquium", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Kolloquium",
+      "definition": "Vom Kneippräsidium ausgerufener Abschnitt, in dem miteinander gesprochen werden darf. Alle bleiben an ihren Plätzen, bis das Präsidium das OK gibt." },
+
+    { "id": "biermimik", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Biermimik",
+      "definition": "Ein Sketch, den ein oder mehrere Verbindungsmitglieder auf einer Kneipe halten.",
+      "notiz": "Auch Bierschwefel oder Fuxenulk genannt." },
+
+    { "id": "bierdorf", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Bierdorf",
+      "definition": "Wird nach Beendigung der Kneipe eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin." },
+
+    { "id": "leibverhaeltnis", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Leib- bzw. Bierverhältnis",
+      "definition": "Beziehung zwischen einem endgültigen und traditionell einem vorläufigen Mitglied, vergleichbar mit Pat*innen — geprägt von tiefer Freundschaft und Verbundenheit.",
+      "notiz": "Begrifflichkeiten: Biervater und Biermutter, Biertochter und Biersohn. Symbolisiert durch den Zipfeltausch." },
+
+    { "id": "zipfelbund", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Zipfelbund",
+      "definition": "Besteht aus zwei- oder mehrfarbigen Bändern und einigen gravierten Metallschiebern, die die Bänder halten. Ein Zipfelbund enthält immer einen Bierzipfel und unterschiedlich viele, später getauschte Weinzipfel." },
+
+    { "id": "bierzipfel", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Bierzipfel",
+      "definition": "Das breite Band im Zipfelbund. Jeder Zipfelbund enthält genau einen." },
+
+    { "id": "weinzipfel", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Weinzipfel",
+      "definition": "Das schmale Band im Zipfelbund. Davon gibt es unterschiedlich viele, sie werden später getauscht." },
+
+    { "id": "couleurbummel", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Couleurbummel",
+      "definition": "Zug über die Häuser verschiedener Verbindungen. Gute Sitte ist, dass ein Korporierter, der um Einlass bittet, ein kostenloses Couleurbier erhält." },
+
+    { "id": "fuxenbummel", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Fuxenbummel",
+      "definition": "Besondere Form des Couleurbummels: der Fuxmajor zieht mit den Füxen über die Häuser, um sie in die couleurstudentische Gesellschaft einzuführen und ihnen andere Verbindungen zu zeigen." },
+
+    { "id": "zirkel", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Zirkel",
+      "definition": "Erkennungszeichen einer Verbindung oder eines Verbandes, bestehend aus einem Zusammenschluss einzelner Anfangsbuchstaben — etwa des Verbindungsnamens oder des Wahlspruchs." },
+
+    { "id": "wahlspruch", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Wahlspruch",
+      "definition": "Stellt die wesentlichen Prinzipien einer Verbindung heraus, wobei immer die aktuell aktiv gelebte Interpretation Bedeutung haben sollte." },
+
+    { "id": "wappen", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Wappen",
+      "definition": "In Verbindungen weit verbreitet; enthält neben den Farben und dem Zirkel meist weitere Elemente aus der Stadt, der Region oder der Fakultät." },
+
+    { "id": "studentische-farben", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Studentische Farben",
+      "definition": "Erkennungsmerkmal einzelner Verbindungen oder Dachverbände. Sie finden sich in Fahnen, Zipfeln, Mützen, Farbbändern und sonstigen Couleurartikeln." }
+  ]
+}

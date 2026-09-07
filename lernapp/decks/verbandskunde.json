@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "id": "verbandskunde",
+  "titel": "Verbandskunde",
+  "untertitel": "SV, Prinzipien, Zirkel",
+  "quelle": "Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“",
+  "stand": "2026-09-07",
+  "karten": [
+    { "id": "sv-wahlspruch", "typ": "frage", "rev": 1,
+      "frage": "Wie lautet der Wahlspruch des SV?",
+      "antworten": ["„Lied, Freundschaft, Vaterland“"] },
+
+    { "id": "farbentragend", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Farbentragend",
+      "definition": "Die Mitglieder tragen üblicherweise Band und Mütze, sobald sie in Verbindungssache unterwegs sind." },
+
+    { "id": "farbenfuehrend", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Farbenführend",
+      "definition": "Die Mitglieder führen Farben zu bestimmten Anlässen mit sich — etwa in Form von Zipfelbünden, Fahnen, Wappen und sonstigen Couleurgegenständen. Auf Band und Mütze wird verzichtet.",
+      "notiz": "Viele SV-Bünde sind farbenführend." },
+
+    { "id": "schwarzes-prinzip", "typ": "begriff", "rev": 1, "richtung": "beide",
+      "begriff": "Schwarzes Prinzip",
+      "definition": "Die Verbindung führt gar keine Farben, vereinzelt nur in Fahne und Wappen. Besteht zwischen den Mitgliedern ein echtes Freundschaftsband, muss dieses nicht durch äußere Zeichen bekundet werden." },
+
+    { "id": "ingvaeonia-farben", "typ": "frage", "rev": 1,
+      "frage": "Wie beschreibt man die Farben des AMB Ingvaeonia?",
+      "antworten": [
+        "Schwarz mit goldgelber Perkussion auf karmesinrotem Grund",
+        "Karmesinrot-Goldgelb-Schwarz-Goldgelb-Karmesinrot"
+      ] },
+
+    { "id": "zirkel-ingvaeonia", "typ": "frage", "rev": 1,
+      "frage": "Welche Buchstaben enthält unser Zirkel, und wofür stehen sie?",
+      "antworten": ["V(ivat), C(rescat), F(loreat), I(ngvaeonia) — Blühe, wachse und gedeihe, Ingvaeonia"] },
+
+    { "id": "zirkel-ausrufezeichen", "typ": "frage", "rev": 1,
+      "frage": "Was bedeutet das Ausrufezeichen „!“ im Zirkel?",
+      "antworten": ["Es wird im SV als Zeichen der Aktiven geführt"] },
+
+    { "id": "zirkel-wohin", "typ": "frage", "rev": 1,
+      "frage": "Wo gehört der Zirkel hin, und wer sollte ihn schreiben können?",
+      "antworten": ["Jedes endgültige Mitglied sollte den Zirkel schreiben können. Er gehört in Verbindungsgästebücher und in den Schriftverkehr zwischen Verbindungen — hinter die Unterschrift, wenn man mag."] },
+
+    { "id": "kein-wappen", "typ": "frage", "rev": 1,
+      "frage": "Warum haben wir weder ein „richtiges“ Wappen noch einen eigenen Wahlspruch?",
+      "antworten": ["Wir mussten uns in der Gründungszeit den strengen Auflagen der englischen Besatzung unterwerfen, die keine Vereinigung mit konservativen Ansätzen zuließ."],
+      "notiz": "Umso mehr fühlen wir uns dem Wahlspruch des SV verbunden: Lied, Freundschaft, Vaterland." },
+
+    { "id": "nationalflagge", "typ": "frage", "rev": 1,
+      "frage": "Worauf beruhen die Farben der deutschen Nationalflagge?",
+      "antworten": ["Auf den Farben der Urburschenschaft — Schwarz-Rot-Gold wird heute noch von einigen Burschenschaften getragen"] }
+  ]
+}

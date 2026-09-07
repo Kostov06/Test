@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "id": "lieder",
+  "titel": "Lieder",
+  "untertitel": "Bundeslied und Liederbuch",
+  "quelle": "Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“",
+  "stand": "2026-09-07",
+  "karten": [
+    { "id": "bundeslied-name", "typ": "frage", "rev": 1,
+      "frage": "Wie heißt unser Bundeslied?",
+      "antworten": [
+        "„Noch ist die blühende goldene Zeit“",
+        "„Noch sind die Tage der Rosen“"
+      ] },
+
+    { "id": "bundeslied-melodie", "typ": "frage", "rev": 1,
+      "frage": "Von wem stammt die Melodie des Bundeslieds?",
+      "antworten": ["W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist"] },
+
+    { "id": "bundeslied-text", "typ": "frage", "rev": 1,
+      "frage": "Von wem stammt der Text des Bundeslieds?",
+      "antworten": ["O. Roquette (1824–1896), deutscher Schriftsteller hugenottischer Abstammung und Professor für Literaturgeschichte"],
+      "notiz": "Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia." },
+
+    { "id": "bundeslied-str2", "typ": "lueckentext", "rev": 1,
+      "titel": "Bundeslied, 2. Strophe",
+      "text": "Frei ist das {{Herz}}, und frei das {{Lied}},\nund frei ist der {{Bursch}}, der die Welt durchzieht;\nund ein {{rosiger}} Kuss\nist nicht minder frei,\nso {{spröd}} und verschämt auch die Lippe sei.\nWo ein Lied erklingt, wo ein Kuss sich beut, da heißt’s:\nNoch ist blühende, goldene Zeit,\nnoch sind ¦:die {{Tage der Rosen}}!:¦" },
+
+    { "id": "bundeslied-str3", "typ": "lueckentext", "rev": 1,
+      "titel": "Bundeslied, 3. Strophe",
+      "text": "Ja im {{Herzen}} tief innen ist alles daheim,\nder {{Freude}} Saaten, der {{Schmerzen}} Keim.\nnoch ist die blühende goldene Zeit:\no du schöne Welt, wie bist du so {{weit}}!\nDrum {{frisch}} sei das Herz\nund {{lebendig}} der Sinn,\ndann brauset, ihr {{Stürme}}, daher und dahin!\nWir aber sind allzeit zu {{singen}} bereit:\nNoch ist die blühende, goldene Zeit,\nnoch sind ¦:die {{Tage der Rosen}}!:¦" },
+
+    { "id": "adk", "typ": "frage", "rev": 1,
+      "frage": "Was ist das ADK, und seit wann gibt es es?",
+      "antworten": ["Das „Allgemeine Deutsche Kommersbuch“, seit 1858. Viele besitzen es."] },
+
+    { "id": "sv-liederbuch", "typ": "frage", "rev": 1,
+      "frage": "Wie kam es zum SV-Liederbuch?",
+      "antworten": ["Es wurde zu Beginn der 2000er Jahre unter Leitung von Vbr. Hans Dieter Fleischmann ausgearbeitet. Heute gilt die 2. Auflage von 2010."],
+      "notiz": "Anlass waren die politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und die daraus folgende Auswahl der Lieder. Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung." },
+
+    { "id": "liederbuch-struktur", "typ": "reihenfolge", "rev": 1,
+      "frage": "Wie ist das SV-Liederbuch gegliedert? Bringe die Teile in die richtige Reihenfolge.",
+      "elemente": [
+        "A — Verbandslieder, Nationalhymne, Bundeslieder",
+        "B — Lieder zum festlichen Kommers",
+        "C — Lieder zu Inoffizium, Fidulität und Bierdorf",
+        "D — Liedsätze und Kanons aus fünf Jahrhunderten"
+      ] }
+  ]
+}

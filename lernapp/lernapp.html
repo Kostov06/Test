@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9e6dc">
+<title>Ältestenrat — Lernstoff</title>
+<style>
+/* Optik der Prototypen: gedecktes Papier, Serifen für Namen, ruhige Flächen.
+   Der einzige Schlagschatten im ganzen Blatt liegt unter dem Farbband. */
+:root{
+  --ink:#1b1d1a; --paper:#e9e6dc; --paper-2:#f6f4ee;
+  --rule:#c3bfb0; --muted:#6c6b62; --accent:#3d5a3f;
+  --warn:#7d3a2e;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0 auto; max-width:560px; background:var(--paper); color:var(--ink);
+  font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:18px 16px 40px;
+}
+h1,h2,.serif{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600}
+h1{font-size:22px;margin:0 0 2px}
+h2{font-size:17px;margin:22px 0 6px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+a{color:var(--ink)}
+
+/* ---------------------------------------------------------- Kopfzeile */
+.kopf{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px}
+.kopf .sub{margin:0}
+.zurueck{font-size:13px;color:var(--muted);background:none;border:0;padding:6px 2px;cursor:pointer;flex:0 0 auto}
+.zurueck:hover{color:var(--ink)}
+
+/* ------------------------------------------------------------- Knöpfe */
+button{
+  font:inherit;font-size:15px;border:1px solid var(--ink);background:var(--paper-2);
+  color:var(--ink);padding:12px 14px;border-radius:3px;flex:1;cursor:pointer;
+  text-align:center;
+}
+button:active{transform:translateY(1px)}
+button.solid{background:var(--ink);color:var(--paper-2)}
+button.ghost{border-color:var(--rule);color:var(--muted);flex:0 0 auto}
+button[disabled]{opacity:.4;cursor:default}
+button[disabled]:active{transform:none}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
+select:focus-visible,li:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--accent);outline-offset:2px
+}
+.row{display:flex;gap:8px;margin-top:14px}
+.row.eng{margin-top:8px}
+.modes{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.modes button{font-size:13.5px;padding:9px 10px}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
+
+/* --------------------------------------------------------- Stapelwahl */
+.stapel{list-style:none;padding:0;margin:0 0 18px}
+.stapel li{border-top:1px solid var(--rule)}
+.stapel li:last-child{border-bottom:1px solid var(--rule)}
+.stapel label{display:flex;gap:12px;align-items:flex-start;padding:13px 2px;cursor:pointer}
+.stapel label > div{flex:1 1 auto;min-width:0}
+.stapel input[type=checkbox]{margin:2px 0 0;width:18px;height:18px;accent-color:var(--accent);flex:0 0 auto}
+.stapel .titel{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:18px;line-height:1.25}
+.stapel .zeile{font-size:13px;color:var(--muted);margin-top:3px}
+.stapel .zeile b{color:var(--ink);font-weight:600}
+
+/* Fächerbalken: fünf Segmente, Fach 5 am dunkelsten. Keine Verläufe. */
+.faecher{display:flex;gap:2px;height:6px;margin-top:8px}
+.faecher span{flex:0 0 auto;min-width:2px}
+.faecher .f0,.faecher .f1{background:#d6d2c4}  /* Fach 1 ist die leere Spur */
+.faecher .f2{background:#b9b09a}
+.faecher .f3{background:#93927f}
+.faecher .f4{background:#6f7861}
+.faecher .f5{background:var(--accent)}
+
+/* -------------------------------------------------------------- Karte */
+.band{
+  height:216px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 1px 0 rgba(0,0,0,.18),0 12px 28px -16px rgba(0,0,0,.55);
+}
+.band span{flex:1 1 0;position:relative;display:block}
+.band span.hell::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09)}
+.prompt{text-align:center;font-size:13px;color:var(--muted);margin:14px 0 0}
+.frage{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:21px;
+  line-height:1.3;margin:0;padding:22px 2px 6px}
+.frage.klein{font-size:18px}
+.antwort{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:16px;margin-top:14px}
+.antwort .farben{font-size:13px;color:var(--muted);margin:0 0 12px}
+.antwort .name{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  font-size:20px;line-height:1.25;margin:0 0 2px}
+.antwort .meta{font-size:13px;color:var(--muted);margin:0}
+.antwort .text{font-size:16px;line-height:1.45;margin:0}
+.antwort .text + .text{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+.eintrag{margin:0 0 12px}
+.eintrag:last-child{margin-bottom:0}
+.multi{font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--rule);
+  padding-bottom:8px;margin:0 0 12px}
+.notiz{font-size:13px;color:var(--muted);line-height:1.45;margin:12px 0 0;
+  padding-top:10px;border-top:1px solid var(--rule)}
+
+/* Der Wechsel zur Antwort ist die einzige Bewegung im Blatt. */
+.antwort{animation:auf .16s ease-out}
+@keyframes auf{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.antwort{animation:none}}
+
+/* --------------------------------------------------------- Lückentext */
+.lueckentext{font-size:16px;line-height:1.9;white-space:pre-wrap;margin:0}
+.luecke{border-bottom:1px solid var(--ink);padding:0 .45em;color:transparent}
+.luecke.gefuellt{border-bottom-color:var(--accent);color:var(--ink);font-weight:600;
+  background:rgba(61,90,63,.09)}
+
+/* --------------------------------------------------------- Reihenfolge */
+.reihe{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.reihe button{
+  display:flex;gap:10px;align-items:baseline;text-align:left;width:100%;
+  border-color:var(--rule);padding:11px 12px;font-size:15px;
+}
+.reihe button[aria-pressed="true"]{border-color:var(--ink)}
+.reihe .nr{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);
+  min-width:1.4em;flex:0 0 auto}
+.reihe button[aria-pressed="true"] .nr{color:var(--ink);font-weight:600}
+.reihe .richtig{border-color:var(--accent)}
+.reihe .falsch{border-color:var(--warn)}
+.reihe .richtig .nr{color:var(--accent)}
+.reihe .falsch .nr{color:var(--warn)}
+
+/* ------------------------------------------------------------- Fußzeile */
+.score{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;
+  color:var(--muted);border-top:1px solid var(--rule);margin-top:22px;padding-top:10px;gap:12px}
+.score b{color:var(--ink);font-weight:600}
+
+/* ------------------------------------------------------------ Statistik */
+.tabelle{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+.tabelle th,.tabelle td{text-align:left;padding:9px 6px 9px 0;border-bottom:1px solid var(--rule)}
+.tabelle th{font-size:12.5px;color:var(--muted);font-weight:400}
+.tabelle td.zahl,.tabelle th.zahl{text-align:right;padding:9px 0 9px 12px;font-variant-numeric:tabular-nums}
+.hakt{list-style:none;padding:0;margin:8px 0 0;font-size:14px}
+.hakt li{padding:8px 0;border-bottom:1px solid var(--rule);display:flex;
+  justify-content:space-between;gap:12px;align-items:center}
+.hakt .was{display:flex;gap:9px;align-items:center;min-width:0;line-height:1.3}
+.hakt .wie{font-size:12.5px;color:var(--muted);flex:0 0 auto}
+.hakt .miniband{display:flex;flex-direction:column;width:34px;height:20px;
+  border-radius:2px;overflow:hidden;flex:0 0 auto}
+.hakt .miniband span{flex:1 1 0}
+
+/* ------------------------------------------------------------ Redaktion */
+.feld{margin:0 0 14px}
+.feld label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+input[type=text],textarea,select{
+  font:inherit;font-size:15px;width:100%;background:var(--paper-2);color:var(--ink);
+  border:1px solid var(--rule);border-radius:3px;padding:10px 11px;
+}
+textarea{line-height:1.5;resize:vertical;min-height:96px}
+textarea.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13.5px}
+.hinweis{font-size:13px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.fehler{font-size:13.5px;color:var(--warn);line-height:1.5;margin:10px 0 0}
+.fehler ul{margin:6px 0 0;padding-left:18px}
+.streifen{display:flex;gap:8px;align-items:center;margin:0 0 6px}
+.streifen input[type=color]{width:44px;height:38px;padding:2px;border:1px solid var(--rule);
+  border-radius:3px;background:var(--paper-2);flex:0 0 auto}
+.streifen input[type=text]{flex:1 1 auto}
+.streifen input.breite{flex:0 0 76px}
+.streifen button{flex:0 0 auto;padding:10px 12px;border-color:var(--rule);color:var(--muted)}
+.leer{color:var(--muted);font-size:14px;line-height:1.5}
+
+/* Auf dem Handy gibt es keine Tastatur — der Hinweis wäre nur Rauschen. */
+@media (hover:none) and (pointer:coarse){ .tasten-hinweis{display:none} }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+// Einzeldatei-Fassung: die Stapel liegen hier drin, nichts wird nachgeladen.
+// Gebaut mit tools/build-einzeldatei.mjs — Änderungen gehören in decks/ und src/.
+window.STAPEL_EINGEBETTET = [{"schema":1,"id":"sv-couleur","titel":"Couleur des SV","untertitel":"Die aktiven Verbindungen des Sondershäuser Verbands","quelle":"quellen/sv-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#fefefe","#fcc256","#fcc356","#fcb543","#98d1fe","#97d0fd","#f59dae","#f59cad"],"karten":[{"id":"agv-muenchen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59dae"},{"farbe":"#fefefe"}]},"farben":"rosa-weiß","antworten":[{"name":"AGV München","ort":"München"},{"name":"AMV Fridericiana","ort":"Erlangen"}]},{"id":"amb-ingvaeonia-muenster","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe192b"},{"farbe":"#e3ae4d","breite":0.05},{"farbe":"#0a0a0a","breite":0.9},{"farbe":"#fdc356","breite":0.05},{"farbe":"#fe182b"}]},"farben":"rot-schwarz-rot, schwarzer Balken golden durchzogen","antworten":[{"name":"AMB Ingvaeonia","ort":"Münster"}]},{"id":"amdv-caecilia-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe154d"},{"farbe":"#fefefe"},{"farbe":"#fe8916"}]},"farben":"karmesinrot-weiß-orange","antworten":[{"name":"AMDV Caecilia","ort":"Hamburg"}]},{"id":"amv-albingia-kiel","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59cad"},{"farbe":"#fefefe"},{"farbe":"#0c9526"}]},"farben":"rosa-weiß-grün","antworten":[{"name":"AMV Albingia","ort":"Kiel"}]},{"id":"amv-arion-aachen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#3e50fe"},{"farbe":"#fefefe"},{"farbe":"#007e0e"}]},"farben":"blau-weiß-grün","antworten":[{"name":"AMV Arion","ort":"Aachen"}]},{"id":"amv-arminia-braunschweig","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7e0037"},{"farbe":"#fefefe"},{"farbe":"#007f46"}]},"farben":"weinrot-weiß-meergrün","antworten":[{"name":"AMV Arminia","ort":"Braunschweig"}]},{"id":"amv-ascania-halle-clausthal","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#089415"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"grün-weiß-rot","antworten":[{"name":"AMV Ascania","ort":"Halle-Clausthal"}]},{"id":"amv-berlin","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"}]},"farben":"rot-weiß","antworten":[{"name":"AMV Berlin","ort":"Berlin"},{"name":"AMV Würzburg","ort":"Würzburg"}]},{"id":"amv-fridericiana-marburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#007f47"},{"farbe":"#fe0000"}]},"farben":"schwarz-meergrün-rot","antworten":[{"name":"AMV Fridericiana","ort":"Marburg"}]},{"id":"amv-innsbruck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"rot-weiß-rot","antworten":[{"name":"AMV Innsbruck","ort":"Innsbruck"}]},{"id":"amv-mainz","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#97d0fd"},{"farbe":"#fefefe"},{"farbe":"#f59cad"}]},"farben":"hellblau-weiß-rosa","antworten":[{"name":"AMV Mainz","ort":"Mainz"}]},{"id":"amv-makaria-bonn","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"hellblau-weiß-rot","antworten":[{"name":"AMV Makaria","ort":"Bonn"}]},{"id":"amv-nordmark-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#5da7fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"AMV Nordmark","ort":"Hamburg"}]},{"id":"amv-stauffia-heidelberg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fcc356"}]},"farben":"rot-weiß-gold","antworten":[{"name":"AMV Stauffia","ort":"Heidelberg"}]},{"id":"amv-stochdorphia-tuebingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010101"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"AMV Stochdorphia","ort":"Tübingen"}]},{"id":"amv-waltharia-frankfurt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"AMV Waltharia","ort":"Frankfurt"}],"notiz":"Praktisch dasselbe Band führt auch MSG Alt-Straßburg (Freiburg)."},{"id":"awv-makaria-stuttgart","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fc0000"},{"farbe":"#0063fe"}]},"farben":"schwarz-rot-blau","antworten":[{"name":"AWV Makaria","ort":"Stuttgart"}]},{"id":"msg-alt-strassburg-freiburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"MSG Alt-Straßburg","ort":"Freiburg"}],"notiz":"Praktisch dasselbe Band führt auch AMV Waltharia (Frankfurt)."},{"id":"mv-liubicia-luebeck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fefefe"},{"farbe":"#fd0002"},{"farbe":"#2e8a57"}]},"farben":"weiß-rot-meergrün","antworten":[{"name":"MV Liubicia","ort":"Lübeck"}]},{"id":"stmv-blaue-saenger-goettingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#98d1fe"}]},"farben":"hellblau-weiß-hellblau","antworten":[{"name":"StMV Blaue Sänger","ort":"Göttingen"}]},{"id":"musische-gruppe-auerbach-darmstadt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"musische gruppe auerbach","ort":"Darmstadt"}]}]},{"schema":1,"id":"muenster-couleur","titel":"Couleur in Münster","untertitel":"Die aktiven Verbindungen am Ort","quelle":"quellen/muenster-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#ffffff","#c3c6cb","#f2d200","#f0c31c","#95cef0","#f3b4c6","#2fd3bd"],"karten":[{"id":"l-sorabia-westfalen-1716","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#f0c31c"},{"farbe":"#0f37cf"}]},"farben":"blau-gold-blau","antworten":[{"name":"L! Sorabia-Westfalen","jahr":1716,"verband":"CC","anmerkung":"Zweitband: weiß-schwarz-grün-weiß"}]},{"id":"s-zu-st-pauli-jena-et-burgundia-breslau-1828","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#ffffff"},{"farbe":"#101f78"}]},"farben":"hellblau-weiß-dunkelblau (v.u.)","antworten":[{"name":"S! zu St. Pauli Jena et Burgundia Breslau","jahr":1828,"verband":"DS","anmerkung":"Zweitband: weiß-blau-rot-weiß"},{"name":"Akad. Ruderverbindung Westfalen","jahr":1891,"verband":"ARB"}]},{"id":"b-der-pflueger-halle-1837","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"violett-weiß-gold","antworten":[{"name":"B! der Pflüger Halle","jahr":1837,"verband":"verbandsfrei"}]},{"id":"kdstv-sauerlandia-1847","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"blau-weiß-grün","antworten":[{"name":"KDStV Sauerlandia","jahr":1847,"verband":"CV"}]},{"id":"l-rhenania-1850","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"blau-weiß-rot","antworten":[{"name":"L! Rhenania","jahr":1850,"verband":"CC"}]},{"id":"kdstv-winfridia-breslau-1856","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#e2122b"},{"farbe":"#f0c31c"}]},"farben":"grün-rot-gold","antworten":[{"name":"KDStV Winfridia Breslau","jahr":1856,"verband":"CV"}]},{"id":"vkdst-saxonia-1863","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"rot-weiß-grün","antworten":[{"name":"VKDSt Saxonia","jahr":1863,"verband":"CV"}]},{"id":"kstv-germania-1864","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"rot-weiß-schwarz","antworten":[{"name":"KStV Germania","jahr":1864,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"b-franconia-1878","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"violett-weiß-rot","antworten":[{"name":"B! Franconia","jahr":1878,"verband":"DB"}]},{"id":"vdst-muenster-1881","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"VDSt Münster","jahr":1881,"verband":"VVDSt","anmerkung":"farbenführend"}]},{"id":"kdstv-alemannia-zu-greifswald-und-muenster-1891","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#17a02a"}]},"farben":"schwarz-gold-grün","antworten":[{"name":"KDStV Alemannia zu Greifswald und Münster","jahr":1891,"verband":"CV"}]},{"id":"av-cheruscia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"violett-weiß-schwarz","antworten":[{"name":"AV Cheruscia","jahr":1901,"verband":"CV"}]},{"id":"av-zollern-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff","breite":0.5},{"farbe":"#e2122b"},{"farbe":"#141414"},{"farbe":"#ffffff","breite":0.5}]},"farben":"rot-schwarz auf weiß","antworten":[{"name":"AV Zollern","jahr":1901,"verband":"CV"}]},{"id":"kstv-markomannia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"schwarz-gold-rot","antworten":[{"name":"KStV Markomannia","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-cimbria-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f0c31c"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"gold-schwarz-weiß","antworten":[{"name":"KStV Cimbria","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"atv-westmark-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"rot-weiß-gold","antworten":[{"name":"ATV Westmark","jahr":1902,"verband":"ATB","anmerkung":"farbenführend"},{"name":"Münsterscher Wingolf","jahr":1903,"verband":"WB"}]},{"id":"wkstv-unitas-winfridia-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"blau-weiß-gold","antworten":[{"name":"WKStV Unitas Winfridia","jahr":1902,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Rolandia","jahr":1919,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Anna Westphalia","jahr":2016,"verband":"UV","anmerkung":"farbenführend"}]},{"id":"av-alsatia-1904","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#c3c6cb"},{"farbe":"#141414"}]},"farben":"hellblau-silber-schwarz","antworten":[{"name":"AV Alsatia","jahr":1904,"verband":"CV"}]},{"id":"corps-rheno-guestphalia-1908","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#0f37cf"},{"farbe":"#e2122b"}]},"farben":"weiß-blau-rot","antworten":[{"name":"Corps Rheno-Guestphalia","jahr":1908,"verband":"KSCV","anmerkung":"pflichtschlagend"}]},{"id":"kstv-ravensberg-1919","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"grün-gold-rot","antworten":[{"name":"KStV Ravensberg","jahr":1919,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-franko-silesia-breslau-et-eresburg-1922","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#f2d200"}]},"farben":"schwarz-weiß-gelb","antworten":[{"name":"KStV Franko-Silesia-Breslau et Eresburg","jahr":1922,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"amb-ingvaeonia-1947","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#f2d200","breite":0.09},{"farbe":"#141414","breite":0.9},{"farbe":"#f2d200","breite":0.09},{"farbe":"#e2122b"}]},"farben":"gelb-schwarz-gelb auf rot","antworten":[{"name":"AMB Ingvaeonia","jahr":1947,"verband":"SV","anmerkung":"farbenführend"}]},{"id":"akad-jagdverbindung-hermann-loens-1954","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"grün-schwarz-weiß","antworten":[{"name":"Akad. Jagdverbindung Hermann Löns","jahr":1954,"verband":"WJSC"}]},{"id":"adv-helenia-monasteria-1988","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#c3c6cb"},{"farbe":"#2fd3bd"},{"farbe":"#f0c31c"}]},"farben":"silber-türkisgrün-gold","antworten":[{"name":"ADV Helenia Monasteria","jahr":1988,"verband":"verbandsfrei"}]},{"id":"adv-athena-2012","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#f3b4c6"},{"farbe":"#141414"}]},"farben":"weiß-rosa-schwarz","antworten":[{"name":"ADV Athena","jahr":2012,"verband":"verbandsfrei"}]}]},{"schema":1,"id":"ingvaeonia-geschichte","titel":"Geschichte des AMB Ingvaeonia","untertitel":"Von der AB Universitas bis heute","quelle":"Ältestenrat, „Die Geschichte des AMB Ingvaeonia“","stand":"2026-09-07","karten":[{"id":"j-1947","typ":"frage","rev":1,"frage":"17.05.1947","antworten":["Gründungsdatum — Feier des ersten Verbindungsfests"],"notiz":"Der Bund heißt zunächst AB Universitas: Männerbund, nicht schlagend, farbentragend (schwarz-gold-rot-gold-schwarz), hauptsächlich Studenten aus Osnabrück."},{"id":"j-1950","typ":"frage","rev":1,"frage":"1950","antworten":["Umbenennung in AB Ingvaeonia"]},{"id":"j-1952","typ":"frage","rev":1,"frage":"22.05.1952","antworten":["Vorläufige Aufnahme in den SV — der Kontakt lief über den OV Osnabrück"],"notiz":"Die Bänder wurden abgelegt, der Bund blieb aber farbenführend. Das führte zur Spaltung: die schlagende Verbindung „Salingia“ wurde gegründet, ging aber schnell wieder ein."},{"id":"j-1953","typ":"frage","rev":1,"frage":"Pfingsten 1953","antworten":["Endgültige Aufnahme in den SV"],"notiz":"Damit: Praktizierung des musikalischen Prinzips, Lebensbundprinzip als gelebte Wirklichkeit durch den Austausch mit anderen Bünden, Alternative zur Eindimensionalität des Fachstudiums."},{"id":"j-1954","typ":"frage","rev":1,"frage":"19.06.1954","antworten":["Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau (1883–1937)"]},{"id":"j-1957","typ":"frage","rev":1,"frage":"16.02.1957","antworten":["Heim in der Wolbecker Straße"],"notiz":"Kneipsaal, Vorstandszimmer, Nebenräume und Keller. Finanzierung und Ausgestaltung waren Gemeinschaftsleistung der Aktiven, der SV-Alten Herren und der Partnerverbindung Fridericiana zu Breslau."},{"id":"j-1961","typ":"frage","rev":1,"frage":"Ende WiSe 1961/62","antworten":["Auszug aus der Wolbecker Straße"],"notiz":"Danach nur noch ein Nebenzimmer im „Schlegeleck“ am Ludgeriplatz."},{"id":"j-1963","typ":"frage","rev":1,"frage":"Ab 1963","antworten":["Kellerraum in der Königsstraße 45"]},{"id":"j-1968-haus","typ":"frage","rev":1,"frage":"Sommer 1968","antworten":["Kauf des Hauses in der Wehrstraße 1a für 150.000 DM"],"notiz":"Der Umbau dauerte 2½ Jahre und kostete weitere 150.000 DM. Die Aktiven konnten Ende 1970 einziehen."},{"id":"j-1968-satzung","typ":"frage","rev":1,"frage":"WiSe 1968/69","antworten":["Satzungsänderung"],"notiz":"Abgeschafft: Fuxenstatus, Burschung, Zipfel, Kommerse, Singen von Studentenliedern. Umbenannt: AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender."},{"id":"j-1971","typ":"frage","rev":1,"frage":"1971","antworten":["Kieler Beschlüsse — die Aufnahme von Damen wird erlaubt"],"notiz":"Wenig Unterstützung vom SV. Der AMB war damals drittstärkster Bund im SV und wuchs durch die Aufnahme von Frauen und das Haus stark."},{"id":"j-bis-1983","typ":"frage","rev":1,"frage":"Bis 1983","antworten":["Zwar Bewohner und Mitglieder auf dem Haus, aber kein Bundesleben"]},{"id":"j-1983","typ":"frage","rev":1,"frage":"1983","antworten":["Wiederbelebung des AMB durch die Verbandsbrüder Ingo Freiherr von Stillfried und Uwe Focke"],"notiz":"Beide zweitaktiv in Münster."},{"id":"j-1985","typ":"frage","rev":1,"frage":"WiSe 1985/86","antworten":["SV-Vertretertag in München — Umbenennung in AMB Ingvaeonia und Verabschiedung der neuen Satzung"],"notiz":"Das „Bonner SV-Präsidium“ war komplett zweitaktiv in Münster. Verstärktes Interesse am AMB als Gemischtbund, der AMB wurde zum „Musterbund“. Erste Verleihung des Traditionsträgers der Fridericiana zu Breslau."},{"id":"j-1987","typ":"frage","rev":1,"frage":"1987","antworten":["Großes Stiftungsfest zum 40-jährigen Bestehen"]},{"id":"j-1988","typ":"frage","rev":1,"frage":"1988","antworten":["Stiftung des bronzenen Hausschilds durch „OK“ Dietrich Heinemann"]},{"id":"j-1980er","typ":"frage","rev":1,"frage":"Ende der 1980er Jahre","antworten":["Viel Engagement im SV — insgesamt vier Mal das komplette SV-Präsidium gestellt und zwei Mal den SV-Kassenwart"]},{"id":"j-1993","typ":"frage","rev":1,"frage":"Ab 1993","antworten":["Aufnahme von Damen in den AHV"],"notiz":"Erst zu diesem Zeitpunkt erlaubte der VASV Damen."},{"id":"j-1996","typ":"frage","rev":1,"frage":"1996","antworten":["Überreichung des Fechters durch die Fridericiana zu Breslau"]},{"id":"j-2000er","typ":"frage","rev":1,"frage":"2000er Jahre","antworten":["Große Fluktuation auf dem Haus und dadurch wenige Eintritte in den AHV"]},{"id":"warum-universitas","typ":"frage","rev":1,"frage":"Warum hieß der Bund bei der Gründung AB Universitas und nicht Ingvaeonia?","antworten":["Der englischen Militärregierung gefiel der Name Ingvaeonia nicht. Außerdem wünschte sie sich Frauen im Bund. Der Bund erhielt die Wahl: entweder ein entmilitarisierter Name oder Frauen im Bund — der Name wurde geopfert."]},{"id":"woher-ingvaeonia","typ":"frage","rev":1,"frage":"Wonach ist der Name Ingvaeonia benannt?","antworten":["Nach der Kulturgemeinschaft germanischer Stämme, die im Raum Münster/Osnabrück siedelten"]},{"id":"warum-patenschaft","typ":"frage","rev":1,"frage":"Warum schloss der Bund 1954 ein Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau?","antworten":["Die AB Ingvaeonia hatte eine Aktivitas, aber keinen bzw. nur einen sehr kleinen AHV. Breslau hatte einen AHV, aber keine Aktivitas mehr."]},{"id":"abgeschafft-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 abgeschafft?","antworten":["Fuxenstatus, Burschung, Zipfel, Kommerse und das Singen von Studentenliedern"]},{"id":"umbenannt-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 umbenannt?","antworten":["AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender"]},{"id":"gesundschrumpfen","typ":"frage","rev":1,"frage":"Was folgte auf die lose Führung des Bundes nach 1971?","antworten":["Motivgruppen und Info-AG statt erzwungener Teilnahme am Bundesleben, dazu fehlende bzw. aufgelöste Strukturen — daraus ein starker Schwund der Mitgliederzahlen, das „Gesundschrumpfen“. Die Gefahr wurde zu spät erkannt."]},{"id":"fruehes-bundesleben","typ":"frage","rev":1,"frage":"Wie sah das frühe Bundesleben nach der Aufnahme in den SV aus?","antworten":["Wöchentliche Fuxenstunden durch den Fuxmajor, Chorübungen, wöchentliche Treffen und wissenschaftliche Vorträge. Füxe durften am Burschenkonvent nicht teilnehmen."]},{"id":"reihe-heime","typ":"reihenfolge","rev":1,"frage":"Bringe die Heime des Bundes in die richtige Reihenfolge.","elemente":["Wolbecker Straße (ab 1957)","Nebenzimmer im „Schlegeleck“ am Ludgeriplatz (ab 1961/62)","Kellerraum in der Königsstraße 45 (ab 1963)","Eigenes Haus in der Wehrstraße 1a (Einzug Ende 1970)"]},{"id":"reihe-namen","typ":"reihenfolge","rev":1,"frage":"Bringe die Namen des Bundes in die richtige Reihenfolge.","elemente":["AB Universitas","AB Ingvaeonia","AMB Münster","AMB Ingvaeonia"]}]},{"schema":1,"id":"comment-kneipe","titel":"Comment: Kneipe und Kommers","untertitel":"Ablauf, Regeln, Kleidung","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"reihe-drei-teile","typ":"reihenfolge","rev":1,"frage":"Bringe die drei Teile eines Kneipabends in die richtige Reihenfolge.","elemente":["Officium","Inoffizium","Bierdorf"]},{"id":"reihe-ablauf","typ":"reihenfolge","rev":1,"frage":"Bringe den Ablauf einer Kneipe in die richtige Reihenfolge.","elemente":["Eröffnung","Begrüßung","Grußworte","Prinzipienrede","Kolloquium",["Biermimik","Spiele"],"Bierdorf"],"notiz":"Eröffnung bis Kolloquium gehören zum Officium, Biermimik und Spiele zum Inoffizium. Untereinander ist ihre Reihenfolge nicht festgelegt."},{"id":"eroeffnungssatz","typ":"frage","rev":1,"frage":"Mit welchem Satz eröffnet der oder die Präsid*in die Kneipe?","antworten":["„Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.“"]},{"id":"kneiplatein-regel","typ":"lueckentext","rev":1,"titel":"Die Regel auf der Kneipe","text":"non licet {{vagari}} neque {{fumare}} neque {{telecomunicare}}","notiz":"Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren."},{"id":"regeln-kneipe","typ":"frage","rev":1,"frage":"Welche Regeln gelten auf der Kneipe?","antworten":["Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren, nicht laut reden — aufpassen und aktiv teilnehmen"],"notiz":"„non licet vagari neque fumare neque telecomunicare“"},{"id":"sehr-verehrlich","typ":"frage","rev":1,"frage":"Welche Bünde werden bei der Begrüßung mit „sehr verehrlich“ angesprochen?","antworten":["Die Gründungsbünde und die Bünde, die das Präsidium stellen. Alle anderen werden mit „verehrlich“ angesprochen."],"notiz":"Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt."},{"id":"begruessung-ablauf","typ":"frage","rev":1,"frage":"Wie läuft die Begrüßung auf einer Kneipe ab?","antworten":["Alle anwesenden Bünde werden namentlich genannt — man steht auf und stößt an. Träger von Ehrenzeichen werden persönlich begrüßt, wichtige Vorstände oder Vertreter namentlich."]},{"id":"grussworte","typ":"frage","rev":1,"frage":"Wann meldet man Grußworte an, und was gehört hinein?","antworten":["Ist man irgendwo zu Gast, meldet man Grußworte an und richtet sie an den Gastgeberbund: Danken, Loben, Werben."],"notiz":"Gerne bringt man ein Gastgeschenk mit, bei uns häufig Sasse — eine Münsteraner Spezialität."},{"id":"prinzipienrede","typ":"frage","rev":1,"frage":"Wer hält die Prinzipienrede und worüber?","antworten":["Der oder die Kneippräsid*in hält eine dem Anlass angemessene Rede, gerne mit persönlichen Meinungen."]},{"id":"kolloquium-regel","typ":"frage","rev":1,"frage":"Was darf man im Kolloquium, und was nicht?","antworten":["Man darf miteinander sprechen, bleibt aber an seinem Platz, bis der oder die Kneippräsid*in das OK gibt. Im Zweifel bittet man durch Handzeichen darum."],"notiz":"Das Kolloquium wird vom Kneippräsidium ausgerufen."},{"id":"spiele-sv","typ":"frage","rev":1,"frage":"Auf wessen Kneipen gibt es Spiele, und wie sehen sie aus?","antworten":["Nur auf Kneipen des Sondershäuser Verbands. Das Präsidium überlegt sie sich für die Kneipe, gerne kurz gehalten, häufig ein Abdecken der Musen: Schreiben, Malen, Theater, Singen."]},{"id":"bierdorf-ablauf","typ":"frage","rev":1,"frage":"Was geschieht nach Beendigung der Kneipe?","antworten":["Das Bierdorf wird eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."]},{"id":"kleidung-herren","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Herren vor?","antworten":["Anzug, mindestens Jackett und Hemd, dazu Krawatte oder Fliege. Das Jackett bleibt an, bis der oder die Präsid*in das eigene Jackett auszieht. Die SV-Nadel sitzt am rechten Revers und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"kleidung-damen","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Damen vor?","antworten":["Anzug oder Kleid, schick: Schultern bedeckt, knielang oder mit Strumpfhose, nicht zu freizügig. Die SV-Nadel sitzt rechts und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"sv-nadel","typ":"frage","rev":1,"frage":"Wo wird die SV-Nadel getragen?","antworten":["Rechts, zum Herzen zeigend — bei den Herren am rechten Revers"]},{"id":"rollen-kneipe","typ":"frage","rev":1,"frage":"In welche Rollen sind die Kneipant*innen unterteilt?","antworten":["Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"]},{"id":"zipfel-wann","typ":"frage","rev":1,"frage":"Wann werden Zipfel getauscht?","antworten":["Das erste Mal üblicherweise im Offiz einer Kneipe oder eines Kommerses. Freundschaftszipfel hingegen, wenn überhaupt, im Inoffiz."]},{"id":"zipfel-farben","typ":"frage","rev":1,"frage":"Wessen Farben tragen getauschte Zipfel?","antworten":["Immer die Farben des oder der Schenkenden"]},{"id":"braeuche-bummeln","typ":"frage","rev":1,"frage":"Welche drei Bräuche beim Bummeln nennt die Fuxenstunde?","antworten":["Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"],"notiz":"Scherzhaft auch Tierlunge und Generaltierlunge."},{"id":"couleurbummel-sitte","typ":"frage","rev":1,"frage":"Was erhält ein Korporierter, der auf dem Couleurbummel um Einlass bittet?","antworten":["Nach guter Sitte ein kostenloses Couleurbier"]},{"id":"couleurbummel-gruppe","typ":"frage","rev":1,"frage":"Wie groß ist eine Bummelgruppe üblicherweise, und wann kündigt man sich an?","antworten":["Normalerweise spontan und nicht größer als drei bis fünf Leute. Will man sicher eingelassen werden oder plant einen größeren Bummel, etwa im Semesterferienprogramm, ruft man vorher auf den angepeilten Häusern an und kündigt sich an."]}]},{"schema":1,"id":"begriffe","titel":"Fachbegriffe","untertitel":"Was heißt das eigentlich?","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"kommers","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kommers","definition":"Umtrunk, dessen äußerer Ablauf mit seinen Trinksitten durch einen Comment geregelt wird — die feierliche Form der Kneipe.","notiz":"Hat sich aus Bräuchen des 18. und 19. Jahrhunderts entwickelt und ist mehr als eine scherzhafte Parodie des früher streng eingehaltenen allgemeinen Comments."},{"id":"kneipe","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kneipe","definition":"Lockerer Comment, freiere Gestaltung mit Reden, Einlagen und Gesängen — von unterhaltsamem Charakter."},{"id":"kolloquium","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kolloquium","definition":"Vom Kneippräsidium ausgerufener Abschnitt, in dem miteinander gesprochen werden darf. Alle bleiben an ihren Plätzen, bis das Präsidium das OK gibt."},{"id":"biermimik","typ":"begriff","rev":1,"richtung":"beide","begriff":"Biermimik","definition":"Ein Sketch, den ein oder mehrere Verbindungsmitglieder auf einer Kneipe halten.","notiz":"Auch Bierschwefel oder Fuxenulk genannt."},{"id":"bierdorf","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierdorf","definition":"Wird nach Beendigung der Kneipe eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."},{"id":"leibverhaeltnis","typ":"begriff","rev":1,"richtung":"beide","begriff":"Leib- bzw. Bierverhältnis","definition":"Beziehung zwischen einem endgültigen und traditionell einem vorläufigen Mitglied, vergleichbar mit Pat*innen — geprägt von tiefer Freundschaft und Verbundenheit.","notiz":"Begrifflichkeiten: Biervater und Biermutter, Biertochter und Biersohn. Symbolisiert durch den Zipfeltausch."},{"id":"zipfelbund","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zipfelbund","definition":"Besteht aus zwei- oder mehrfarbigen Bändern und einigen gravierten Metallschiebern, die die Bänder halten. Ein Zipfelbund enthält immer einen Bierzipfel und unterschiedlich viele, später getauschte Weinzipfel."},{"id":"bierzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierzipfel","definition":"Das breite Band im Zipfelbund. Jeder Zipfelbund enthält genau einen."},{"id":"weinzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Weinzipfel","definition":"Das schmale Band im Zipfelbund. Davon gibt es unterschiedlich viele, sie werden später getauscht."},{"id":"couleurbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Couleurbummel","definition":"Zug über die Häuser verschiedener Verbindungen. Gute Sitte ist, dass ein Korporierter, der um Einlass bittet, ein kostenloses Couleurbier erhält."},{"id":"fuxenbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Fuxenbummel","definition":"Besondere Form des Couleurbummels: der Fuxmajor zieht mit den Füxen über die Häuser, um sie in die couleurstudentische Gesellschaft einzuführen und ihnen andere Verbindungen zu zeigen."},{"id":"zirkel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zirkel","definition":"Erkennungszeichen einer Verbindung oder eines Verbandes, bestehend aus einem Zusammenschluss einzelner Anfangsbuchstaben — etwa des Verbindungsnamens oder des Wahlspruchs."},{"id":"wahlspruch","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wahlspruch","definition":"Stellt die wesentlichen Prinzipien einer Verbindung heraus, wobei immer die aktuell aktiv gelebte Interpretation Bedeutung haben sollte."},{"id":"wappen","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wappen","definition":"In Verbindungen weit verbreitet; enthält neben den Farben und dem Zirkel meist weitere Elemente aus der Stadt, der Region oder der Fakultät."},{"id":"studentische-farben","typ":"begriff","rev":1,"richtung":"beide","begriff":"Studentische Farben","definition":"Erkennungsmerkmal einzelner Verbindungen oder Dachverbände. Sie finden sich in Fahnen, Zipfeln, Mützen, Farbbändern und sonstigen Couleurartikeln."}]},{"schema":1,"id":"verbandskunde","titel":"Verbandskunde","untertitel":"SV, Prinzipien, Zirkel","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"sv-wahlspruch","typ":"frage","rev":1,"frage":"Wie lautet der Wahlspruch des SV?","antworten":["„Lied, Freundschaft, Vaterland“"]},{"id":"farbentragend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbentragend","definition":"Die Mitglieder tragen üblicherweise Band und Mütze, sobald sie in Verbindungssache unterwegs sind."},{"id":"farbenfuehrend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbenführend","definition":"Die Mitglieder führen Farben zu bestimmten Anlässen mit sich — etwa in Form von Zipfelbünden, Fahnen, Wappen und sonstigen Couleurgegenständen. Auf Band und Mütze wird verzichtet.","notiz":"Viele SV-Bünde sind farbenführend."},{"id":"schwarzes-prinzip","typ":"begriff","rev":1,"richtung":"beide","begriff":"Schwarzes Prinzip","definition":"Die Verbindung führt gar keine Farben, vereinzelt nur in Fahne und Wappen. Besteht zwischen den Mitgliedern ein echtes Freundschaftsband, muss dieses nicht durch äußere Zeichen bekundet werden."},{"id":"ingvaeonia-farben","typ":"frage","rev":1,"frage":"Wie beschreibt man die Farben des AMB Ingvaeonia?","antworten":["Schwarz mit goldgelber Perkussion auf karmesinrotem Grund","Karmesinrot-Goldgelb-Schwarz-Goldgelb-Karmesinrot"]},{"id":"zirkel-ingvaeonia","typ":"frage","rev":1,"frage":"Welche Buchstaben enthält unser Zirkel, und wofür stehen sie?","antworten":["V(ivat), C(rescat), F(loreat), I(ngvaeonia) — Blühe, wachse und gedeihe, Ingvaeonia"]},{"id":"zirkel-ausrufezeichen","typ":"frage","rev":1,"frage":"Was bedeutet das Ausrufezeichen „!“ im Zirkel?","antworten":["Es wird im SV als Zeichen der Aktiven geführt"]},{"id":"zirkel-wohin","typ":"frage","rev":1,"frage":"Wo gehört der Zirkel hin, und wer sollte ihn schreiben können?","antworten":["Jedes endgültige Mitglied sollte den Zirkel schreiben können. Er gehört in Verbindungsgästebücher und in den Schriftverkehr zwischen Verbindungen — hinter die Unterschrift, wenn man mag."]},{"id":"kein-wappen","typ":"frage","rev":1,"frage":"Warum haben wir weder ein „richtiges“ Wappen noch einen eigenen Wahlspruch?","antworten":["Wir mussten uns in der Gründungszeit den strengen Auflagen der englischen Besatzung unterwerfen, die keine Vereinigung mit konservativen Ansätzen zuließ."],"notiz":"Umso mehr fühlen wir uns dem Wahlspruch des SV verbunden: Lied, Freundschaft, Vaterland."},{"id":"nationalflagge","typ":"frage","rev":1,"frage":"Worauf beruhen die Farben der deutschen Nationalflagge?","antworten":["Auf den Farben der Urburschenschaft — Schwarz-Rot-Gold wird heute noch von einigen Burschenschaften getragen"]}]},{"schema":1,"id":"lieder","titel":"Lieder","untertitel":"Bundeslied und Liederbuch","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"bundeslied-name","typ":"frage","rev":1,"frage":"Wie heißt unser Bundeslied?","antworten":["„Noch ist die blühende goldene Zeit“","„Noch sind die Tage der Rosen“"]},{"id":"bundeslied-melodie","typ":"frage","rev":1,"frage":"Von wem stammt die Melodie des Bundeslieds?","antworten":["W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist"]},{"id":"bundeslied-text","typ":"frage","rev":1,"frage":"Von wem stammt der Text des Bundeslieds?","antworten":["O. Roquette (1824–1896), deutscher Schriftsteller hugenottischer Abstammung und Professor für Literaturgeschichte"],"notiz":"Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia."},{"id":"bundeslied-str2","typ":"lueckentext","rev":1,"titel":"Bundeslied, 2. Strophe","text":"Frei ist das {{Herz}}, und frei das {{Lied}},\nund frei ist der {{Bursch}}, der die Welt durchzieht;\nund ein {{rosiger}} Kuss\nist nicht minder frei,\nso {{spröd}} und verschämt auch die Lippe sei.\nWo ein Lied erklingt, wo ein Kuss sich beut, da heißt’s:\nNoch ist blühende, goldene Zeit,\nnoch sind ¦:die {{Tage der Rosen}}!:¦"},{"id":"bundeslied-str3","typ":"lueckentext","rev":1,"titel":"Bundeslied, 3. Strophe","text":"Ja im {{Herzen}} tief innen ist alles daheim,\nder {{Freude}} Saaten, der {{Schmerzen}} Keim.\nnoch ist die blühende goldene Zeit:\no du schöne Welt, wie bist du so {{weit}}!\nDrum {{frisch}} sei das Herz\nund {{lebendig}} der Sinn,\ndann brauset, ihr {{Stürme}}, daher und dahin!\nWir aber sind allzeit zu {{singen}} bereit:\nNoch ist die blühende, goldene Zeit,\nnoch sind ¦:die {{Tage der Rosen}}!:¦"},{"id":"adk","typ":"frage","rev":1,"frage":"Was ist das ADK, und seit wann gibt es es?","antworten":["Das „Allgemeine Deutsche Kommersbuch“, seit 1858. Viele besitzen es."]},{"id":"sv-liederbuch","typ":"frage","rev":1,"frage":"Wie kam es zum SV-Liederbuch?","antworten":["Es wurde zu Beginn der 2000er Jahre unter Leitung von Vbr. Hans Dieter Fleischmann ausgearbeitet. Heute gilt die 2. Auflage von 2010."],"notiz":"Anlass waren die politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und die daraus folgende Auswahl der Lieder. Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung."},{"id":"liederbuch-struktur","typ":"reihenfolge","rev":1,"frage":"Wie ist das SV-Liederbuch gegliedert? Bringe die Teile in die richtige Reihenfolge.","elemente":["A — Verbandslieder, Nationalhymne, Bundeslieder","B — Lieder zum festlichen Kommers","C — Lieder zu Inoffizium, Fidulität und Bierdorf","D — Liedsätze und Kanons aus fünf Jahrhunderten"]}]}];
+</script>
+<script>
+(function () {
+  "use strict";
+  const __module = {};
+  const __fertig = {};
+  function __hole(pfad) {
+    if (!(pfad in __fertig)) {
+      if (!(pfad in __module)) throw new Error("Modul fehlt im Build: " + pfad);
+      __fertig[pfad] = __module[pfad](__hole);
+    }
+    return __fertig[pfad];
+  }
+__module["src/dom.js"] = function (__hole) {
+  const __exporte = {};
+
+// Kleiner DOM-Baukasten. Alles geht über textContent, damit Stapelinhalte
+// niemals als HTML ausgelegt werden.
+function h(tag, attrs, ...kinder) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k === "style") el.setAttribute("style", v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v === true ? "" : String(v));
+  }
+  for (const kind of kinder.flat(Infinity)) {
+    if (kind === null || kind === undefined || kind === false) continue;
+    el.append(typeof kind === "object" ? kind : document.createTextNode(String(kind)));
+  }
+  return el;
+}
+
+const leere = (el) => { while (el.firstChild) el.removeChild(el.firstChild); return el; };
+
+function mische(liste) {
+  const a = [...liste];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+  __exporte["h"] = h;
+  __exporte["leere"] = leere;
+  __exporte["mische"] = mische;
+  return __exporte;
+};
+__module["src/schema.js"] = function (__hole) {
+  const __exporte = {};
+
+// Prüfregeln für Stapel. Werden vom Ladevorgang, von der Redaktionsansicht
+// und von tests/pruefe-stapel.mjs benutzt — eine Wahrheit, drei Nutzer.
+const TYPEN = ["couleur", "frage", "begriff", "lueckentext", "reihenfolge"];
+const RICHTUNGEN = ["beide", "begriff-definition", "definition-begriff"];
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const ID = /^[a-z0-9][a-z0-9-]*$/;
+const istText = (v) => typeof v === "string" && v.trim() !== "";
+
+function pruefeStapel(stapel) {
+  const f = [];
+  const meld = (wo, was) => f.push(`${wo}: ${was}`);
+
+  if (!stapel || typeof stapel !== "object") return ["Stapel ist kein Objekt"];
+  if (stapel.schema !== 1) meld("Kopf", `schema muss 1 sein (ist ${JSON.stringify(stapel.schema)})`);
+  if (!ID.test(stapel.id || "")) meld("Kopf", "id fehlt oder enthält etwas anderes als a–z, 0–9 und Bindestrich");
+  if (!istText(stapel.titel)) meld("Kopf", "titel fehlt");
+  for (const farbe of stapel.helleFarben || []) {
+    if (!HEX.test(farbe)) meld("Kopf", `helleFarben: „${farbe}“ ist kein Hex-Wert wie #aabbcc`);
+  }
+  if (!Array.isArray(stapel.karten) || stapel.karten.length === 0) {
+    meld("Kopf", "karten fehlt oder ist leer");
+    return f;
+  }
+
+  const gesehen = new Set();
+  stapel.karten.forEach((k, i) => {
+    const wo = `Karte ${i + 1}${k && k.id ? ` (${k.id})` : ""}`;
+    if (!k || typeof k !== "object") return meld(wo, "ist kein Objekt");
+    if (!ID.test(k.id || "")) meld(wo, "id fehlt oder enthält etwas anderes als a–z, 0–9 und Bindestrich");
+    else if (gesehen.has(k.id)) meld(wo, "id kommt im Stapel doppelt vor — der Fortschritt hängt daran");
+    else gesehen.add(k.id);
+    if (!Number.isInteger(k.rev) || k.rev < 1) meld(wo, "rev muss eine ganze Zahl ab 1 sein");
+    if (!TYPEN.includes(k.typ)) return meld(wo, `typ „${k.typ}“ ist unbekannt (erlaubt: ${TYPEN.join(", ")})`);
+    if (k.notiz !== undefined && !istText(k.notiz)) meld(wo, "notiz ist leer");
+
+    if (k.typ === "couleur") {
+      const s = k.band && k.band.streifen;
+      if (!Array.isArray(s) || s.length < 2) meld(wo, "band.streifen braucht mindestens zwei Streifen");
+      else s.forEach((st, j) => {
+        if (!st || !HEX.test(st.farbe || "")) meld(wo, `Streifen ${j + 1}: farbe ist kein Hex-Wert wie #aabbcc`);
+        if (st.breite !== undefined && !(typeof st.breite === "number" && st.breite > 0)) {
+          meld(wo, `Streifen ${j + 1}: breite muss eine Zahl größer 0 sein`);
+        }
+      });
+      if (!istText(k.farben)) meld(wo, "farben fehlt — die Farbbeschreibung im Klartext");
+      if (!Array.isArray(k.antworten) || k.antworten.length === 0) meld(wo, "antworten fehlt");
+      else k.antworten.forEach((a, j) => {
+        if (!a || !istText(a.name)) meld(wo, `Antwort ${j + 1}: name fehlt`);
+      });
+    }
+
+    if (k.typ === "frage") {
+      if (!istText(k.frage)) meld(wo, "frage fehlt");
+      if (!Array.isArray(k.antworten) || k.antworten.length === 0) meld(wo, "antworten fehlt");
+      else k.antworten.forEach((a, j) => { if (!istText(a)) meld(wo, `Antwort ${j + 1} ist leer`); });
+    }
+
+    if (k.typ === "begriff") {
+      if (!istText(k.begriff)) meld(wo, "begriff fehlt");
+      if (!istText(k.definition)) meld(wo, "definition fehlt");
+      if (k.richtung !== undefined && !RICHTUNGEN.includes(k.richtung)) {
+        meld(wo, `richtung „${k.richtung}“ ist unbekannt (erlaubt: ${RICHTUNGEN.join(", ")})`);
+      }
+    }
+
+    if (k.typ === "lueckentext") {
+      if (!istText(k.text)) meld(wo, "text fehlt");
+      else if (!/\{\{[^{}]+\}\}/.test(k.text)) meld(wo, "text enthält keine Lücke — Lücken werden {{so}} markiert");
+    }
+
+    if (k.typ === "reihenfolge") {
+      if (!istText(k.frage)) meld(wo, "frage fehlt");
+      if (!Array.isArray(k.elemente) || k.elemente.length < 2) meld(wo, "elemente braucht mindestens zwei Einträge");
+      else k.elemente.forEach((e, j) => {
+        if (Array.isArray(e)) {
+          if (e.length < 2) meld(wo, `Element ${j + 1}: eine Gruppe braucht mindestens zwei Einträge`);
+          e.forEach((x, m) => { if (!istText(x)) meld(wo, `Element ${j + 1}.${m + 1} ist leer`); });
+        } else if (!istText(e)) meld(wo, `Element ${j + 1} ist leer`);
+      });
+    }
+  });
+  return f;
+}
+
+// Rückfall für Stapel ohne eigene helleFarben-Liste: relative Helligkeit nach
+// WCAG. Stapel, die eine Liste mitbringen, benutzen ausschließlich diese —
+// bei geprüften Farben entscheidet nicht die Rechnung, sondern das Auge.
+function istHell(hex) {
+  const kanal = (i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * kanal(1) + 0.7152 * kanal(3) + 0.0722 * kanal(5) > 0.55;
+}
+
+  __exporte["TYPEN"] = TYPEN;
+  __exporte["RICHTUNGEN"] = RICHTUNGEN;
+  __exporte["pruefeStapel"] = pruefeStapel;
+  __exporte["istHell"] = istHell;
+  return __exporte;
+};
+__module["src/store.js"] = function (__hole) {
+  const __exporte = {};
+
+// Fortschritt liegt ausschließlich im localStorage dieses Geräts.
+// Schlägt der Zugriff fehl (privates Fenster, gesperrter Speicher), läuft die
+// App weiter und merkt sich den Fortschritt nur für diese Sitzung.
+const SCHLUESSEL = "ael.fortschritt.v1";
+const LEER = { version: 1, eintraege: {}, auswahl: null };
+
+let speicherGeht = true;
+let zwischen = null;
+
+function roh() {
+  if (zwischen) return zwischen;
+  try {
+    const s = localStorage.getItem(SCHLUESSEL);
+    zwischen = s ? { ...LEER, ...JSON.parse(s) } : { ...LEER, eintraege: {} };
+  } catch {
+    speicherGeht = false;
+    zwischen = { ...LEER, eintraege: {} };
+  }
+  return zwischen;
+}
+
+function sichere() {
+  if (!speicherGeht) return;
+  try {
+    localStorage.setItem(SCHLUESSEL, JSON.stringify(zwischen));
+  } catch {
+    speicherGeht = false;
+  }
+}
+
+const speicherVerfuegbar = () => speicherGeht;
+const eintraege = () => roh().eintraege;
+const eintrag = (schluessel) => roh().eintraege[schluessel] || null;
+
+function setzeEintrag(schluessel, wert) {
+  roh().eintraege[schluessel] = wert;
+  sichere();
+}
+
+function auswahl() { return roh().auswahl; }
+function setzeAuswahl(ids) { roh().auswahl = ids; sichere(); }
+
+function vergiss(schluesselTest) {
+  const e = roh().eintraege;
+  for (const k of Object.keys(e)) if (schluesselTest(k)) delete e[k];
+  sichere();
+}
+
+  __exporte["speicherVerfuegbar"] = speicherVerfuegbar;
+  __exporte["eintraege"] = eintraege;
+  __exporte["eintrag"] = eintrag;
+  __exporte["setzeEintrag"] = setzeEintrag;
+  __exporte["auswahl"] = auswahl;
+  __exporte["setzeAuswahl"] = setzeAuswahl;
+  __exporte["vergiss"] = vergiss;
+  return __exporte;
+};
+__module["src/leitner.js"] = function (__hole) {
+  const __exporte = {};
+  const { eintrag, setzeEintrag } = __hole("src/store.js");
+// Leitner mit fünf Fächern. Fach 1 wird in derselben Sitzung wiederholt,
+// danach wachsen die Abstände.
+
+const FAECHER = 5;
+const INTERVALLE = [0, 1, 3, 7, 21]; // Tage bis zur nächsten Abfrage, je Fach
+
+function heute() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function inTagen(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  const p = (x) => String(x).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+const frisch = (rev) => ({ fach: 1, faellig: heute(), rev, richtig: 0, falsch: 0, zuletzt: null });
+
+// Ändert sich der Inhalt einer Karte (rev hochgezählt), fällt sie zurück in
+// Fach 1. Eine korrigierte Farbe darf nicht in Fach 5 weiterschlafen.
+function stand(einheit) {
+  const e = eintrag(einheit.schluessel);
+  if (!e) return frisch(einheit.karte.rev);
+  if (e.rev !== einheit.karte.rev) {
+    return { ...e, fach: 1, faellig: heute(), rev: einheit.karte.rev, veraltet: true };
+  }
+  return e;
+}
+
+function bewerte(einheit, gewusst) {
+  const e = stand(einheit);
+  const fach = gewusst ? Math.min(FAECHER, e.fach + 1) : 1;
+  setzeEintrag(einheit.schluessel, {
+    fach,
+    faellig: inTagen(INTERVALLE[fach - 1]),
+    rev: einheit.karte.rev,
+    richtig: e.richtig + (gewusst ? 1 : 0),
+    falsch: e.falsch + (gewusst ? 0 : 1),
+    zuletzt: heute(),
+  });
+}
+
+const istFaellig = (e) => e.faellig <= heute();
+const hakt = (e) => e.fach <= 2 && e.falsch > 0;
+
+  __exporte["FAECHER"] = FAECHER;
+  __exporte["INTERVALLE"] = INTERVALLE;
+  __exporte["heute"] = heute;
+  __exporte["stand"] = stand;
+  __exporte["bewerte"] = bewerte;
+  __exporte["istFaellig"] = istFaellig;
+  __exporte["hakt"] = hakt;
+  return __exporte;
+};
+__module["src/decks.js"] = function (__hole) {
+  const __exporte = {};
+  const { pruefeStapel, istHell } = __hole("src/schema.js");
+// Lädt die Stapel aus decks/. Der Einzeldatei-Build legt sie stattdessen
+// als window.STAPEL_EINGEBETTET ab — dann wird nichts geholt.
+
+let geladen = null;
+
+async function hole(pfad) {
+  const antwort = await fetch(pfad, { cache: "no-cache" });
+  if (!antwort.ok) throw new Error(`${pfad}: ${antwort.status}`);
+  return antwort.json();
+}
+
+async function ladeStapel() {
+  if (geladen) return geladen;
+
+  let rohe;
+  if (globalThis.STAPEL_EINGEBETTET) {
+    rohe = globalThis.STAPEL_EINGEBETTET;
+  } else {
+    const manifest = await hole("decks/index.json");
+    rohe = await Promise.all(manifest.stapel.map((id) => hole(`decks/${id}.json`)));
+  }
+
+  const gut = [];
+  const kaputt = [];
+  for (const s of rohe) {
+    const fehler = pruefeStapel(s);
+    if (fehler.length) kaputt.push({ id: (s && s.id) || "?", fehler });
+    else gut.push(s);
+  }
+  geladen = { stapel: gut, kaputt };
+  return geladen;
+}
+
+// Ein Stapel kann mehr Lerneinheiten haben als Karten: ein Begriff mit
+// richtung "beide" wird in beide Richtungen abgefragt und zählt doppelt.
+function lerneinheiten(stapel) {
+  const raus = [];
+  for (const karte of stapel.karten) {
+    if (karte.typ === "begriff") {
+      const r = karte.richtung || "beide";
+      if (r === "beide" || r === "begriff-definition") {
+        raus.push({ schluessel: `${stapel.id}/${karte.id}#bd`, stapel, karte, richtung: "begriff-definition" });
+      }
+      if (r === "beide" || r === "definition-begriff") {
+        raus.push({ schluessel: `${stapel.id}/${karte.id}#db`, stapel, karte, richtung: "definition-begriff" });
+      }
+    } else {
+      raus.push({ schluessel: `${stapel.id}/${karte.id}`, stapel, karte, richtung: null });
+    }
+  }
+  return raus;
+}
+
+// Hairline um helle Streifen: die geprüften Stapel bringen ihre eigene Liste
+// mit und werden dadurch pixelgleich wie die Prototypen gezeichnet. Nur
+// Stapel ohne Liste bekommen die Helligkeitsregel.
+function hellPruefer(stapel) {
+  if (Array.isArray(stapel.helleFarben)) {
+    const menge = new Set(stapel.helleFarben.map((f) => f.toLowerCase()));
+    return (farbe) => menge.has(farbe.toLowerCase());
+  }
+  return istHell;
+}
+
+  __exporte["ladeStapel"] = ladeStapel;
+  __exporte["lerneinheiten"] = lerneinheiten;
+  __exporte["hellPruefer"] = hellPruefer;
+  return __exporte;
+};
+__module["src/sitzung.js"] = function (__hole) {
+  const __exporte = {};
+  const { mische } = __hole("src/dom.js");
+  const { bewerte, stand, istFaellig, hakt } = __hole("src/leitner.js");
+// Eine Lernsitzung ist eine Warteschlange von Lerneinheiten.
+// Falsch beantwortete Einheiten kommen in derselben Sitzung noch einmal dran,
+// aber nicht sofort — sie rutschen ein paar Plätze nach hinten.
+
+const ABSTAND = 3;
+
+function neueSitzung(einheiten, modus) {
+  const gefiltert = einheiten.filter((e) => {
+    const s = stand(e);
+    if (modus === "alle") return true;
+    if (modus === "fehler") return hakt(s);
+    return istFaellig(s);
+  });
+
+  const schlange = mische(gefiltert);
+  return {
+    modus,
+    schlange,
+    gesamt: schlange.length,
+    richtig: 0,
+    falsch: 0,
+    erledigt: new Set(),
+
+    get aktuell() { return this.schlange[0] || null; },
+    get fertig() { return this.schlange.length === 0; },
+    // Wie viele Einheiten sitzen schon — nicht wie viele Antworten gegeben wurden.
+    get geschafft() { return this.erledigt.size; },
+
+    antworte(gewusst) {
+      const e = this.schlange.shift();
+      if (!e) return;
+      bewerte(e, gewusst);
+      if (gewusst) {
+        this.richtig++;
+        this.erledigt.add(e.schluessel);
+      } else {
+        this.falsch++;
+        this.erledigt.delete(e.schluessel);
+        const platz = Math.min(this.schlange.length, ABSTAND);
+        this.schlange.splice(platz, 0, e);
+      }
+    },
+
+    zurueckstellen() {
+      const e = this.schlange.shift();
+      if (e) this.schlange.push(e);
+    },
+  };
+}
+
+  __exporte["neueSitzung"] = neueSitzung;
+  return __exporte;
+};
+__module["src/stats.js"] = function (__hole) {
+  const __exporte = {};
+  const { lerneinheiten } = __hole("src/decks.js");
+  const { stand, istFaellig, hakt, FAECHER } = __hole("src/leitner.js");
+
+function statistik(stapel) {
+  const einheiten = lerneinheiten(stapel);
+  const faecher = Array(FAECHER).fill(0);
+  let faellig = 0, neu = 0, haken = 0, sitzt = 0;
+
+  for (const e of einheiten) {
+    const s = stand(e);
+    faecher[s.fach - 1]++;
+    if (istFaellig(s)) faellig++;
+    if (!s.zuletzt) neu++;
+    if (hakt(s)) haken++;
+    if (s.fach >= 4) sitzt++;
+  }
+  return { stapel, einheiten, faecher, faellig, neu, haken, sitzt, gesamt: einheiten.length };
+}
+
+// Was hakt: zuletzt falsch beantwortet und noch in den unteren Fächern,
+// die stärksten Ausreißer zuerst.
+function wasHakt(stapel, hoechstens = 8) {
+  return lerneinheiten(stapel)
+    .map((e) => ({ einheit: e, s: stand(e) }))
+    .filter(({ s }) => hakt(s))
+    .sort((a, b) => b.s.falsch - a.s.falsch || a.s.fach - b.s.fach)
+    .slice(0, hoechstens);
+}
+
+function bezeichnung(einheit) {
+  const k = einheit.karte;
+  if (k.typ === "couleur") return k.antworten.map((a) => a.name).join(" / ");
+  if (k.typ === "begriff") return k.begriff;
+  if (k.typ === "lueckentext") return k.titel || k.text.slice(0, 40) + "…";
+  return k.frage;
+}
+
+  __exporte["statistik"] = statistik;
+  __exporte["wasHakt"] = wasHakt;
+  __exporte["bezeichnung"] = bezeichnung;
+  return __exporte;
+};
+__module["src/karten/couleur.js"] = function (__hole) {
+  const __exporte = {};
+  const { h } = __hole("src/dom.js");
+  const { hellPruefer } = __hole("src/decks.js");
+
+function band(karte, istHell, klasse = "band") {
+  return h("div", { class: klasse, role: "img", "aria-label": `Farbband: ${karte.farben}` },
+    karte.band.streifen.map((s) => h("span", {
+      class: istHell(s.farbe) ? "hell" : null,
+      style: `background:${s.farbe};flex:${s.breite ?? 1} 1 0`,
+    })));
+}
+
+const meta = (a) => [a.ort, a.jahr, a.verband, a.anmerkung].filter(Boolean).join(" · ");
+
+function erstelle(einheit) {
+  const { karte, stapel } = einheit;
+  const istHell = hellPruefer(stapel);
+
+  return {
+    frage: () => [
+      band(karte, istHell),
+      h("p", { class: "prompt", text: "Welcher Bund?" }),
+    ],
+    antwort: () => h("div", { class: "antwort" },
+      h("p", { class: "farben", text: karte.farben }),
+      karte.antworten.length > 1
+        ? h("p", { class: "multi", text: `Diese Farben führen ${karte.antworten.length} Bünde.` })
+        : null,
+      karte.antworten.map((a) => h("div", { class: "eintrag" },
+        h("p", { class: "name", text: a.name }),
+        meta(a) ? h("p", { class: "meta", text: meta(a) }) : null)),
+      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
+  };
+}
+
+  __exporte["band"] = band;
+  __exporte["erstelle"] = erstelle;
+  return __exporte;
+};
+__module["src/karten/frage.js"] = function (__hole) {
+  const __exporte = {};
+  const { h } = __hole("src/dom.js");
+
+function erstelle(einheit) {
+  const { karte } = einheit;
+  return {
+    frage: () => h("p", { class: "frage", text: karte.frage }),
+    antwort: () => h("div", { class: "antwort" },
+      karte.antworten.length > 1
+        ? h("p", { class: "multi", text: "Jede dieser Antworten gilt." })
+        : null,
+      karte.antworten.map((a) => h("p", { class: "text", text: a })),
+      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
+  };
+}
+
+  __exporte["erstelle"] = erstelle;
+  return __exporte;
+};
+__module["src/karten/begriff.js"] = function (__hole) {
+  const __exporte = {};
+  const { h } = __hole("src/dom.js");
+
+function erstelle(einheit) {
+  const { karte, richtung } = einheit;
+  const vonBegriff = richtung === "begriff-definition";
+  return {
+    frage: () => [
+      h("p", { class: vonBegriff ? "frage" : "frage klein",
+               text: vonBegriff ? karte.begriff : karte.definition }),
+      h("p", { class: "prompt", text: vonBegriff ? "Was heißt das?" : "Welcher Begriff?" }),
+    ],
+    antwort: () => h("div", { class: "antwort" },
+      vonBegriff
+        ? h("p", { class: "text", text: karte.definition })
+        : h("p", { class: "name", text: karte.begriff }),
+      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
+  };
+}
+
+  __exporte["erstelle"] = erstelle;
+  return __exporte;
+};
+__module["src/karten/lueckentext.js"] = function (__hole) {
+  const __exporte = {};
+  const { h } = __hole("src/dom.js");
+
+// Lücken werden {{so}} markiert, Alternativen {{so|oder so}}.
+function zerlege(text) {
+  const teile = [];
+  let rest = text;
+  const muster = /\{\{([^{}]+)\}\}/;
+  let m;
+  while ((m = muster.exec(rest))) {
+    if (m.index > 0) teile.push({ luecke: false, text: rest.slice(0, m.index) });
+    teile.push({ luecke: true, loesungen: m[1].split("|").map((s) => s.trim()).filter(Boolean) });
+    rest = rest.slice(m.index + m[0].length);
+  }
+  if (rest) teile.push({ luecke: false, text: rest });
+  return teile;
+}
+
+function erstelle(einheit) {
+  const { karte } = einheit;
+  const teile = zerlege(karte.text);
+  const luecken = [];
+
+  const absatz = h("p", { class: "lueckentext" },
+    teile.map((t) => {
+      if (!t.luecke) return document.createTextNode(t.text);
+      // Die Lösung steht schon da, nur unsichtbar: so springt beim Auflösen
+      // keine Zeile um, und die Länge der Lücke bleibt der Hinweis, der sie
+      // beim Auswendiglernen einer Strophe sein soll.
+      const el = h("span", { class: "luecke", text: t.loesungen[0], "aria-label": "Lücke" });
+      luecken.push({ el, teil: t });
+      return el;
+    }));
+
+  return {
+    frage: () => [
+      karte.titel ? h("p", { class: "prompt", text: karte.titel }) : null,
+      h("div", { class: "antwort" }, absatz),
+    ],
+    antwort: () => {
+      for (const { el } of luecken) {
+        el.classList.add("gefuellt");
+        el.removeAttribute("aria-label");
+      }
+      const mehrere = luecken.filter(({ teil }) => teil.loesungen.length > 1);
+      // Die Trennlinie unter der Zählzeile nur, wenn darunter auch etwas steht.
+      const folgt = mehrere.length > 0 || Boolean(karte.notiz);
+      return h("div", { class: "antwort" },
+        h("p", { class: folgt ? "multi" : "meta",
+                 text: `${luecken.length} ${luecken.length === 1 ? "Lücke" : "Lücken"} — oben eingesetzt.` }),
+        mehrere.map(({ teil }) =>
+          h("p", { class: "meta", text: `Ebenso richtig: ${teil.loesungen.slice(1).join(", ")}` })),
+        karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
+    },
+  };
+}
+
+  __exporte["zerlege"] = zerlege;
+  __exporte["erstelle"] = erstelle;
+  return __exporte;
+};
+__module["src/karten/reihenfolge.js"] = function (__hole) {
+  const __exporte = {};
+  const { h, mische } = __hole("src/dom.js");
+
+// elemente ist die richtige Reihenfolge. Ein verschachteltes Array bedeutet:
+// an dieser Stelle ist die Reihenfolge untereinander egal.
+const gruppen = (elemente) => elemente.map((e) => (Array.isArray(e) ? [...e] : [e]));
+
+function istRichtig(elemente, gewaehlt) {
+  const g = gruppen(elemente);
+  let i = 0;
+  for (const gruppe of g) {
+    const abschnitt = gewaehlt.slice(i, i + gruppe.length);
+    if (abschnitt.length !== gruppe.length) return false;
+    const a = [...abschnitt].sort(), b = [...gruppe].sort();
+    if (a.some((x, j) => x !== b[j])) return false;
+    i += gruppe.length;
+  }
+  return i === gewaehlt.length;
+}
+
+// Welche Position ist ein Element richtigerweise? Für die Rückmeldung.
+function sollGruppe(elemente, wert) {
+  return gruppen(elemente).findIndex((g) => g.includes(wert));
+}
+
+function erstelle(einheit, beiAenderung) {
+  const { karte } = einheit;
+  const alle = gruppen(karte.elemente).flat();
+  const angeboten = mische(alle);
+  let gewaehlt = [];
+  let aufgeloest = false;
+
+  const liste = h("ul", { class: "reihe" });
+
+  function zeichne() {
+    liste.replaceChildren(...angeboten.map((wert) => {
+      const platz = gewaehlt.indexOf(wert);
+      const gesetzt = platz >= 0;
+      let klasse = null;
+      if (aufgeloest && gesetzt) {
+        // Richtig ist ein Element, wenn seine Gruppe an der Stelle steht,
+        // an die sie gehört.
+        const grenzen = gruppen(karte.elemente).map((g) => g.length);
+        let start = 0, gruppeAmPlatz = 0;
+        for (let i = 0; i < grenzen.length; i++) {
+          if (platz < start + grenzen[i]) { gruppeAmPlatz = i; break; }
+          start += grenzen[i];
+        }
+        klasse = sollGruppe(karte.elemente, wert) === gruppeAmPlatz ? "richtig" : "falsch";
+      }
+      return h("li", {},
+        h("button", {
+          class: klasse,
+          "aria-pressed": gesetzt ? "true" : "false",
+          disabled: aufgeloest,
+          onclick: () => {
+            gewaehlt = gesetzt ? gewaehlt.filter((x) => x !== wert) : [...gewaehlt, wert];
+            zeichne();
+            if (beiAenderung) beiAenderung();
+          },
+        },
+          h("span", { class: "nr", text: gesetzt ? `${platz + 1}.` : "–" }),
+          h("span", { text: wert })));
+    }));
+  }
+  zeichne();
+
+  return {
+    frage: () => [
+      h("p", { class: "frage klein", text: karte.frage }),
+      h("p", { class: "prompt", text: "In der richtigen Reihenfolge antippen." }),
+      liste,
+    ],
+    bereit: () => gewaehlt.length === alle.length,
+    vorschlag: () => istRichtig(karte.elemente, gewaehlt),
+    antwort: () => {
+      aufgeloest = true;
+      zeichne();
+      const richtig = istRichtig(karte.elemente, gewaehlt);
+      return h("div", { class: "antwort" },
+        h("p", { class: "multi", text: richtig ? "Stimmt." : "So ist es richtig:" }),
+        richtig ? null : gruppen(karte.elemente).map((g, i) =>
+          h("p", { class: "meta", text: `${i + 1}. ${g.join("  ·  ")}` })),
+        karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
+    },
+  };
+}
+
+  __exporte["gruppen"] = gruppen;
+  __exporte["istRichtig"] = istRichtig;
+  __exporte["erstelle"] = erstelle;
+  return __exporte;
+};
+__module["src/karten/index.js"] = function (__hole) {
+  const __exporte = {};
+  const couleur = __hole("src/karten/couleur.js");
+  const frage = __hole("src/karten/frage.js");
+  const begriff = __hole("src/karten/begriff.js");
+  const lueckentext = __hole("src/karten/lueckentext.js");
+  const reihenfolge = __hole("src/karten/reihenfolge.js");
+
+const NACH_TYP = { couleur, frage, begriff, lueckentext, reihenfolge };
+
+function erstelleKarte(einheit, beiAenderung) {
+  const modul = NACH_TYP[einheit.karte.typ];
+  if (!modul) throw new Error(`Kein Renderer für Typ ${einheit.karte.typ}`);
+  return modul.erstelle(einheit, beiAenderung);
+}
+
+  __exporte["erstelleKarte"] = erstelleKarte;
+  __exporte["band"] = __hole("src/karten/couleur.js")["band"];
+  return __exporte;
+};
+__module["src/redaktion.js"] = function (__hole) {
+  const __exporte = {};
+  const { h, leere } = __hole("src/dom.js");
+  const { pruefeStapel, TYPEN, istHell } = __hole("src/schema.js");
+  const { band } = __hole("src/karten/couleur.js");
+  const { zerlege } = __hole("src/karten/lueckentext.js");
+  const { bezeichnung } = __hole("src/stats.js");
+// Redaktionsansicht: Stapel pflegen, ohne JSON zu tippen.
+// Sie schreibt nichts auf die Platte — sie gibt eine Datei aus, die nach
+// decks/ gehört. Bei Couleur ist die Bandvorschau der eigentliche Zweck:
+// ein Farbfehler fällt im Bild auf, in einer Zeichenkette nicht.
+
+const kopie = (x) => JSON.parse(JSON.stringify(x));
+const gleich = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+const slug = (s) => (s || "").toLowerCase()
+  .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+  .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "karte";
+
+function freieId(stapel, wunsch, ausser = null) {
+  const belegt = new Set(stapel.karten.filter((k) => k !== ausser).map((k) => k.id));
+  let id = slug(wunsch), n = 2;
+  while (belegt.has(id)) id = `${slug(wunsch)}-${n++}`;
+  return id;
+}
+
+const heuteIso = () => new Date().toISOString().slice(0, 10);
+
+// -------------------------------------------------------------- Bausteine
+function feld(beschriftung, el) {
+  return h("div", { class: "feld" }, h("label", {}, beschriftung, el));
+}
+const textFeld = (wert, beiEingabe) =>
+  h("input", { type: "text", value: wert || "", oninput: (e) => beiEingabe(e.currentTarget.value) });
+const flaeche = (wert, beiEingabe, klasse) =>
+  h("textarea", { class: klasse || null, oninput: (e) => beiEingabe(e.currentTarget.value) }, wert || "");
+
+function zeilenFeld(beschriftung, werte, beiEingabe, hinweis) {
+  const el = flaeche((werte || []).join("\n"), (v) =>
+    beiEingabe(v.split("\n").map((z) => z.trim()).filter(Boolean)));
+  return h("div", { class: "feld" },
+    h("label", {}, beschriftung, el),
+    hinweis ? h("p", { class: "hinweis", text: hinweis }) : null);
+}
+
+// ----------------------------------------------------------- Karteneditor
+function couleurEditor(karte, neuZeichnen) {
+  karte.band = karte.band || { streifen: [{ farbe: "#000000" }, { farbe: "#ffffff" }] };
+  karte.antworten = karte.antworten || [{ name: "" }];
+
+  const vorschau = h("div", {});
+  const zeichneVorschau = () => {
+    leere(vorschau);
+    const gueltig = karte.band.streifen.every((s) => /^#[0-9a-fA-F]{6}$/.test(s.farbe || ""));
+    vorschau.append(gueltig
+      ? band(karte, istHell)
+      : h("p", { class: "fehler", text: "Sobald alle Streifen einen Hex-Wert wie #aabbcc haben, steht hier das Band." }));
+  };
+  zeichneVorschau();
+
+  const streifenZeilen = karte.band.streifen.map((s, i) => {
+    const hexEingabe = h("input", {
+      type: "text", value: s.farbe, "aria-label": `Streifen ${i + 1}, Farbwert`,
+      oninput: (e) => {
+        s.farbe = e.currentTarget.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(s.farbe)) waehler.value = s.farbe.toLowerCase();
+        zeichneVorschau();
+      },
+    });
+    const waehler = h("input", {
+      type: "color", value: /^#[0-9a-fA-F]{6}$/.test(s.farbe) ? s.farbe.toLowerCase() : "#000000",
+      "aria-label": `Streifen ${i + 1}, Farbe wählen`,
+      oninput: (e) => { s.farbe = e.currentTarget.value; hexEingabe.value = s.farbe; zeichneVorschau(); },
+    });
+    return h("div", { class: "streifen" }, waehler, hexEingabe,
+      h("input", {
+        type: "text", class: "breite", value: s.breite ?? "", placeholder: "Breite",
+        "aria-label": `Streifen ${i + 1}, Breite`,
+        oninput: (e) => {
+          const v = e.currentTarget.value.trim().replace(",", ".");
+          if (v === "" || v === "1") delete s.breite; else s.breite = Number(v);
+          zeichneVorschau();
+        },
+      }),
+      h("button", {
+        "aria-label": `Streifen ${i + 1} entfernen`,
+        onclick: () => { karte.band.streifen.splice(i, 1); neuZeichnen(); },
+      }, "−"));
+  });
+
+  return [
+    h("h2", { text: "Farbband" }),
+    vorschau,
+    h("div", { style: "margin-top:14px" }, streifenZeilen),
+    h("div", { class: "row eng" },
+      h("button", { class: "ghost", onclick: () => { karte.band.streifen.push({ farbe: "#ffffff" }); neuZeichnen(); } },
+        "Streifen anfügen")),
+    h("p", { class: "hinweis",
+      text: "Breite leer oder 1 heißt: gleich breit wie die übrigen. Für Perkussionen und dünne Streifen etwas wie 0.05, für einen Grund außen 0.5." }),
+    feld("Farben im Klartext", textFeld(karte.farben, (v) => { karte.farben = v; })),
+    h("h2", { text: "Bünde" }),
+    ...karte.antworten.map((a, i) => h("div", { class: "feld" },
+      h("label", {}, `Bund ${i + 1}`,
+        textFeld(a.name, (v) => { a.name = v; })),
+      h("div", { class: "streifen" },
+        h("input", { type: "text", value: a.ort || "", placeholder: "Ort",
+          "aria-label": `Bund ${i + 1}, Ort`, oninput: (e) => { a.ort = e.currentTarget.value || undefined; } }),
+        h("input", { type: "text", value: a.jahr || "", placeholder: "Jahr",
+          "aria-label": `Bund ${i + 1}, Jahr`,
+          oninput: (e) => { const v = e.currentTarget.value.trim(); a.jahr = v ? Number(v) : undefined; } }),
+        h("input", { type: "text", value: a.verband || "", placeholder: "Verband",
+          "aria-label": `Bund ${i + 1}, Verband`, oninput: (e) => { a.verband = e.currentTarget.value || undefined; } }),
+        karte.antworten.length > 1
+          ? h("button", { "aria-label": `Bund ${i + 1} entfernen`,
+              onclick: () => { karte.antworten.splice(i, 1); neuZeichnen(); } }, "−")
+          : null),
+      h("input", { type: "text", value: a.anmerkung || "", placeholder: "Anmerkung",
+        "aria-label": `Bund ${i + 1}, Anmerkung`,
+        oninput: (e) => { a.anmerkung = e.currentTarget.value || undefined; } }))),
+    h("div", { class: "row eng" },
+      h("button", { class: "ghost", onclick: () => { karte.antworten.push({ name: "" }); neuZeichnen(); } },
+        "Weiteren Bund anfügen")),
+    h("p", { class: "hinweis",
+      text: "Mehrere Bünde auf einer Karte sind der Normalfall, wenn sie dieselben Farben führen." }),
+  ];
+}
+
+function kartenEditor(karte, neuZeichnen) {
+  if (karte.typ === "couleur") return couleurEditor(karte, neuZeichnen);
+
+  if (karte.typ === "frage") {
+    return [
+      feld("Frage", flaeche(karte.frage, (v) => { karte.frage = v; })),
+      zeilenFeld("Antworten", karte.antworten, (v) => { karte.antworten = v; },
+        "Eine Antwort je Zeile. Mehrere Zeilen heißt: jede davon gilt."),
+    ];
+  }
+
+  if (karte.typ === "begriff") {
+    return [
+      feld("Begriff", textFeld(karte.begriff, (v) => { karte.begriff = v; })),
+      feld("Definition", flaeche(karte.definition, (v) => { karte.definition = v; })),
+      feld("Abfragerichtung", h("select", {
+        onchange: (e) => { karte.richtung = e.currentTarget.value; },
+      },
+        h("option", { value: "beide", selected: (karte.richtung || "beide") === "beide" }, "In beide Richtungen"),
+        h("option", { value: "begriff-definition", selected: karte.richtung === "begriff-definition" }, "Begriff → Definition"),
+        h("option", { value: "definition-begriff", selected: karte.richtung === "definition-begriff" }, "Definition → Begriff"))),
+      h("p", { class: "hinweis",
+        text: "„In beide Richtungen“ zählt als zwei Karten im Fortschritt — sonst gilt sie als gekonnt, obwohl nur eine Richtung sitzt." }),
+    ];
+  }
+
+  if (karte.typ === "lueckentext") {
+    const vorschau = h("p", { class: "lueckentext" });
+    const zeichneVorschau = () => {
+      leere(vorschau);
+      const teile = zerlege(karte.text || "");
+      for (const t of teile) {
+        vorschau.append(t.luecke
+          ? h("span", { class: "luecke gefuellt", text: t.loesungen[0] })
+          : document.createTextNode(t.text));
+      }
+      if (!teile.some((t) => t.luecke)) {
+        leere(vorschau).append(h("span", { class: "fehler", text: "Noch keine Lücke — Lücken werden {{so}} markiert." }));
+      }
+    };
+    const el = flaeche(karte.text, (v) => { karte.text = v; zeichneVorschau(); });
+    zeichneVorschau();
+    return [
+      feld("Überschrift", textFeld(karte.titel, (v) => { karte.titel = v; })),
+      h("div", { class: "feld" }, h("label", {}, "Text mit Lücken", el),
+        h("p", { class: "hinweis", text: "Lücken werden {{so}} markiert, Alternativen {{so|oder so}}." })),
+      h("h2", { text: "So sieht es aus" }),
+      h("div", { class: "antwort" }, vorschau),
+    ];
+  }
+
+  if (karte.typ === "reihenfolge") {
+    const alsText = (karte.elemente || []).map((e) => (Array.isArray(e) ? e.join(" | ") : e));
+    return [
+      feld("Frage", flaeche(karte.frage, (v) => { karte.frage = v; })),
+      zeilenFeld("Elemente in der richtigen Reihenfolge", alsText, (zeilen) => {
+        karte.elemente = zeilen.map((z) => {
+          const teile = z.split("|").map((s) => s.trim()).filter(Boolean);
+          return teile.length > 1 ? teile : teile[0];
+        });
+      }, "Ein Element je Zeile. Stehen mehrere Elemente durch | getrennt in einer Zeile, ist ihre Reihenfolge untereinander egal."),
+    ];
+  }
+  return [];
+}
+
+// ------------------------------------------------------------ Schnelleingabe
+const MUSTER = { "f:": "frage", "b:": "begriff", "l:": "lueckentext", "r:": "reihenfolge" };
+
+function ausSchnelleingabe(text) {
+  const bloecke = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  const karten = [], fehler = [];
+
+  bloecke.forEach((block, nr) => {
+    const zeilen = block.split("\n").map((z) => z.trim()).filter(Boolean);
+    const marke = (zeilen[0] || "").slice(0, 2).toLowerCase();
+    const typ = MUSTER[marke];
+    if (!typ) { fehler.push(`Block ${nr + 1}: beginnt nicht mit F:, B:, L: oder R:`); return; }
+
+    const nimm = (buchstabe) => zeilen
+      .filter((z) => z.slice(0, 2).toLowerCase() === `${buchstabe}:`)
+      .map((z) => z.slice(2).trim());
+    const erste = (buchstabe) => nimm(buchstabe)[0] || "";
+    const notiz = erste("n");
+    const karte = { id: "", typ, rev: 1 };
+
+    if (typ === "frage") {
+      karte.frage = erste("f");
+      karte.antworten = nimm("a");
+      if (!karte.antworten.length) fehler.push(`Block ${nr + 1}: keine Antwort (A:)`);
+    } else if (typ === "begriff") {
+      karte.begriff = erste("b");
+      karte.definition = erste("d");
+      karte.richtung = "beide";
+      if (!karte.definition) fehler.push(`Block ${nr + 1}: keine Definition (D:)`);
+    } else if (typ === "lueckentext") {
+      karte.titel = erste("l");
+      karte.text = nimm("t").join("\n");
+      if (!/\{\{[^{}]+\}\}/.test(karte.text)) fehler.push(`Block ${nr + 1}: der Text (T:) hat keine {{Lücke}}`);
+    } else if (typ === "reihenfolge") {
+      karte.frage = erste("r");
+      karte.elemente = nimm("e").map((z) => {
+        const teile = z.split("|").map((s) => s.trim()).filter(Boolean);
+        return teile.length > 1 ? teile : teile[0];
+      });
+      if (karte.elemente.length < 2) fehler.push(`Block ${nr + 1}: weniger als zwei Elemente (E:)`);
+    }
+    if (notiz) karte.notiz = notiz;
+    karten.push(karte);
+  });
+  return { karten, fehler };
+}
+
+const SCHNELL_HILFE = `F: Mit welchem Satz eröffnet der Präside die Kneipe?
+A: Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.
+
+B: Farbenführend
+D: Die Mitglieder führen Farben zu bestimmten Anlässen mit sich.
+N: Viele SV-Bünde sind farbenführend.
+
+L: Bundeslied, 2. Strophe
+T: Frei ist das {{Herz}}, und frei das {{Lied}},
+
+R: Bringe die Teile eines Kneipabends in die richtige Reihenfolge.
+E: Officium
+E: Inoffizium
+E: Bierdorf`;
+
+// ------------------------------------------------------------------ Ansicht
+function redaktionsAnsicht(stapel, kaputt, zurueck) {
+  const wurzel = h("div", {});
+  let entwurf = null;      // der Stapel, der gerade bearbeitet wird
+  let original = null;     // zum Vergleich, damit rev nur bei echter Änderung steigt
+  let offen = null;        // die Karte, die gerade offen ist
+
+  const neuZeichnen = () => { leere(wurzel); wurzel.append(...zeichne()); };
+
+  function ladeDatei(datei) {
+    const leser = new FileReader();
+    leser.onload = () => {
+      try {
+        const s = JSON.parse(leser.result);
+        entwurf = s; original = kopie(s); offen = null; neuZeichnen();
+      } catch (e) {
+        alert(`Diese Datei ist kein gültiges JSON: ${e.message}`);
+      }
+    };
+    leser.readAsText(datei);
+  }
+
+  function speichereKarte() {
+    if (!offen) return;
+    // Eine neue Karte bekommt ihre Kennung aus dem ersten Inhalt.
+    if (!offen.karte.id) {
+      offen.karte.id = freieId(entwurf,
+        offen.karte.frage || offen.karte.begriff || offen.karte.titel ||
+        (offen.karte.antworten && offen.karte.antworten[0] && offen.karte.antworten[0].name) ||
+        offen.karte.typ,
+        offen.karte);
+    }
+    // rev steigt nur, wenn sich am Inhalt wirklich etwas geändert hat —
+    // dann fällt die Karte bei allen zurück in Fach 1.
+    const alt = (original.karten || []).find((k) => k.id === offen.urspruenglicheId);
+    const neu = { ...offen.karte };
+    delete neu.urspruenglicheId;
+    if (alt) {
+      const a = { ...alt }, b = { ...neu };
+      delete a.rev; delete b.rev;
+      neu.rev = gleich(a, b) ? alt.rev : alt.rev + 1;
+    }
+    const platz = entwurf.karten.indexOf(offen.karte);
+    if (platz >= 0) entwurf.karten[platz] = neu; else entwurf.karten.push(neu);
+    offen = null;
+    neuZeichnen();
+  }
+
+  // Die Stapel liegen schon geladen vor — auch in der Einzeldatei-Fassung.
+  // Bearbeitet wird eine Kopie, damit ein Abbruch die laufende Sitzung nicht
+  // durcheinanderbringt.
+  function lade(s) {
+    entwurf = kopie(s); original = kopie(s); offen = null; neuZeichnen();
+  }
+
+  function herunterladen() {
+    const text = JSON.stringify(entwurf, null, 2) + "\n";
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const a = h("a", { href: url, download: `${entwurf.id}.json` });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // ---------------------------------------------------------- Teilansichten
+  function zeichne() {
+    if (offen) return kartenAnsicht();
+    if (entwurf) return stapelAnsicht();
+    return uebersicht();
+  }
+
+  function uebersicht() {
+    const eingabe = h("input", {
+      type: "file", accept: ".json,application/json",
+      onchange: (e) => { const d = e.currentTarget.files[0]; if (d) ladeDatei(d); },
+    });
+    return [
+      h("div", { class: "kopf" }, h("h1", { text: "Redaktion" }),
+        h("button", { class: "zurueck", onclick: zurueck }, "Übersicht")),
+      h("p", { class: "sub",
+        text: "Stapel bearbeiten, JSON herunterladen, Datei nach decks/ legen und einchecken." }),
+      kaputt.length ? h("div", { class: "fehler" },
+        "Diese Stapel laden nicht:",
+        h("ul", {}, kaputt.map((k) => h("li", {}, `${k.id}: `, k.fehler.join("; "))))) : null,
+      h("h2", { text: "Vorhandene Stapel" }),
+      h("ul", { class: "stapel" }, stapel.map((s) => h("li", {},
+        h("label", { style: "cursor:default" }, h("div", { style: "flex:1" },
+          h("div", { class: "titel", text: s.titel }),
+          h("div", { class: "zeile", text: `${s.karten.length} Karten · ${s.id}.json` })),
+          h("button", { class: "ghost", onclick: () => lade(s) }, "Öffnen"))))),
+      h("div", { class: "row" },
+        h("button", {
+          class: "solid",
+          onclick: () => {
+            entwurf = { schema: 1, id: "", titel: "", untertitel: "", quelle: "", stand: heuteIso(), karten: [] };
+            original = kopie(entwurf); neuZeichnen();
+          },
+        }, "Neuer Stapel")),
+      h("div", { class: "feld", style: "margin-top:14px" },
+        h("label", {}, "Oder eine JSON-Datei öffnen", eingabe)),
+    ];
+  }
+
+  function stapelAnsicht() {
+    const fehler = pruefeStapel(entwurf);
+    const schnell = h("textarea", { class: "mono", placeholder: SCHNELL_HILFE });
+
+    return [
+      h("div", { class: "kopf" }, h("h1", { text: entwurf.titel || "Neuer Stapel" }),
+        h("button", { class: "zurueck", onclick: () => { entwurf = null; neuZeichnen(); } }, "Alle Stapel")),
+
+      feld("Kennung (Dateiname ohne .json)", textFeld(entwurf.id, (v) => { entwurf.id = v.trim(); })),
+      feld("Titel", textFeld(entwurf.titel, (v) => { entwurf.titel = v; })),
+      feld("Untertitel", textFeld(entwurf.untertitel, (v) => { entwurf.untertitel = v; })),
+      feld("Quelle", textFeld(entwurf.quelle, (v) => { entwurf.quelle = v; })),
+      feld("Stand", textFeld(entwurf.stand, (v) => { entwurf.stand = v; })),
+
+      h("h2", { text: `Karten (${entwurf.karten.length})` }),
+      entwurf.karten.length
+        ? h("ul", { class: "stapel" }, entwurf.karten.map((k, i) => h("li", {},
+            h("label", { style: "cursor:default" }, h("div", { style: "flex:1" },
+              h("div", { class: "titel", text: bezeichnung({ karte: k }) || "(ohne Text)" }),
+              h("div", { class: "zeile", text: `${k.typ} · ${k.id || "ohne id"} · rev ${k.rev}` })),
+              h("button", { class: "ghost", onclick: () => { offen = { karte: k, urspruenglicheId: k.id }; neuZeichnen(); } }, "Ändern"),
+              h("button", {
+                class: "ghost", "aria-label": "Karte löschen",
+                onclick: () => {
+                  if (confirm(`Karte „${bezeichnung({ karte: k })}“ löschen?`)) {
+                    entwurf.karten.splice(i, 1); neuZeichnen();
+                  }
+                },
+              }, "−")))))
+        : h("p", { class: "leer", text: "Noch keine Karte." }),
+
+      h("div", { class: "feld", style: "margin-top:14px" },
+        h("label", {}, "Karte anfügen",
+          h("select", {
+            onchange: (e) => {
+              const typ = e.currentTarget.value;
+              if (!typ) return;
+              e.currentTarget.value = "";
+              const k = { id: "", typ, rev: 1 };
+              entwurf.karten.push(k);
+              offen = { karte: k, urspruenglicheId: null };
+              neuZeichnen();
+            },
+          },
+            h("option", { value: "" }, "Typ wählen …"),
+            TYPEN.map((t) => h("option", { value: t }, t))))),
+
+      h("h2", { text: "Schnelleingabe" }),
+      h("p", { class: "hinweis",
+        text: "Für Fragen, Begriffe, Lückentexte und Reihenfolgen aus einer Handbuchseite. Blöcke durch eine Leerzeile trennen. Couleur fehlt hier absichtlich: Farbwerte gehören nicht blind getippt, sondern mit Bandvorschau gesetzt." }),
+      schnell,
+      h("div", { class: "row eng" },
+        h("button", {
+          class: "ghost",
+          onclick: () => {
+            const { karten, fehler: f } = ausSchnelleingabe(schnell.value);
+            if (f.length) { alert(f.join("\n")); return; }
+            for (const k of karten) {
+              k.id = freieId(entwurf, k.frage || k.begriff || k.titel || k.typ);
+              entwurf.karten.push(k);
+            }
+            schnell.value = "";
+            neuZeichnen();
+          },
+        }, "Blöcke übernehmen")),
+
+      h("h2", { text: "Prüfung" }),
+      fehler.length
+        ? h("div", { class: "fehler" }, `${fehler.length} Stellen stimmen noch nicht:`,
+            h("ul", {}, fehler.map((f) => h("li", { text: f }))))
+        : h("p", { class: "hinweis", text: "Der Stapel erfüllt das Schema." }),
+
+      h("div", { class: "row" },
+        h("button", { class: "solid", disabled: fehler.length > 0, onclick: herunterladen },
+          `${entwurf.id || "stapel"}.json herunterladen`),
+        h("button", {
+          class: "ghost", disabled: fehler.length > 0,
+          onclick: () => navigator.clipboard.writeText(JSON.stringify(entwurf, null, 2) + "\n")
+            .then(() => alert("JSON liegt in der Zwischenablage."))
+            .catch(() => alert("Die Zwischenablage ist hier gesperrt — bitte herunterladen.")),
+        }, "Kopieren")),
+      h("p", { class: "hinweis",
+        text: "Die Datei gehört nach decks/. Ein neuer Stapel braucht zusätzlich eine Zeile in decks/index.json." }),
+    ];
+  }
+
+  function kartenAnsicht() {
+    const k = offen.karte;
+    return [
+      h("div", { class: "kopf" }, h("h1", { text: `Karte · ${k.typ}` }),
+        h("button", { class: "zurueck", onclick: speichereKarte }, "Fertig")),
+      feld("Kennung", h("input", {
+        type: "text", value: k.id,
+        onchange: (e) => { k.id = slug(e.currentTarget.value); e.currentTarget.value = k.id; },
+      })),
+      h("p", { class: "hinweis",
+        text: "Die Kennung darf sich nicht mehr ändern, sobald der Stapel verteilt ist — der Fortschritt hängt daran." }),
+      ...kartenEditor(k, neuZeichnen),
+      feld("Notiz (optional)", flaeche(k.notiz, (v) => { k.notiz = v || undefined; })),
+      h("div", { class: "row" },
+        h("button", { class: "solid", onclick: speichereKarte }, "Übernehmen")),
+    ];
+  }
+
+  wurzel.append(...zeichne());
+  return wurzel;
+}
+
+  __exporte["ausSchnelleingabe"] = ausSchnelleingabe;
+  __exporte["redaktionsAnsicht"] = redaktionsAnsicht;
+  return __exporte;
+};
+__module["src/main.js"] = function (__hole) {
+  const __exporte = {};
+  const { h, leere } = __hole("src/dom.js");
+  const { ladeStapel, lerneinheiten, hellPruefer } = __hole("src/decks.js");
+  const { erstelleKarte, band } = __hole("src/karten/index.js");
+  const { neueSitzung } = __hole("src/sitzung.js");
+  const { statistik, wasHakt, bezeichnung } = __hole("src/stats.js");
+  const { stand, istFaellig, hakt, FAECHER } = __hole("src/leitner.js");
+  const store = __hole("src/store.js");
+  const { redaktionsAnsicht } = __hole("src/redaktion.js");
+
+const wurzel = document.getElementById("app");
+let alleStapel = [];
+let kaputt = [];
+let gewaehlt = new Set();
+let modus = "faellig";       // faellig | alle | fehler
+let sitzung = null;
+let enthuellt = false;
+let kartenObjekt = null;
+
+// ------------------------------------------------------------------ Start
+function ansichtStart() {
+  const werte = alleStapel.map(statistik);
+  const gewaehlteEinheiten = () =>
+    werte.filter((w) => gewaehlt.has(w.stapel.id)).flatMap((w) => w.einheiten);
+
+  const zaehle = () => {
+    const e = gewaehlteEinheiten();
+    if (modus === "alle") return e.length;
+    if (modus === "fehler") return e.filter((x) => hakt(stand(x))).length;
+    return e.filter((x) => istFaellig(stand(x))).length;
+  };
+
+  const knopfLernen = h("button", { class: "solid", onclick: () => starteSitzung() });
+  const aktualisiere = () => {
+    const n = zaehle();
+    knopfLernen.textContent = n ? `${n} Karten lernen` : "Nichts zu tun";
+    knopfLernen.disabled = n === 0;
+  };
+
+  const modusKnopf = (wert, beschriftung) =>
+    h("button", {
+      "aria-pressed": modus === wert ? "true" : "false",
+      onclick: (ev) => {
+        modus = wert;
+        for (const b of ev.currentTarget.parentElement.children) {
+          b.setAttribute("aria-pressed", String(b === ev.currentTarget));
+        }
+        aktualisiere();
+      },
+    }, beschriftung);
+
+  const liste = h("ul", { class: "stapel" }, werte.map((w) => {
+    const kasten = h("input", {
+      type: "checkbox", checked: gewaehlt.has(w.stapel.id),
+      onchange: (ev) => {
+        if (ev.currentTarget.checked) gewaehlt.add(w.stapel.id);
+        else gewaehlt.delete(w.stapel.id);
+        store.setzeAuswahl([...gewaehlt]);
+        aktualisiere();
+      },
+    });
+    return h("li", {}, h("label", {}, kasten, h("div", {},
+      h("div", { class: "titel", text: w.stapel.titel }),
+      h("div", { class: "zeile" },
+        h("b", { text: String(w.gesamt) }), " Karten · ",
+        h("b", { text: String(w.sitzt) }), " sitzen",
+        w.haken ? [" · ", h("b", { text: String(w.haken) }), " haken"] : null,
+        w.faellig ? [" · ", h("b", { text: String(w.faellig) }), " fällig"] : null),
+      faecherBalken(w))));
+  }));
+
+  aktualisiere();
+
+  return [
+    h("h1", { text: "Ältestenrat" }),
+    h("p", { class: "sub", text: "Stoff für die Neuen: Couleur, Comment, Verbandskunde, Geschichte." }),
+    kaputt.length ? h("p", { class: "fehler" },
+      `${kaputt.length} Stapel konnten nicht geladen werden: ${kaputt.map((k) => k.id).join(", ")}. `,
+      "Die Redaktionsansicht sagt, was fehlt.") : null,
+    !store.speicherVerfuegbar() ? h("p", { class: "fehler",
+      text: "Dieses Gerät lässt keinen Speicher zu — der Fortschritt gilt nur für diese Sitzung." }) : null,
+    h("div", { class: "modes" },
+      modusKnopf("faellig", "Fällige"),
+      modusKnopf("alle", "Alle"),
+      modusKnopf("fehler", "Nur Fehler")),
+    liste,
+    h("div", { class: "row" },
+      knopfLernen,
+      h("button", { class: "ghost", onclick: () => { location.hash = "#/statistik"; } }, "Statistik")),
+    h("div", { class: "row eng" },
+      h("button", { class: "ghost", onclick: () => { location.hash = "#/redaktion"; } }, "Redaktion")),
+    h("p", { class: "hinweis" },
+      "Fünf Fächer nach Leitner: gewusst rückt eine Karte ein Fach weiter (1 Tag, 3, 7, 21), ",
+      "falsch setzt sie zurück auf Fach 1. Der Fortschritt bleibt auf diesem Gerät."),
+  ];
+
+  function faecherBalken(w) {
+    if (!w.gesamt) return null;
+    return h("div", { class: "faecher", "aria-hidden": "true" },
+      w.faecher.map((n, i) => n
+        ? h("span", { class: `f${i + 1}`, style: `flex:${n} 0 auto` })
+        : null),
+      w.faecher.reduce((a, b) => a + b, 0) < w.gesamt ? h("span", { class: "f0", style: "flex:1" }) : null);
+  }
+}
+
+// ----------------------------------------------------------------- Lernen
+function starteSitzung() {
+  const einheiten = alleStapel
+    .filter((s) => gewaehlt.has(s.id))
+    .flatMap((s) => lerneinheiten(s));
+  sitzung = neueSitzung(einheiten, modus);
+  enthuellt = false;
+  kartenObjekt = null;
+  location.hash = "#/lernen";
+}
+
+function ansichtLernen() {
+  if (!sitzung) { location.hash = "#/"; return []; }
+  if (sitzung.fertig) return ansichtFertig();
+
+  const einheit = sitzung.aktuell;
+  if (!kartenObjekt) {
+    kartenObjekt = erstelleKarte(einheit, () => zeichne());
+    enthuellt = false;
+  }
+
+  const weiter = (gewusst) => {
+    sitzung.antworte(gewusst);
+    kartenObjekt = null;
+    enthuellt = false;
+    zeichne();
+  };
+
+  const kannEnthuellen = !kartenObjekt.bereit || kartenObjekt.bereit();
+  const vorschlag = enthuellt && kartenObjekt.vorschlag ? kartenObjekt.vorschlag() : null;
+
+  const knoepfe = enthuellt
+    ? h("div", { class: "row" },
+        h("button", { class: vorschlag === false ? "solid" : null, onclick: () => weiter(false) }, "Falsch"),
+        h("button", { class: vorschlag === null || vorschlag === true ? "solid" : null,
+                      onclick: () => weiter(true) }, "Gewusst"))
+    : h("div", { class: "row" },
+        h("button", { class: "solid", disabled: !kannEnthuellen,
+                      onclick: () => { enthuellt = true; zeichne(); } }, "Antwort zeigen"),
+        h("button", { class: "ghost", onclick: () => { sitzung.zurueckstellen(); kartenObjekt = null; zeichne(); } },
+          "Später"));
+
+  return [
+    h("div", { class: "kopf" },
+      h("p", { class: "sub", text: einheit.stapel.titel }),
+      h("button", { class: "zurueck", onclick: () => { location.hash = "#/"; } }, "Übersicht")),
+    kartenObjekt.frage(),
+    enthuellt ? kartenObjekt.antwort() : null,
+    knoepfe,
+    h("div", { class: "score" },
+      h("span", {}, "Offen ", h("b", { text: String(sitzung.schlange.length) }),
+        " von ", h("b", { text: String(sitzung.gesamt) })),
+      h("span", {}, "Gewusst ", h("b", { text: String(sitzung.richtig) }),
+        " · Falsch ", h("b", { text: String(sitzung.falsch) }))),
+    h("p", { class: "hinweis tasten-hinweis", text: enthuellt
+      ? "Tastatur: G gewusst, F falsch."
+      : "Tastatur: Leertaste zeigt die Antwort, S stellt zurück." }),
+  ];
+}
+
+function ansichtFertig() {
+  const s = sitzung;
+  return [
+    h("h1", { text: "Durch." }),
+    h("p", { class: "sub",
+      text: `${s.gesamt} Karten, ${s.richtig} mal gewusst, ${s.falsch} mal falsch.` }),
+    h("div", { class: "row" },
+      h("button", { class: "solid", onclick: () => { location.hash = "#/"; } }, "Zur Übersicht")),
+  ];
+}
+
+// -------------------------------------------------------------- Statistik
+function ansichtStatistik() {
+  const werte = alleStapel.map(statistik);
+  return [
+    h("div", { class: "kopf" },
+      h("h1", { text: "Statistik" }),
+      h("button", { class: "zurueck", onclick: () => { location.hash = "#/"; } }, "Übersicht")),
+    h("table", { class: "tabelle" },
+      h("thead", {}, h("tr", {},
+        h("th", { text: "Stapel" }),
+        h("th", { class: "zahl", text: "Karten" }),
+        h("th", { class: "zahl", text: "neu" }),
+        h("th", { class: "zahl", text: "sitzen" }),
+        h("th", { class: "zahl", text: "haken" }))),
+      h("tbody", {}, werte.map((w) => h("tr", {},
+        h("td", { text: w.stapel.titel }),
+        h("td", { class: "zahl", text: String(w.gesamt) }),
+        h("td", { class: "zahl", text: String(w.neu) }),
+        h("td", { class: "zahl", text: String(w.sitzt) }),
+        h("td", { class: "zahl", text: String(w.haken) }))))),
+    h("p", { class: "hinweis",
+      text: `„Sitzen“ heißt Fach 4 oder 5 von ${FAECHER}, „haken“ heißt: zuletzt falsch und noch in Fach 1 oder 2.` }),
+    ...werte.flatMap((w) => {
+      const liste = wasHakt(w.stapel);
+      if (!liste.length) return [];
+      return [
+        h("h2", { text: `Was hakt — ${w.stapel.titel}` }),
+        h("ul", { class: "hakt" }, liste.map(({ einheit, s }) => h("li", {},
+          h("span", { class: "was" },
+            einheit.karte.typ === "couleur"
+              ? band(einheit.karte, hellPruefer(einheit.stapel), "miniband")
+              : null,
+            bezeichnung(einheit)),
+          h("span", { class: "wie", text: `${s.falsch}× falsch · Fach ${s.fach}` })))),
+      ];
+    }),
+    werte.every((w) => !wasHakt(w.stapel).length)
+      ? h("p", { class: "leer", text: "Nichts hakt gerade." }) : null,
+  ];
+}
+
+// ---------------------------------------------------------------- Rahmen
+function zeichne() {
+  const route = location.hash || "#/";
+  leere(wurzel);
+  let inhalt;
+  if (route === "#/lernen") inhalt = ansichtLernen();
+  else if (route === "#/statistik") inhalt = ansichtStatistik();
+  else if (route === "#/redaktion") inhalt = redaktionsAnsicht(alleStapel, kaputt, () => { location.hash = "#/"; });
+  else inhalt = ansichtStart();
+  for (const teil of [inhalt].flat(Infinity)) if (teil) wurzel.append(teil);
+}
+
+function tasten(ev) {
+  if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig) return;
+  const ziel = ev.target;
+  if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return;
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+
+  const taste = ev.key.toLowerCase();
+  if (!enthuellt && (ev.key === " " || taste === "enter")) {
+    if (!kartenObjekt.bereit || kartenObjekt.bereit()) {
+      ev.preventDefault(); enthuellt = true; zeichne();
+    }
+  } else if (!enthuellt && taste === "s") {
+    ev.preventDefault(); sitzung.zurueckstellen(); kartenObjekt = null; zeichne();
+  } else if (enthuellt && (taste === "g" || taste === "j")) {
+    ev.preventDefault(); sitzung.antworte(true); kartenObjekt = null; enthuellt = false; zeichne();
+  } else if (enthuellt && (taste === "f" || taste === "n")) {
+    ev.preventDefault(); sitzung.antworte(false); kartenObjekt = null; enthuellt = false; zeichne();
+  }
+}
+
+async function start() {
+  try {
+    const geladen = await ladeStapel();
+    alleStapel = geladen.stapel;
+    kaputt = geladen.kaputt;
+  } catch (fehler) {
+    wurzel.append(h("p", { class: "fehler" },
+      "Die Stapel konnten nicht geladen werden: ", String(fehler.message || fehler), ". ",
+      "Beim Öffnen per Doppelklick benutze bitte die Einzeldatei lernapp.html."));
+    return;
+  }
+
+  const gemerkt = store.auswahl();
+  const bekannt = new Set(alleStapel.map((s) => s.id));
+  gewaehlt = new Set(
+    (gemerkt && gemerkt.filter((id) => bekannt.has(id)).length ? gemerkt.filter((id) => bekannt.has(id))
+      : alleStapel.map((s) => s.id)));
+
+  window.addEventListener("hashchange", () => {
+    if (location.hash === "#/lernen" && !sitzung) location.hash = "#/";
+    else zeichne();
+  });
+  document.addEventListener("keydown", tasten);
+  zeichne();
+}
+
+start();
+
+
+  return __exporte;
+};
+  __hole("src/main.js");
+})();
+</script>
+</body>
+</html>

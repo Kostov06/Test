@@ -1,0 +1,10 @@
+{
+  "name": "Ältestenrat — Lernstoff",
+  "short_name": "Ältestenrat",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9e6dc",
+  "theme_color": "#e9e6dc",
+  "lang": "de"
+}

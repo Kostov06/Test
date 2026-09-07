@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "id": "comment-kneipe",
+  "titel": "Comment: Kneipe und Kommers",
+  "untertitel": "Ablauf, Regeln, Kleidung",
+  "quelle": "Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“",
+  "stand": "2026-09-07",
+  "karten": [
+    { "id": "reihe-drei-teile", "typ": "reihenfolge", "rev": 1,
+      "frage": "Bringe die drei Teile eines Kneipabends in die richtige Reihenfolge.",
+      "elemente": ["Officium", "Inoffizium", "Bierdorf"] },
+
+    { "id": "reihe-ablauf", "typ": "reihenfolge", "rev": 1,
+      "frage": "Bringe den Ablauf einer Kneipe in die richtige Reihenfolge.",
+      "elemente": [
+        "Eröffnung",
+        "Begrüßung",
+        "Grußworte",
+        "Prinzipienrede",
+        "Kolloquium",
+        ["Biermimik", "Spiele"],
+        "Bierdorf"
+      ],
+      "notiz": "Eröffnung bis Kolloquium gehören zum Officium, Biermimik und Spiele zum Inoffizium. Untereinander ist ihre Reihenfolge nicht festgelegt." },
+
+    { "id": "eroeffnungssatz", "typ": "frage", "rev": 1,
+      "frage": "Mit welchem Satz eröffnet der oder die Präsid*in die Kneipe?",
+      "antworten": ["„Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.“"] },
+
+    { "id": "kneiplatein-regel", "typ": "lueckentext", "rev": 1,
+      "titel": "Die Regel auf der Kneipe",
+      "text": "non licet {{vagari}} neque {{fumare}} neque {{telecomunicare}}",
+      "notiz": "Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren." },
+
+    { "id": "regeln-kneipe", "typ": "frage", "rev": 1,
+      "frage": "Welche Regeln gelten auf der Kneipe?",
+      "antworten": ["Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren, nicht laut reden — aufpassen und aktiv teilnehmen"],
+      "notiz": "„non licet vagari neque fumare neque telecomunicare“" },
+
+    { "id": "sehr-verehrlich", "typ": "frage", "rev": 1,
+      "frage": "Welche Bünde werden bei der Begrüßung mit „sehr verehrlich“ angesprochen?",
+      "antworten": ["Die Gründungsbünde und die Bünde, die das Präsidium stellen. Alle anderen werden mit „verehrlich“ angesprochen."],
+      "notiz": "Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt." },
+
+    { "id": "begruessung-ablauf", "typ": "frage", "rev": 1,
+      "frage": "Wie läuft die Begrüßung auf einer Kneipe ab?",
+      "antworten": ["Alle anwesenden Bünde werden namentlich genannt — man steht auf und stößt an. Träger von Ehrenzeichen werden persönlich begrüßt, wichtige Vorstände oder Vertreter namentlich."] },
+
+    { "id": "grussworte", "typ": "frage", "rev": 1,
+      "frage": "Wann meldet man Grußworte an, und was gehört hinein?",
+      "antworten": ["Ist man irgendwo zu Gast, meldet man Grußworte an und richtet sie an den Gastgeberbund: Danken, Loben, Werben."],
+      "notiz": "Gerne bringt man ein Gastgeschenk mit, bei uns häufig Sasse — eine Münsteraner Spezialität." },
+
+    { "id": "prinzipienrede", "typ": "frage", "rev": 1,
+      "frage": "Wer hält die Prinzipienrede und worüber?",
+      "antworten": ["Der oder die Kneippräsid*in hält eine dem Anlass angemessene Rede, gerne mit persönlichen Meinungen."] },
+
+    { "id": "kolloquium-regel", "typ": "frage", "rev": 1,
+      "frage": "Was darf man im Kolloquium, und was nicht?",
+      "antworten": ["Man darf miteinander sprechen, bleibt aber an seinem Platz, bis der oder die Kneippräsid*in das OK gibt. Im Zweifel bittet man durch Handzeichen darum."],
+      "notiz": "Das Kolloquium wird vom Kneippräsidium ausgerufen." },
+
+    { "id": "spiele-sv", "typ": "frage", "rev": 1,
+      "frage": "Auf wessen Kneipen gibt es Spiele, und wie sehen sie aus?",
+      "antworten": ["Nur auf Kneipen des Sondershäuser Verbands. Das Präsidium überlegt sie sich für die Kneipe, gerne kurz gehalten, häufig ein Abdecken der Musen: Schreiben, Malen, Theater, Singen."] },
+
+    { "id": "bierdorf-ablauf", "typ": "frage", "rev": 1,
+      "frage": "Was geschieht nach Beendigung der Kneipe?",
+      "antworten": ["Das Bierdorf wird eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."] },
+
+    { "id": "kleidung-herren", "typ": "frage", "rev": 1,
+      "frage": "Was schreibt der Kleidungscomment den Herren vor?",
+      "antworten": ["Anzug, mindestens Jackett und Hemd, dazu Krawatte oder Fliege. Das Jackett bleibt an, bis der oder die Präsid*in das eigene Jackett auszieht. Die SV-Nadel sitzt am rechten Revers und zeigt zum Herzen."],
+      "notiz": "Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen." },
+
+    { "id": "kleidung-damen", "typ": "frage", "rev": 1,
+      "frage": "Was schreibt der Kleidungscomment den Damen vor?",
+      "antworten": ["Anzug oder Kleid, schick: Schultern bedeckt, knielang oder mit Strumpfhose, nicht zu freizügig. Die SV-Nadel sitzt rechts und zeigt zum Herzen."],
+      "notiz": "Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen." },
+
+    { "id": "sv-nadel", "typ": "frage", "rev": 1,
+      "frage": "Wo wird die SV-Nadel getragen?",
+      "antworten": ["Rechts, zum Herzen zeigend — bei den Herren am rechten Revers"] },
+
+    { "id": "rollen-kneipe", "typ": "frage", "rev": 1,
+      "frage": "In welche Rollen sind die Kneipant*innen unterteilt?",
+      "antworten": ["Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"] },
+
+    { "id": "zipfel-wann", "typ": "frage", "rev": 1,
+      "frage": "Wann werden Zipfel getauscht?",
+      "antworten": ["Das erste Mal üblicherweise im Offiz einer Kneipe oder eines Kommerses. Freundschaftszipfel hingegen, wenn überhaupt, im Inoffiz."] },
+
+    { "id": "zipfel-farben", "typ": "frage", "rev": 1,
+      "frage": "Wessen Farben tragen getauschte Zipfel?",
+      "antworten": ["Immer die Farben des oder der Schenkenden"] },
+
+    { "id": "braeuche-bummeln", "typ": "frage", "rev": 1,
+      "frage": "Welche drei Bräuche beim Bummeln nennt die Fuxenstunde?",
+      "antworten": ["Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"],
+      "notiz": "Scherzhaft auch Tierlunge und Generaltierlunge." },
+
+    { "id": "couleurbummel-sitte", "typ": "frage", "rev": 1,
+      "frage": "Was erhält ein Korporierter, der auf dem Couleurbummel um Einlass bittet?",
+      "antworten": ["Nach guter Sitte ein kostenloses Couleurbier"] },
+
+    { "id": "couleurbummel-gruppe", "typ": "frage", "rev": 1,
+      "frage": "Wie groß ist eine Bummelgruppe üblicherweise, und wann kündigt man sich an?",
+      "antworten": ["Normalerweise spontan und nicht größer als drei bis fünf Leute. Will man sicher eingelassen werden oder plant einen größeren Bummel, etwa im Semesterferienprogramm, ruft man vorher auf den angepeilten Häusern an und kündigt sich an."] }
+  ]
+}
