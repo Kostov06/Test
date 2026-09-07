@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9e6dc">
+<title>Ältestenrat — Lernstoff</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<main id="app"></main>
+<script type="module" src="src/main.js"></script>
+<script>
+// Offline lernen: der Service Worker legt App und Stapel ins Gerät.
+// Beim Öffnen per Doppelklick (file://) gibt es keinen — dafür ist die
+// Einzeldatei-Fassung lernapp.html da.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>

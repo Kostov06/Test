@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "id": "ingvaeonia-geschichte",
+  "titel": "Geschichte des AMB Ingvaeonia",
+  "untertitel": "Von der AB Universitas bis heute",
+  "quelle": "Ältestenrat, „Die Geschichte des AMB Ingvaeonia“",
+  "stand": "2026-09-07",
+  "karten": [
+    { "id": "j-1947", "typ": "frage", "rev": 1,
+      "frage": "17.05.1947",
+      "antworten": ["Gründungsdatum — Feier des ersten Verbindungsfests"],
+      "notiz": "Der Bund heißt zunächst AB Universitas: Männerbund, nicht schlagend, farbentragend (schwarz-gold-rot-gold-schwarz), hauptsächlich Studenten aus Osnabrück." },
+
+    { "id": "j-1950", "typ": "frage", "rev": 1,
+      "frage": "1950",
+      "antworten": ["Umbenennung in AB Ingvaeonia"] },
+
+    { "id": "j-1952", "typ": "frage", "rev": 1,
+      "frage": "22.05.1952",
+      "antworten": ["Vorläufige Aufnahme in den SV — der Kontakt lief über den OV Osnabrück"],
+      "notiz": "Die Bänder wurden abgelegt, der Bund blieb aber farbenführend. Das führte zur Spaltung: die schlagende Verbindung „Salingia“ wurde gegründet, ging aber schnell wieder ein." },
+
+    { "id": "j-1953", "typ": "frage", "rev": 1,
+      "frage": "Pfingsten 1953",
+      "antworten": ["Endgültige Aufnahme in den SV"],
+      "notiz": "Damit: Praktizierung des musikalischen Prinzips, Lebensbundprinzip als gelebte Wirklichkeit durch den Austausch mit anderen Bünden, Alternative zur Eindimensionalität des Fachstudiums." },
+
+    { "id": "j-1954", "typ": "frage", "rev": 1,
+      "frage": "19.06.1954",
+      "antworten": ["Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau (1883–1937)"] },
+
+    { "id": "j-1957", "typ": "frage", "rev": 1,
+      "frage": "16.02.1957",
+      "antworten": ["Heim in der Wolbecker Straße"],
+      "notiz": "Kneipsaal, Vorstandszimmer, Nebenräume und Keller. Finanzierung und Ausgestaltung waren Gemeinschaftsleistung der Aktiven, der SV-Alten Herren und der Partnerverbindung Fridericiana zu Breslau." },
+
+    { "id": "j-1961", "typ": "frage", "rev": 1,
+      "frage": "Ende WiSe 1961/62",
+      "antworten": ["Auszug aus der Wolbecker Straße"],
+      "notiz": "Danach nur noch ein Nebenzimmer im „Schlegeleck“ am Ludgeriplatz." },
+
+    { "id": "j-1963", "typ": "frage", "rev": 1,
+      "frage": "Ab 1963",
+      "antworten": ["Kellerraum in der Königsstraße 45"] },
+
+    { "id": "j-1968-haus", "typ": "frage", "rev": 1,
+      "frage": "Sommer 1968",
+      "antworten": ["Kauf des Hauses in der Wehrstraße 1a für 150.000 DM"],
+      "notiz": "Der Umbau dauerte 2½ Jahre und kostete weitere 150.000 DM. Die Aktiven konnten Ende 1970 einziehen." },
+
+    { "id": "j-1968-satzung", "typ": "frage", "rev": 1,
+      "frage": "WiSe 1968/69",
+      "antworten": ["Satzungsänderung"],
+      "notiz": "Abgeschafft: Fuxenstatus, Burschung, Zipfel, Kommerse, Singen von Studentenliedern. Umbenannt: AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender." },
+
+    { "id": "j-1971", "typ": "frage", "rev": 1,
+      "frage": "1971",
+      "antworten": ["Kieler Beschlüsse — die Aufnahme von Damen wird erlaubt"],
+      "notiz": "Wenig Unterstützung vom SV. Der AMB war damals drittstärkster Bund im SV und wuchs durch die Aufnahme von Frauen und das Haus stark." },
+
+    { "id": "j-bis-1983", "typ": "frage", "rev": 1,
+      "frage": "Bis 1983",
+      "antworten": ["Zwar Bewohner und Mitglieder auf dem Haus, aber kein Bundesleben"] },
+
+    { "id": "j-1983", "typ": "frage", "rev": 1,
+      "frage": "1983",
+      "antworten": ["Wiederbelebung des AMB durch die Verbandsbrüder Ingo Freiherr von Stillfried und Uwe Focke"],
+      "notiz": "Beide zweitaktiv in Münster." },
+
+    { "id": "j-1985", "typ": "frage", "rev": 1,
+      "frage": "WiSe 1985/86",
+      "antworten": ["SV-Vertretertag in München — Umbenennung in AMB Ingvaeonia und Verabschiedung der neuen Satzung"],
+      "notiz": "Das „Bonner SV-Präsidium“ war komplett zweitaktiv in Münster. Verstärktes Interesse am AMB als Gemischtbund, der AMB wurde zum „Musterbund“. Erste Verleihung des Traditionsträgers der Fridericiana zu Breslau." },
+
+    { "id": "j-1987", "typ": "frage", "rev": 1,
+      "frage": "1987",
+      "antworten": ["Großes Stiftungsfest zum 40-jährigen Bestehen"] },
+
+    { "id": "j-1988", "typ": "frage", "rev": 1,
+      "frage": "1988",
+      "antworten": ["Stiftung des bronzenen Hausschilds durch „OK“ Dietrich Heinemann"] },
+
+    { "id": "j-1980er", "typ": "frage", "rev": 1,
+      "frage": "Ende der 1980er Jahre",
+      "antworten": ["Viel Engagement im SV — insgesamt vier Mal das komplette SV-Präsidium gestellt und zwei Mal den SV-Kassenwart"] },
+
+    { "id": "j-1993", "typ": "frage", "rev": 1,
+      "frage": "Ab 1993",
+      "antworten": ["Aufnahme von Damen in den AHV"],
+      "notiz": "Erst zu diesem Zeitpunkt erlaubte der VASV Damen." },
+
+    { "id": "j-1996", "typ": "frage", "rev": 1,
+      "frage": "1996",
+      "antworten": ["Überreichung des Fechters durch die Fridericiana zu Breslau"] },
+
+    { "id": "j-2000er", "typ": "frage", "rev": 1,
+      "frage": "2000er Jahre",
+      "antworten": ["Große Fluktuation auf dem Haus und dadurch wenige Eintritte in den AHV"] },
+
+    { "id": "warum-universitas", "typ": "frage", "rev": 1,
+      "frage": "Warum hieß der Bund bei der Gründung AB Universitas und nicht Ingvaeonia?",
+      "antworten": ["Der englischen Militärregierung gefiel der Name Ingvaeonia nicht. Außerdem wünschte sie sich Frauen im Bund. Der Bund erhielt die Wahl: entweder ein entmilitarisierter Name oder Frauen im Bund — der Name wurde geopfert."] },
+
+    { "id": "woher-ingvaeonia", "typ": "frage", "rev": 1,
+      "frage": "Wonach ist der Name Ingvaeonia benannt?",
+      "antworten": ["Nach der Kulturgemeinschaft germanischer Stämme, die im Raum Münster/Osnabrück siedelten"] },
+
+    { "id": "warum-patenschaft", "typ": "frage", "rev": 1,
+      "frage": "Warum schloss der Bund 1954 ein Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau?",
+      "antworten": ["Die AB Ingvaeonia hatte eine Aktivitas, aber keinen bzw. nur einen sehr kleinen AHV. Breslau hatte einen AHV, aber keine Aktivitas mehr."] },
+
+    { "id": "abgeschafft-1968", "typ": "frage", "rev": 1,
+      "frage": "Was wurde mit der Satzungsänderung im WiSe 1968/69 abgeschafft?",
+      "antworten": ["Fuxenstatus, Burschung, Zipfel, Kommerse und das Singen von Studentenliedern"] },
+
+    { "id": "umbenannt-1968", "typ": "frage", "rev": 1,
+      "frage": "Was wurde mit der Satzungsänderung im WiSe 1968/69 umbenannt?",
+      "antworten": ["AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender"] },
+
+    { "id": "gesundschrumpfen", "typ": "frage", "rev": 1,
+      "frage": "Was folgte auf die lose Führung des Bundes nach 1971?",
+      "antworten": ["Motivgruppen und Info-AG statt erzwungener Teilnahme am Bundesleben, dazu fehlende bzw. aufgelöste Strukturen — daraus ein starker Schwund der Mitgliederzahlen, das „Gesundschrumpfen“. Die Gefahr wurde zu spät erkannt."] },
+
+    { "id": "fruehes-bundesleben", "typ": "frage", "rev": 1,
+      "frage": "Wie sah das frühe Bundesleben nach der Aufnahme in den SV aus?",
+      "antworten": ["Wöchentliche Fuxenstunden durch den Fuxmajor, Chorübungen, wöchentliche Treffen und wissenschaftliche Vorträge. Füxe durften am Burschenkonvent nicht teilnehmen."] },
+
+    { "id": "reihe-heime", "typ": "reihenfolge", "rev": 1,
+      "frage": "Bringe die Heime des Bundes in die richtige Reihenfolge.",
+      "elemente": [
+        "Wolbecker Straße (ab 1957)",
+        "Nebenzimmer im „Schlegeleck“ am Ludgeriplatz (ab 1961/62)",
+        "Kellerraum in der Königsstraße 45 (ab 1963)",
+        "Eigenes Haus in der Wehrstraße 1a (Einzug Ende 1970)"
+      ] },
+
+    { "id": "reihe-namen", "typ": "reihenfolge", "rev": 1,
+      "frage": "Bringe die Namen des Bundes in die richtige Reihenfolge.",
+      "elemente": ["AB Universitas", "AB Ingvaeonia", "AMB Münster", "AMB Ingvaeonia"] }
+  ]
+}

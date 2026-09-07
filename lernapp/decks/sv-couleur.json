@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "id": "sv-couleur",
+  "titel": "Couleur des SV",
+  "untertitel": "Die aktiven Verbindungen des Sondershäuser Verbands",
+  "quelle": "quellen/sv-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft",
+  "stand": "2026-09-07",
+  "helleFarben": [
+    "#fefefe",
+    "#fcc256",
+    "#fcc356",
+    "#fcb543",
+    "#98d1fe",
+    "#97d0fd",
+    "#f59dae",
+    "#f59cad"
+  ],
+  "karten": [
+    {
+      "id": "agv-muenchen",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#f59dae"
+          },
+          {
+            "farbe": "#fefefe"
+          }
+        ]
+      },
+      "farben": "rosa-weiß",
+      "antworten": [
+        {
+          "name": "AGV München",
+          "ort": "München"
+        },
+        {
+          "name": "AMV Fridericiana",
+          "ort": "Erlangen"
+        }
+      ]
+    },
+    {
+      "id": "amb-ingvaeonia-muenster",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fe192b"
+          },
+          {
+            "farbe": "#e3ae4d",
+            "breite": 0.05
+          },
+          {
+            "farbe": "#0a0a0a",
+            "breite": 0.9
+          },
+          {
+            "farbe": "#fdc356",
+            "breite": 0.05
+          },
+          {
+            "farbe": "#fe182b"
+          }
+        ]
+      },
+      "farben": "rot-schwarz-rot, schwarzer Balken golden durchzogen",
+      "antworten": [
+        {
+          "name": "AMB Ingvaeonia",
+          "ort": "Münster"
+        }
+      ]
+    },
+    {
+      "id": "amdv-caecilia-hamburg",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fe154d"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fe8916"
+          }
+        ]
+      },
+      "farben": "karmesinrot-weiß-orange",
+      "antworten": [
+        {
+          "name": "AMDV Caecilia",
+          "ort": "Hamburg"
+        }
+      ]
+    },
+    {
+      "id": "amv-albingia-kiel",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#f59cad"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#0c9526"
+          }
+        ]
+      },
+      "farben": "rosa-weiß-grün",
+      "antworten": [
+        {
+          "name": "AMV Albingia",
+          "ort": "Kiel"
+        }
+      ]
+    },
+    {
+      "id": "amv-arion-aachen",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#3e50fe"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#007e0e"
+          }
+        ]
+      },
+      "farben": "blau-weiß-grün",
+      "antworten": [
+        {
+          "name": "AMV Arion",
+          "ort": "Aachen"
+        }
+      ]
+    },
+    {
+      "id": "amv-arminia-braunschweig",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#7e0037"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#007f46"
+          }
+        ]
+      },
+      "farben": "weinrot-weiß-meergrün",
+      "antworten": [
+        {
+          "name": "AMV Arminia",
+          "ort": "Braunschweig"
+        }
+      ]
+    },
+    {
+      "id": "amv-ascania-halle-clausthal",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#089415"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fc0000"
+          }
+        ]
+      },
+      "farben": "grün-weiß-rot",
+      "antworten": [
+        {
+          "name": "AMV Ascania",
+          "ort": "Halle-Clausthal"
+        }
+      ]
+    },
+    {
+      "id": "amv-berlin",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fc0000"
+          },
+          {
+            "farbe": "#fefefe"
+          }
+        ]
+      },
+      "farben": "rot-weiß",
+      "antworten": [
+        {
+          "name": "AMV Berlin",
+          "ort": "Berlin"
+        },
+        {
+          "name": "AMV Würzburg",
+          "ort": "Würzburg"
+        }
+      ]
+    },
+    {
+      "id": "amv-fridericiana-marburg",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#000000"
+          },
+          {
+            "farbe": "#007f47"
+          },
+          {
+            "farbe": "#fe0000"
+          }
+        ]
+      },
+      "farben": "schwarz-meergrün-rot",
+      "antworten": [
+        {
+          "name": "AMV Fridericiana",
+          "ort": "Marburg"
+        }
+      ]
+    },
+    {
+      "id": "amv-innsbruck",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fc0000"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fc0000"
+          }
+        ]
+      },
+      "farben": "rot-weiß-rot",
+      "antworten": [
+        {
+          "name": "AMV Innsbruck",
+          "ort": "Innsbruck"
+        }
+      ]
+    },
+    {
+      "id": "amv-mainz",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#97d0fd"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#f59cad"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-rosa",
+      "antworten": [
+        {
+          "name": "AMV Mainz",
+          "ort": "Mainz"
+        }
+      ]
+    },
+    {
+      "id": "amv-makaria-bonn",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#98d1fe"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fc0000"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-rot",
+      "antworten": [
+        {
+          "name": "AMV Makaria",
+          "ort": "Bonn"
+        }
+      ]
+    },
+    {
+      "id": "amv-nordmark-hamburg",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#5da7fe"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fcc256"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-gold",
+      "antworten": [
+        {
+          "name": "AMV Nordmark",
+          "ort": "Hamburg"
+        }
+      ]
+    },
+    {
+      "id": "amv-stauffia-heidelberg",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fc0000"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fcc356"
+          }
+        ]
+      },
+      "farben": "rot-weiß-gold",
+      "antworten": [
+        {
+          "name": "AMV Stauffia",
+          "ort": "Heidelberg"
+        }
+      ]
+    },
+    {
+      "id": "amv-stochdorphia-tuebingen",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#010101"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fc0000"
+          }
+        ]
+      },
+      "farben": "schwarz-weiß-rot",
+      "antworten": [
+        {
+          "name": "AMV Stochdorphia",
+          "ort": "Tübingen"
+        }
+      ]
+    },
+    {
+      "id": "amv-waltharia-frankfurt",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#010000"
+          },
+          {
+            "farbe": "#fcb543"
+          },
+          {
+            "farbe": "#007f46"
+          }
+        ]
+      },
+      "farben": "schwarz-gold-meergrün",
+      "antworten": [
+        {
+          "name": "AMV Waltharia",
+          "ort": "Frankfurt"
+        }
+      ],
+      "notiz": "Praktisch dasselbe Band führt auch MSG Alt-Straßburg (Freiburg)."
+    },
+    {
+      "id": "awv-makaria-stuttgart",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#000000"
+          },
+          {
+            "farbe": "#fc0000"
+          },
+          {
+            "farbe": "#0063fe"
+          }
+        ]
+      },
+      "farben": "schwarz-rot-blau",
+      "antworten": [
+        {
+          "name": "AWV Makaria",
+          "ort": "Stuttgart"
+        }
+      ]
+    },
+    {
+      "id": "msg-alt-strassburg-freiburg",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#000000"
+          },
+          {
+            "farbe": "#fcb543"
+          },
+          {
+            "farbe": "#007f46"
+          }
+        ]
+      },
+      "farben": "schwarz-gold-meergrün",
+      "antworten": [
+        {
+          "name": "MSG Alt-Straßburg",
+          "ort": "Freiburg"
+        }
+      ],
+      "notiz": "Praktisch dasselbe Band führt auch AMV Waltharia (Frankfurt)."
+    },
+    {
+      "id": "mv-liubicia-luebeck",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fd0002"
+          },
+          {
+            "farbe": "#2e8a57"
+          }
+        ]
+      },
+      "farben": "weiß-rot-meergrün",
+      "antworten": [
+        {
+          "name": "MV Liubicia",
+          "ort": "Lübeck"
+        }
+      ]
+    },
+    {
+      "id": "stmv-blaue-saenger-goettingen",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#98d1fe"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#98d1fe"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-hellblau",
+      "antworten": [
+        {
+          "name": "StMV Blaue Sänger",
+          "ort": "Göttingen"
+        }
+      ]
+    },
+    {
+      "id": "musische-gruppe-auerbach-darmstadt",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#98d1fe"
+          },
+          {
+            "farbe": "#fefefe"
+          },
+          {
+            "farbe": "#fcc256"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-gold",
+      "antworten": [
+        {
+          "name": "musische gruppe auerbach",
+          "ort": "Darmstadt"
+        }
+      ]
+    }
+  ]
+}

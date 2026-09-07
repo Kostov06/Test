@@ -1,0 +1,717 @@
+{
+  "schema": 1,
+  "id": "muenster-couleur",
+  "titel": "Couleur in Münster",
+  "untertitel": "Die aktiven Verbindungen am Ort",
+  "quelle": "quellen/muenster-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft",
+  "stand": "2026-09-07",
+  "helleFarben": [
+    "#ffffff",
+    "#c3c6cb",
+    "#f2d200",
+    "#f0c31c",
+    "#95cef0",
+    "#f3b4c6",
+    "#2fd3bd"
+  ],
+  "karten": [
+    {
+      "id": "l-sorabia-westfalen-1716",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#0f37cf"
+          },
+          {
+            "farbe": "#f0c31c"
+          },
+          {
+            "farbe": "#0f37cf"
+          }
+        ]
+      },
+      "farben": "blau-gold-blau",
+      "antworten": [
+        {
+          "name": "L! Sorabia-Westfalen",
+          "jahr": 1716,
+          "verband": "CC",
+          "anmerkung": "Zweitband: weiß-schwarz-grün-weiß"
+        }
+      ]
+    },
+    {
+      "id": "s-zu-st-pauli-jena-et-burgundia-breslau-1828",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#95cef0"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#101f78"
+          }
+        ]
+      },
+      "farben": "hellblau-weiß-dunkelblau (v.u.)",
+      "antworten": [
+        {
+          "name": "S! zu St. Pauli Jena et Burgundia Breslau",
+          "jahr": 1828,
+          "verband": "DS",
+          "anmerkung": "Zweitband: weiß-blau-rot-weiß"
+        },
+        {
+          "name": "Akad. Ruderverbindung Westfalen",
+          "jahr": 1891,
+          "verband": "ARB"
+        }
+      ]
+    },
+    {
+      "id": "b-der-pflueger-halle-1837",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#7b2f8f"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#f0c31c"
+          }
+        ]
+      },
+      "farben": "violett-weiß-gold",
+      "antworten": [
+        {
+          "name": "B! der Pflüger Halle",
+          "jahr": 1837,
+          "verband": "verbandsfrei"
+        }
+      ]
+    },
+    {
+      "id": "kdstv-sauerlandia-1847",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#0f37cf"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#17a02a"
+          }
+        ]
+      },
+      "farben": "blau-weiß-grün",
+      "antworten": [
+        {
+          "name": "KDStV Sauerlandia",
+          "jahr": 1847,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "l-rhenania-1850",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#0f37cf"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "blau-weiß-rot",
+      "antworten": [
+        {
+          "name": "L! Rhenania",
+          "jahr": 1850,
+          "verband": "CC"
+        }
+      ]
+    },
+    {
+      "id": "kdstv-winfridia-breslau-1856",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#17a02a"
+          },
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#f0c31c"
+          }
+        ]
+      },
+      "farben": "grün-rot-gold",
+      "antworten": [
+        {
+          "name": "KDStV Winfridia Breslau",
+          "jahr": 1856,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "vkdst-saxonia-1863",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#17a02a"
+          }
+        ]
+      },
+      "farben": "rot-weiß-grün",
+      "antworten": [
+        {
+          "name": "VKDSt Saxonia",
+          "jahr": 1863,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "kstv-germania-1864",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#141414"
+          }
+        ]
+      },
+      "farben": "rot-weiß-schwarz",
+      "antworten": [
+        {
+          "name": "KStV Germania",
+          "jahr": 1864,
+          "verband": "KV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "b-franconia-1878",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#7b2f8f"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "violett-weiß-rot",
+      "antworten": [
+        {
+          "name": "B! Franconia",
+          "jahr": 1878,
+          "verband": "DB"
+        }
+      ]
+    },
+    {
+      "id": "vdst-muenster-1881",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "schwarz-weiß-rot",
+      "antworten": [
+        {
+          "name": "VDSt Münster",
+          "jahr": 1881,
+          "verband": "VVDSt",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "kdstv-alemannia-zu-greifswald-und-muenster-1891",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#f0c31c"
+          },
+          {
+            "farbe": "#17a02a"
+          }
+        ]
+      },
+      "farben": "schwarz-gold-grün",
+      "antworten": [
+        {
+          "name": "KDStV Alemannia zu Greifswald und Münster",
+          "jahr": 1891,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "av-cheruscia-1901",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#7b2f8f"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#141414"
+          }
+        ]
+      },
+      "farben": "violett-weiß-schwarz",
+      "antworten": [
+        {
+          "name": "AV Cheruscia",
+          "jahr": 1901,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "av-zollern-1901",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#ffffff",
+            "breite": 0.5
+          },
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#ffffff",
+            "breite": 0.5
+          }
+        ]
+      },
+      "farben": "rot-schwarz auf weiß",
+      "antworten": [
+        {
+          "name": "AV Zollern",
+          "jahr": 1901,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "kstv-markomannia-1901",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#f0c31c"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "schwarz-gold-rot",
+      "antworten": [
+        {
+          "name": "KStV Markomannia",
+          "jahr": 1901,
+          "verband": "KV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "kstv-cimbria-1901",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#f0c31c"
+          },
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#ffffff"
+          }
+        ]
+      },
+      "farben": "gold-schwarz-weiß",
+      "antworten": [
+        {
+          "name": "KStV Cimbria",
+          "jahr": 1901,
+          "verband": "KV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "atv-westmark-1902",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#f0c31c"
+          }
+        ]
+      },
+      "farben": "rot-weiß-gold",
+      "antworten": [
+        {
+          "name": "ATV Westmark",
+          "jahr": 1902,
+          "verband": "ATB",
+          "anmerkung": "farbenführend"
+        },
+        {
+          "name": "Münsterscher Wingolf",
+          "jahr": 1903,
+          "verband": "WB"
+        }
+      ]
+    },
+    {
+      "id": "wkstv-unitas-winfridia-1902",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#0f37cf"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#f0c31c"
+          }
+        ]
+      },
+      "farben": "blau-weiß-gold",
+      "antworten": [
+        {
+          "name": "WKStV Unitas Winfridia",
+          "jahr": 1902,
+          "verband": "UV",
+          "anmerkung": "farbenführend"
+        },
+        {
+          "name": "WKStV Unitas Rolandia",
+          "jahr": 1919,
+          "verband": "UV",
+          "anmerkung": "farbenführend"
+        },
+        {
+          "name": "WKStV Unitas Anna Westphalia",
+          "jahr": 2016,
+          "verband": "UV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "av-alsatia-1904",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#95cef0"
+          },
+          {
+            "farbe": "#c3c6cb"
+          },
+          {
+            "farbe": "#141414"
+          }
+        ]
+      },
+      "farben": "hellblau-silber-schwarz",
+      "antworten": [
+        {
+          "name": "AV Alsatia",
+          "jahr": 1904,
+          "verband": "CV"
+        }
+      ]
+    },
+    {
+      "id": "corps-rheno-guestphalia-1908",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#0f37cf"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "weiß-blau-rot",
+      "antworten": [
+        {
+          "name": "Corps Rheno-Guestphalia",
+          "jahr": 1908,
+          "verband": "KSCV",
+          "anmerkung": "pflichtschlagend"
+        }
+      ]
+    },
+    {
+      "id": "kstv-ravensberg-1919",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#17a02a"
+          },
+          {
+            "farbe": "#f0c31c"
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "grün-gold-rot",
+      "antworten": [
+        {
+          "name": "KStV Ravensberg",
+          "jahr": 1919,
+          "verband": "KV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "kstv-franko-silesia-breslau-et-eresburg-1922",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#f2d200"
+          }
+        ]
+      },
+      "farben": "schwarz-weiß-gelb",
+      "antworten": [
+        {
+          "name": "KStV Franko-Silesia-Breslau et Eresburg",
+          "jahr": 1922,
+          "verband": "KV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "amb-ingvaeonia-1947",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#e2122b"
+          },
+          {
+            "farbe": "#f2d200",
+            "breite": 0.09
+          },
+          {
+            "farbe": "#141414",
+            "breite": 0.9
+          },
+          {
+            "farbe": "#f2d200",
+            "breite": 0.09
+          },
+          {
+            "farbe": "#e2122b"
+          }
+        ]
+      },
+      "farben": "gelb-schwarz-gelb auf rot",
+      "antworten": [
+        {
+          "name": "AMB Ingvaeonia",
+          "jahr": 1947,
+          "verband": "SV",
+          "anmerkung": "farbenführend"
+        }
+      ]
+    },
+    {
+      "id": "akad-jagdverbindung-hermann-loens-1954",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#17a02a"
+          },
+          {
+            "farbe": "#141414"
+          },
+          {
+            "farbe": "#ffffff"
+          }
+        ]
+      },
+      "farben": "grün-schwarz-weiß",
+      "antworten": [
+        {
+          "name": "Akad. Jagdverbindung Hermann Löns",
+          "jahr": 1954,
+          "verband": "WJSC"
+        }
+      ]
+    },
+    {
+      "id": "adv-helenia-monasteria-1988",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#c3c6cb"
+          },
+          {
+            "farbe": "#2fd3bd"
+          },
+          {
+            "farbe": "#f0c31c"
+          }
+        ]
+      },
+      "farben": "silber-türkisgrün-gold",
+      "antworten": [
+        {
+          "name": "ADV Helenia Monasteria",
+          "jahr": 1988,
+          "verband": "verbandsfrei"
+        }
+      ]
+    },
+    {
+      "id": "adv-athena-2012",
+      "typ": "couleur",
+      "rev": 1,
+      "band": {
+        "streifen": [
+          {
+            "farbe": "#ffffff"
+          },
+          {
+            "farbe": "#f3b4c6"
+          },
+          {
+            "farbe": "#141414"
+          }
+        ]
+      },
+      "farben": "weiß-rosa-schwarz",
+      "antworten": [
+        {
+          "name": "ADV Athena",
+          "jahr": 2012,
+          "verband": "verbandsfrei"
+        }
+      ]
+    }
+  ]
+}
