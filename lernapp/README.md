@@ -30,9 +30,10 @@ python3 -m http.server 8000     # dann http://localhost:8000/
 node tests/run-tests.mjs
 ```
 
-Prüft alle Stapel gegen das Schema und vergleicht die Couleur-Stapel Streifen
-für Streifen mit den geprüften Prototypen in `quellen/`. Nach jeder Änderung
-an `decks/` oder `src/` laufen lassen.
+Prüft alle Stapel gegen das Schema, vergleicht die Couleur-Stapel Streifen
+für Streifen mit den geprüften Prototypen in `quellen/` und stellt sicher,
+dass `sw.js` die Kennung des aktuellen Inhalts trägt. Nach jeder Änderung an
+`decks/` oder `src/` laufen lassen.
 
 ## Aufbau
 
@@ -55,6 +56,7 @@ decks/                     die Stapel als JSON — hier wird Inhalt gepflegt
 quellen/                   die geprüften Prototypen, gegen die getestet wird
 tools/
   migriere-prototypen.mjs  erzeugt die beiden Couleur-Stapel aus quellen/
+  fassung-stempeln.mjs     schreibt die Inhaltskennung in sw.js
   build-einzeldatei.mjs    baut lernapp.html
 tests/run-tests.mjs
 ```
@@ -67,8 +69,13 @@ Ohne Code anzufassen:
    (oder über **Schnelleingabe** aus einer Handbuchseite einlesen).
 2. **Herunterladen** — die Datei nach `decks/` legen.
 3. Die Kennung des Stapels in `decks/index.json` eintragen.
-4. `node tests/run-tests.mjs`, dann `node tools/build-einzeldatei.mjs`.
+4. `node tools/fassung-stempeln.mjs`, dann `node tests/run-tests.mjs`,
+   dann `node tools/build-einzeldatei.mjs`.
 5. Committen.
+
+Der Stempelschritt schreibt eine Kennung aus dem Inhalt in `sw.js`. Ohne ihn
+liefern schon installierte Handys weiter die alte Fassung aus dem Cache aus —
+`tests/run-tests.mjs` schlägt deshalb fehl, wenn der Stempel fehlt.
 
 ## Das Schema
 

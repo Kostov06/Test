@@ -2,6 +2,7 @@
 // Der wichtigste Test ist der letzte: kein Farbwert darf sich gegenüber den
 // geprüften Prototypen verschoben haben.
 import { readFileSync, readdirSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -176,6 +177,13 @@ pruefe("Schema beanstandet eine fehlende rev", () =>
 pruefe("Es gibt für jedes Fach ein Intervall", () => gleich(INTERVALLE.length, FAECHER));
 pruefe("Die Intervalle wachsen", () =>
   wahr(INTERVALLE.every((n, i) => i === 0 || n > INTERVALLE[i - 1])));
+
+// ------------------------------------------------- Service-Worker-Fassung
+pruefe("sw.js trägt die Kennung des aktuellen Inhalts", () => {
+  const { status, stderr } = spawnSync(process.execPath,
+    [join(wurzel, "tools", "fassung-stempeln.mjs"), "--pruefe"], { encoding: "utf8" });
+  wahr(status === 0, (stderr || "").trim());
+});
 
 console.log(`${gelaufen - gefallen} von ${gelaufen} Prüfungen bestanden.`);
 process.exit(gefallen ? 1 : 0);
