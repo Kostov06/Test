@@ -26,8 +26,15 @@ export function erstelle(einheit) {
       // Die Lösung steht schon da, nur unsichtbar: so springt beim Auflösen
       // keine Zeile um, und die Länge der Lücke bleibt der Hinweis, der sie
       // beim Auswendiglernen einer Strophe sein soll.
-      const el = h("span", { class: "luecke", text: t.loesungen[0], "aria-label": "Lücke" });
-      luecken.push({ el, teil: t });
+      //
+      // Unsichtbar heißt aber nicht verborgen: als bloß durchsichtiger Text
+      // ließe sich die Lösung markieren, kopieren und vorlesen. Sie liegt
+      // deshalb in einem eigenen Kind, das die CSS-Regel mit visibility
+      // ausblendet, und für Screenreader steht daneben das Wort „Lücke“.
+      const loesung = h("span", { class: "wort", text: t.loesungen[0] });
+      const marke = h("span", { class: "nur-vorlesen", text: "Lücke" });
+      const el = h("span", { class: "luecke" }, loesung, marke);
+      luecken.push({ el, marke, teil: t });
       return el;
     }));
 
@@ -37,9 +44,9 @@ export function erstelle(einheit) {
       h("div", { class: "antwort" }, absatz),
     ],
     antwort: () => {
-      for (const { el } of luecken) {
+      for (const { el, marke } of luecken) {
         el.classList.add("gefuellt");
-        el.removeAttribute("aria-label");
+        marke.remove();
       }
       const mehrere = luecken.filter(({ teil }) => teil.loesungen.length > 1);
       // Die Trennlinie unter der Zählzeile nur, wenn darunter auch etwas steht.

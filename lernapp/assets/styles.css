@@ -99,9 +99,17 @@ select:focus-visible,li:focus-visible,[tabindex]:focus-visible{
 
 /* --------------------------------------------------------- Lückentext */
 .lueckentext{font-size:16px;line-height:1.9;white-space:pre-wrap;margin:0}
-.luecke{border-bottom:1px solid var(--ink);padding:0 .45em;color:transparent}
-.luecke.gefuellt{border-bottom-color:var(--accent);color:var(--ink);font-weight:600;
-  background:rgba(61,90,63,.09)}
+.luecke{border-bottom:1px solid var(--ink);padding:0 .45em}
+/* Die Lösung hält die Breite der Lücke, ist aber vor dem Auflösen weder zu
+   sehen noch zu markieren, zu kopieren oder vorzulesen: visibility:hidden
+   nimmt sie aus Darstellung, Auswahl und Zugänglichkeitsbaum, nicht aber
+   aus dem Umbruch. Mit bloß durchsichtiger Schrift wäre sie kopierbar. */
+.luecke .wort{visibility:hidden;font-weight:600}
+.luecke.gefuellt{border-bottom-color:var(--accent);background:rgba(61,90,63,.09)}
+.luecke.gefuellt .wort{visibility:visible}
+/* Nur für Screenreader: nimmt keinen Platz, bleibt aber im Zugänglichkeitsbaum. */
+.nur-vorlesen{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 
 /* --------------------------------------------------------- Reihenfolge */
 .reihe{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
@@ -124,7 +132,9 @@ select:focus-visible,li:focus-visible,[tabindex]:focus-visible{
 .score b{color:var(--ink);font-weight:600}
 
 /* ------------------------------------------------------------ Statistik */
-.tabelle{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+/* Auf schmalen Geräten scrollt die Tabelle in sich, nie die ganze Seite. */
+.tabellenrahmen{overflow-x:auto;margin-top:6px;-webkit-overflow-scrolling:touch}
+.tabelle{width:100%;min-width:340px;border-collapse:collapse;font-size:14px}
 .tabelle th,.tabelle td{text-align:left;padding:9px 6px 9px 0;border-bottom:1px solid var(--rule)}
 .tabelle th{font-size:12.5px;color:var(--muted);font-weight:400}
 .tabelle td.zahl,.tabelle th.zahl{text-align:right;padding:9px 0 9px 12px;font-variant-numeric:tabular-nums}

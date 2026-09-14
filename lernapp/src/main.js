@@ -32,7 +32,7 @@ function ansichtStart() {
   const knopfLernen = h("button", { class: "solid", onclick: () => starteSitzung() });
   const aktualisiere = () => {
     const n = zaehle();
-    knopfLernen.textContent = n ? `${n} Karten lernen` : "Nichts zu tun";
+    knopfLernen.textContent = n ? `${n} ${n === 1 ? "Abfrage" : "Abfragen"} lernen` : "Nichts zu tun";
     knopfLernen.disabled = n === 0;
   };
 
@@ -61,7 +61,7 @@ function ansichtStart() {
     return h("li", {}, h("label", {}, kasten, h("div", {},
       h("div", { class: "titel", text: w.stapel.titel }),
       h("div", { class: "zeile" },
-        h("b", { text: String(w.gesamt) }), " Karten · ",
+        h("b", { text: String(w.gesamt) }), w.gesamt === w.stapel.karten.length ? " Karten · " : " Abfragen · ",
         h("b", { text: String(w.sitzt) }), " sitzen",
         w.haken ? [" · ", h("b", { text: String(w.haken) }), " haken"] : null,
         w.faellig ? [" · ", h("b", { text: String(w.faellig) }), " fällig"] : null),
@@ -181,21 +181,24 @@ function ansichtStatistik() {
     h("div", { class: "kopf" },
       h("h1", { text: "Statistik" }),
       h("button", { class: "zurueck", onclick: () => { location.hash = "#/"; } }, "Übersicht")),
-    h("table", { class: "tabelle" },
+    h("div", { class: "tabellenrahmen" }, h("table", { class: "tabelle" },
       h("thead", {}, h("tr", {},
         h("th", { text: "Stapel" }),
         h("th", { class: "zahl", text: "Karten" }),
+        h("th", { class: "zahl", text: "Abfragen" }),
         h("th", { class: "zahl", text: "neu" }),
         h("th", { class: "zahl", text: "sitzen" }),
         h("th", { class: "zahl", text: "haken" }))),
       h("tbody", {}, werte.map((w) => h("tr", {},
         h("td", { text: w.stapel.titel }),
+        h("td", { class: "zahl", text: String(w.stapel.karten.length) }),
         h("td", { class: "zahl", text: String(w.gesamt) }),
         h("td", { class: "zahl", text: String(w.neu) }),
         h("td", { class: "zahl", text: String(w.sitzt) }),
-        h("td", { class: "zahl", text: String(w.haken) }))))),
+        h("td", { class: "zahl", text: String(w.haken) })))))),
     h("p", { class: "hinweis",
-      text: `„Sitzen“ heißt Fach 4 oder 5 von ${FAECHER}, „haken“ heißt: zuletzt falsch und noch in Fach 1 oder 2.` }),
+      text: `„Sitzen“ heißt Fach 4 oder 5 von ${FAECHER}, „haken“ heißt: zuletzt falsch und noch in Fach 1 oder 2. `
+        + "Ein Begriff, der in beide Richtungen abgefragt wird, ist eine Karte, aber zwei Abfragen." }),
     ...werte.flatMap((w) => {
       const liste = wasHakt(w.stapel);
       if (!liste.length) return [];
@@ -233,8 +236,12 @@ function tasten(ev) {
   if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return;
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
 
+  // Leertaste und Enter lösen einen fokussierten Knopf schon selbst aus.
+  // Griffe die Abkürzung zusätzlich, passierte zweierlei auf einen Druck.
+  const aufKnopf = ziel && ziel.tagName === "BUTTON";
   const taste = ev.key.toLowerCase();
   if (!enthuellt && (ev.key === " " || taste === "enter")) {
+    if (aufKnopf) return;
     if (!kartenObjekt.bereit || kartenObjekt.bereit()) {
       ev.preventDefault(); enthuellt = true; zeichne();
     }

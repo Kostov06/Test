@@ -287,7 +287,6 @@ export function redaktionsAnsicht(stapel, kaputt, zurueck) {
     // dann fällt die Karte bei allen zurück in Fach 1.
     const alt = (original.karten || []).find((k) => k.id === offen.urspruenglicheId);
     const neu = { ...offen.karte };
-    delete neu.urspruenglicheId;
     if (alt) {
       const a = { ...alt }, b = { ...neu };
       delete a.rev; delete b.rev;

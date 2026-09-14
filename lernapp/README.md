@@ -57,6 +57,7 @@ quellen/                   die geprüften Prototypen, gegen die getestet wird
 tools/
   migriere-prototypen.mjs  erzeugt die beiden Couleur-Stapel aus quellen/
   fassung-stempeln.mjs     schreibt die Inhaltskennung in sw.js
+  icons-bauen.mjs          erzeugt die App-Symbole aus Ingvaeonias Farbband
   build-einzeldatei.mjs    baut lernapp.html
 tests/run-tests.mjs
 ```
@@ -99,7 +100,7 @@ Hairline um helle Streifen genau steuern will. Die beiden geprüften Stapel
 bringen die Listen ihrer Prototypen wörtlich mit und werden dadurch
 pixelgleich gezeichnet. Fehlt die Liste, entscheidet die Helligkeit der Farbe.
 
-Jede Karte hat `id`, `typ`, `rev` und optional `notiz` und `tags`.
+Jede Karte hat `id`, `typ`, `rev` und optional `notiz`.
 
 * **`id`** ist dauerhaft. Der Fortschritt aller Lernenden hängt daran —
   eine geänderte Kennung setzt die Karte für alle auf null.
@@ -183,6 +184,14 @@ Ein verschachteltes Array bedeutet: an dieser Stelle ist die Reihenfolge
 untereinander egal — sonst würde die App eine Ordnung als richtig lehren,
 die es nicht gibt.
 
+## Karte und Abfrage
+
+Eine **Karte** ist ein Eintrag in `decks/`. Eine **Abfrage** ist das, was beim
+Lernen einmal auf dem Schirm steht und einen eigenen Platz im Leitner-Fach
+hat. Meist ist das dasselbe — nur ein Begriff mit `richtung: "beide"` ist
+eine Karte, aber zwei Abfragen. Die Redaktionsansicht zählt Karten, die
+Lernansicht zählt Abfragen; die Statistik zeigt beides nebeneinander.
+
 ## Lernen
 
 Leitner mit fünf Fächern. „Gewusst“ rückt eine Karte ein Fach weiter,
@@ -202,6 +211,14 @@ Tastatur: Leertaste zeigt die Antwort, `S` stellt zurück, `G` gewusst,
 | `sv-couleur`, `muenster-couleur` | die geprüften Prototypen in `quellen/`, maschinell übertragen |
 | `ingvaeonia-geschichte` | Ältestenrat, „Die Geschichte des AMB Ingvaeonia“ |
 | `comment-kneipe`, `begriffe`, `verbandskunde`, `lieder` | Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“ |
+
+An den Liedstrophen sind drei Schreibfehler der Vorlage stillschweigend
+berichtigt: `heisst’s` → `heißt’s`, das Wiederholungszeichen `¦:` → `|:`
+(die Folie benutzt den Broken Bar statt des Taktstrichs) und ein `noch` am
+Satzanfang großgeschrieben. Sonst stehen die Strophen Wort für Wort wie in
+der Vorlage. Die App-Symbole in `assets/` sind kein Bild, sondern aus
+`decks/muenster-couleur.json` gerechnet — auch das Symbol erfindet keine
+Farbe.
 
 Die Farbwerte der beiden Couleur-Stapel wurden nur umgeformt, nie neu
 bestimmt. `tests/run-tests.mjs` vergleicht sie bei jedem Lauf Streifen für

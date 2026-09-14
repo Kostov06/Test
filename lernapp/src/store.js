@@ -39,9 +39,3 @@ export function setzeEintrag(schluessel, wert) {
 
 export function auswahl() { return roh().auswahl; }
 export function setzeAuswahl(ids) { roh().auswahl = ids; sichere(); }
-
-export function vergiss(schluesselTest) {
-  const e = roh().eintraege;
-  for (const k of Object.keys(e)) if (schluesselTest(k)) delete e[k];
-  sichere();
-}

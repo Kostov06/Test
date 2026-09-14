@@ -10,7 +10,7 @@ import { pruefeStapel } from "../src/schema.js";
 import { zerlege } from "../src/karten/lueckentext.js";
 import { istRichtig, gruppen } from "../src/karten/reihenfolge.js";
 import { ausSchnelleingabe } from "../src/redaktion.js";
-import { INTERVALLE, FAECHER } from "../src/leitner.js";
+import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/leitner.js";
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
@@ -177,6 +177,55 @@ pruefe("Schema beanstandet eine fehlende rev", () =>
 pruefe("Es gibt für jedes Fach ein Intervall", () => gleich(INTERVALLE.length, FAECHER));
 pruefe("Die Intervalle wachsen", () =>
   wahr(INTERVALLE.every((n, i) => i === 0 || n > INTERVALLE[i - 1])));
+
+// store.js fällt ohne localStorage auf einen Speicher im Arbeitsspeicher
+// zurück — damit ist die Leitner-Logik hier prüfbar.
+const einheit = (rev) => ({ schluessel: "probe/karte", karte: { rev } });
+
+pruefe("Gewusst rückt ein Fach weiter, falsch setzt auf Fach 1 zurück", () => {
+  const e = einheit(1);
+  gleich(stand(e).fach, 1, "Startfach");
+  bewerte(e, true);  gleich(stand(e).fach, 2, "nach einmal gewusst");
+  bewerte(e, true);  gleich(stand(e).fach, 3, "nach zweimal gewusst");
+  bewerte(e, false); gleich(stand(e).fach, 1, "nach falsch");
+  gleich(stand(e).richtig, 2, "gezählte Treffer");
+  gleich(stand(e).falsch, 1, "gezählte Fehler");
+});
+
+pruefe("Fach 5 ist die Obergrenze", () => {
+  const e = einheit(1);
+  for (let i = 0; i < 10; i++) bewerte(e, true);
+  gleich(stand(e).fach, FAECHER);
+});
+
+pruefe("Eine falsch beantwortete Karte ist sofort wieder fällig", () => {
+  const e = einheit(1);
+  bewerte(e, false);
+  wahr(istFaellig(stand(e)), "sollte heute fällig sein");
+  wahr(hakt(stand(e)), "sollte als „hakt“ gelten");
+});
+
+pruefe("Eine gewusste Karte ist heute nicht mehr fällig", () => {
+  const e = einheit(1);
+  bewerte(e, true);
+  wahr(!istFaellig(stand(e)), "Fach 2 heißt: frühestens morgen wieder");
+});
+
+pruefe("Ein neuer rev wirft die Karte zurück in Fach 1", () => {
+  const e = einheit(1);
+  for (let i = 0; i < 4; i++) bewerte(e, true);
+  gleich(stand(e).fach, FAECHER, "erst einmal in Fach 5");
+  // Dieselbe Karte, aber der Inhalt wurde korrigiert.
+  const korrigiert = einheit(2);
+  gleich(stand(korrigiert).fach, 1, "nach der Korrektur");
+  wahr(istFaellig(stand(korrigiert)), "und sofort wieder fällig");
+});
+
+pruefe("Ein gleich gebliebener rev lässt den Fortschritt in Ruhe", () => {
+  const e = { schluessel: "probe/ruhig", karte: { rev: 3 } };
+  bewerte(e, true); bewerte(e, true);
+  gleich(stand({ schluessel: "probe/ruhig", karte: { rev: 3 } }).fach, 3);
+});
 
 // ------------------------------------------------- Service-Worker-Fassung
 pruefe("sw.js trägt die Kennung des aktuellen Inhalts", () => {
