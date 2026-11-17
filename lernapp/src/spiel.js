@@ -5,7 +5,7 @@ import { KOEPFE, KOPF_ANSICHT } from "./koepfe.js";
 import { band } from "./karten/couleur.js";
 import { hellPruefer } from "./decks.js";
 import {
-  held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN,
+  held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN, HAARFARBEN, haarfarbe,
   nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht,
 } from "./held.js";
 
@@ -92,11 +92,20 @@ export function heldAnlegen(fertig) {
         });
         // Vorschau im gewählten Hautton — man sieht, was man bekommt.
         knopf.innerHTML = `<svg viewBox="110 60 500 520" aria-hidden="true">`
-          + k.svg.split("{{HAUT}}").join(held().haut) + `</svg>`;
+          + k.svg.split("{{HAUT}}").join(held().haut)
+                 .split("{{HAAR}}").join(haarfarbe(held().haarfarbe)) + `</svg>`;
         return knopf;
       })),
       h("p", { class: "hinweis",
         text: `${KOEPFE.length} Frisuren aus „Open Peeps“ von Pablo Stanley, gemeinfrei.` }),
+
+      h("h2", { text: "Haarfarbe" }),
+      h("div", { class: "wahl" }, HAARFARBEN.map((f) =>
+        h("button", {
+          class: "farbknopf", "aria-pressed": held().haarfarbe === f.id ? "true" : "false",
+          "aria-label": f.name, title: f.name, style: `background:${f.wert}`,
+          onclick: () => { aendere({ haarfarbe: f.id }); zeichne(); },
+        }))),
 
       h("h2", { text: "Hautton" }),
       h("div", { class: "wahl" }, HAUTTOENE.map((t, i) =>

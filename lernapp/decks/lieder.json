@@ -3,18 +3,18 @@
   "id": "lieder",
   "titel": "Lieder",
   "untertitel": "Bundeslied und Liederbuch",
-  "quelle": "Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“ — Strophen wörtlich übernommen, bis auf drei Schreibfehler der Vorlage: „heisst’s“ → „heißt’s“, das Wiederholungszeichen ¦: → |:, und „noch“ nach einem Punkt großgeschrieben.",
+  "quelle": "Ältestenrat, Ältestenratsabend „Studentische Traditionen und Bummeln“ — Strophen wörtlich übernommen, bis auf drei Schreibfehler der Vorlage: „heisst’s“ → „heißt’s“, das Wiederholungszeichen ¦: → |:, und „noch“ nach einem Punkt großgeschrieben.",
   "stand": "2026-09-07",
   "karten": [
     {
       "id": "bundeslied-name",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Wie heißt unser Bundeslied?",
       "antworten": [
-        "„Noch ist die blühende goldene Zeit“",
-        "„Noch sind die Tage der Rosen“"
-      ]
+        "„Noch ist die blühende goldene Zeit“"
+      ],
+      "notiz": "Auch bekannt unter der Zeile „Noch sind die Tage der Rosen“."
     },
     {
       "id": "bundeslied-melodie",

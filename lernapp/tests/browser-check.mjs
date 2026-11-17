@@ -55,6 +55,12 @@ async function durchlauf(name, url, breite) {
   await s.locator(".frisurknopf").nth(9).click();
   await s.waitForTimeout(200);
   sag(await s.locator('.frisurknopf[aria-pressed="true"]').count() === 1, "genau eine Frisur gewählt");
+  const farben = await s.locator(".farbknopf").count();
+  sag(farben >= 12, `${farben} Farbknöpfe (Haarfarbe und Hautton)`);
+  await s.locator(".farbknopf").nth(4).click();
+  await s.waitForTimeout(200);
+  sag(await s.locator('.farbknopf[aria-pressed="true"]').count() === 2,
+      "je eine Haarfarbe und ein Hautton gewählt");
   await s.locator('button:has-text("Los geht")').click();
   await s.waitForTimeout(350);
   sag(await s.locator(".heldzeile .figur").count() === 1, "Figur mit gewählter Frisur auf der Übersicht");
@@ -81,7 +87,7 @@ async function durchlauf(name, url, breite) {
       else if (await s.locator(".frage").count()) {
         gesehen.add(await s.locator(".prompt").count() ? "begriff" : "frage");
       }
-      gewusstGesehen += await s.locator('button:has-text("Gewusst")').count();
+      gewusstGesehen += await s.locator('button:has-text("Antwort zeigen")').count();
 
       // Antworten, je nach Abfrageart
       if (await s.locator(".wahlfeld button").count()) {
@@ -96,7 +102,13 @@ async function durchlauf(name, url, breite) {
         const anz = await s.locator(".reihe button").count();
         for (let j = 0; j < anz; j++) await s.locator('.reihe button[aria-pressed="false"]').first().click();
         await s.getByRole("button", { name: "Prüfen", exact: true }).click();
-      } else break;
+      } else {
+        // Karte in Selbsteinschätzung — zurückstellen und weitermachen
+        const spaeter = s.locator('button:has-text("Später")');
+        if (!(await spaeter.count())) break;
+        await spaeter.click(); await s.waitForTimeout(80);
+        continue;
+      }
       await s.waitForTimeout(90);
       sag(await s.locator(".urteil").count() === 1, `Urteil erscheint (Stapel ${n + 1})`);
       sag(await s.locator(".antwort").count() >= 1, `Lösung erscheint (Stapel ${n + 1})`);
@@ -104,10 +116,54 @@ async function durchlauf(name, url, breite) {
       await s.waitForTimeout(80);
     }
   }
+  // Manche Kartenarten sind selten und nach einer Runde nicht mehr fällig.
+  // Statt auf Zufall zu hoffen, wird im Modus „Alle“ gezielt danach gesucht.
+  async function sucheArt(art, erkennen, beantworten) {
+    if (gesehen.has(art)) return;
+    await s.goto(url, { waitUntil: "domcontentloaded" });
+    await s.waitForTimeout(250);
+    await s.locator('button:has-text("Alle")').click();
+    await s.waitForTimeout(150);
+    const k = s.locator(".stapel input[type=checkbox]");
+    for (let j = 0; j < anzahl; j++) if (!(await k.nth(j).isChecked())) await k.nth(j).click();
+    await s.locator("button.solid").first().click();
+    await s.waitForTimeout(250);
+    for (let i = 0; i < 80; i++) {
+      if (await erkennen()) {
+        gesehen.add(art);
+        await beantworten();
+        await s.waitForTimeout(120);
+        sag(await s.locator(".urteil").count() === 1, `${art} wird selbst bewertet`);
+        return;
+      }
+      const spaeter = s.locator('button:has-text("Später")');
+      if (!(await spaeter.count())) return;
+      await spaeter.click(); await s.waitForTimeout(40);
+    }
+  }
+
+  await sucheArt("reihenfolge",
+    async () => (await s.locator(".reihe button").count()) > 0,
+    async () => {
+      moden.add("reihenfolge");
+      const n = await s.locator(".reihe button").count();
+      for (let j = 0; j < n; j++) await s.locator('.reihe button[aria-pressed="false"]').first().click();
+      await s.getByRole("button", { name: "Prüfen", exact: true }).click();
+    });
+  await sucheArt("lueckentext",
+    async () => (await s.locator(".lueckefeld").count()) > 0,
+    async () => {
+      moden.add("tippen");
+      await s.getByRole("button", { name: "Prüfen", exact: true }).click();
+    });
+  await sucheArt("begriff",
+    async () => (await s.locator(".prompt").count()) > 0 && (await s.locator(".wahlfeld button").count()) > 0,
+    async () => { moden.add("auswahl"); await s.locator(".wahlfeld button").first().click(); });
+
   sag(gesehen.size === 5, `alle fünf Kartentypen gesehen: ${[...gesehen].sort().join(", ")}`);
   sag(moden.size === 3, `alle drei Abfragearten: ${[...moden].sort().join(", ")}`);
   sag(gewusstGesehen === 0, gewusstGesehen
-    ? `„Gewusst“ tauchte ${gewusstGesehen}-mal auf` : "kein „Gewusst“ mehr — die App prüft selbst");
+    ? `Selbsteinschätzung tauchte ${gewusstGesehen}-mal auf` : "keine Selbsteinschätzung mehr — die App prüft selbst");
 
   // Münzen verdient?
   const muenzen = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).muenzen);
@@ -145,6 +201,8 @@ async function durchlauf(name, url, breite) {
   sag(await s.locator('.laden li:has-text("Krawatte")').count() >= 3, "mehrere Krawatten zur Wahl");
   sag(await s.locator('.laden li:has-text("Anzug,")').count() >= 3, "mehrere Anzüge zur Wahl");
   sag(await s.locator('.laden li:has-text("Octopott")').count() === 1, "der Octopott steht im Laden");
+  const rang = await s.locator(".beutel .meta").first().textContent();
+  sag(/Castinggast|Verkehrsgast|Vorläufiges/.test(rang), `Rang: ${rang.trim()}`);
 
   // Nirgends seitlich über den Rand
   const breit = await s.evaluate(() =>

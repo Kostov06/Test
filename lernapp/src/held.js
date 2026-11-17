@@ -6,9 +6,22 @@
 const SCHLUESSEL = "ael.held.v1";
 
 // Die Frisuren stehen in src/koepfe.js (Open Peeps, CC0) — dort steht auch,
-// wie sie dorthin kommen. Eine eigene Haarfarbe gibt es nicht mehr: in der
-// Vorlage ist das Haar Teil der Tuschezeichnung und lässt sich nicht sauber
-// umfärben. Dafür sind es jetzt 33 wirkliche Frisuren statt sechs Formen.
+// wie sie dorthin kommen. Das Haar ist in der Vorlage schwarz gezeichnet;
+// das Bauwerkzeug macht es färbbar, die Gesichtszüge bleiben schwarz.
+export const HAARFARBEN = [
+  { id: "schwarz", name: "Schwarz", wert: "#1d1a17" },
+  { id: "dunkelbraun", name: "Dunkelbraun", wert: "#3a2a1c" },
+  { id: "braun", name: "Braun", wert: "#6b4a2b" },
+  { id: "hellbraun", name: "Hellbraun", wert: "#9a6b3f" },
+  { id: "blond", name: "Blond", wert: "#c9a35e" },
+  { id: "hellblond", name: "Hellblond", wert: "#e0c48a" },
+  { id: "rot", name: "Rot", wert: "#a9502a" },
+  { id: "grau", name: "Grau", wert: "#9a958c" },
+  { id: "weiss", name: "Weiß", wert: "#dcd8d0" },
+];
+
+export const haarfarbe = (id) =>
+  (HAARFARBEN.find((f) => f.id === id) || HAARFARBEN[0]).wert;
 
 export const HAUTTOENE = ["#f2d3b8", "#e0b492", "#c08e63", "#8d5f3c", "#5e3b24"];
 
@@ -101,13 +114,17 @@ export const nachId = (id) => GEGENSTAENDE.find((g) => g.id === id) || null;
 
 // Ränge nach insgesamt verdienten Coins — nicht nach dem Kontostand,
 // sonst stiege man beim Einkaufen wieder ab.
+// Die Stufen des Bundes, nicht erfundene Spielränge. Die Schwellen sind
+// insgesamt verdiente Coins, nicht der Kontostand — sonst stiege man beim
+// Einkaufen wieder ab.
 export const RAENGE = [
-  { ab: 0, name: "Spefux" },
-  { ab: 400, name: "Fux" },
-  { ab: 1500, name: "Kneipgänger" },
-  { ab: 3500, name: "Kannenträger" },
-  { ab: 7000, name: "Chargierter" },
-  { ab: 14000, name: "Ältestenrat" },
+  { ab: 0, name: "Castinggast" },
+  { ab: 400, name: "Verkehrsgast" },
+  { ab: 1200, name: "Vorläufiges Mitglied" },
+  { ab: 2500, name: "Endgültiges Mitglied" },
+  { ab: 4500, name: "Vorstand" },
+  { ab: 7500, name: "Präside" },
+  { ab: 12000, name: "Philister" },
 ];
 
 export const rang = (verdient) =>
@@ -121,6 +138,7 @@ const START = () => ({
   name: "",
   figur: "schlank",
   haar: "short1",
+  haarfarbe: "braun",
   haut: HAUTTOENE[0],
   muenzen: 0,
   verdient: 0,

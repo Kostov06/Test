@@ -12,7 +12,7 @@ import { istRichtig, gruppen } from "../src/karten/reihenfolge.js";
 import { ausSchnelleingabe } from "../src/redaktion.js";
 import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/leitner.js";
 import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held, ersetze,
-         LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS } from "../src/held.js";
+         LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS, HAARFARBEN, haarfarbe } from "../src/held.js";
 import { KOEPFE } from "../src/koepfe.js";
 import { moeglichkeiten } from "../src/karten/auswahl.js";
 import { stimmt } from "../src/karten/lueckentext.js";
@@ -479,6 +479,43 @@ pruefe("Die Kennungen der Frisuren sind eindeutig", () => {
 pruefe("Die voreingestellte Frisur gibt es wirklich", () => {
   ersetze({});
   wahr(KOEPFE.some((k) => k.id === held().haar), `Vorgabe „${held().haar}“ steht nicht in koepfe.js`);
+});
+
+pruefe("Die Ränge sind die Stufen des Bundes", () => {
+  gleich(RAENGE.map((r) => r.name),
+    ["Castinggast", "Verkehrsgast", "Vorläufiges Mitglied", "Endgültiges Mitglied",
+     "Vorstand", "Präside", "Philister"]);
+});
+
+pruefe("Jede Frisur lässt sich einfärben und behält ihr Gesicht", () => {
+  for (const k of KOEPFE) {
+    wahr(k.svg.includes("{{HAAR}}"), `${k.id}: kein Platzhalter für die Haarfarbe`);
+    wahr(k.svg.includes('fill="#000"'), `${k.id}: keine schwarzen Gesichtszüge mehr`);
+    wahr(k.faerbbar, `${k.id}: nicht als färbbar gekennzeichnet`);
+  }
+});
+
+pruefe("Es gibt genug Haarfarben zur Wahl", () => {
+  wahr(HAARFARBEN.length >= 6, `nur ${HAARFARBEN.length} Haarfarben`);
+  for (const f of HAARFARBEN) {
+    wahr(/^#[0-9a-f]{6}$/i.test(f.wert), `${f.id}: „${f.wert}“ ist kein Hex-Wert`);
+    wahr(f.name, `${f.id}: Name fehlt`);
+  }
+  gleich(haarfarbe("gibtsnicht"), HAARFARBEN[0].wert, "unbekannte Farbe fällt zurück");
+});
+
+pruefe("Die Kneipreihenfolge hat genau die sechs Schritte", () => {
+  const stapel = json("decks", "comment-kneipe.json");
+  const karte = stapel.karten.find((k) => k.id === "reihe-ablauf");
+  gleich(karte.elemente,
+    ["Eröffnung", "Begrüßung", "Grußworte", "Prinzipienrede", "Inoffiz", "Bierdorf"]);
+});
+
+pruefe("Der Kneipvokabel-Stapel ist als ungeprüft gekennzeichnet", () => {
+  const stapel = json("decks", "kneipvokabeln.json");
+  wahr(/NICHT GEPRÜFT/i.test(stapel.quelle),
+    "der Stapel kommt nicht aus den Unterlagen und muss das auch sagen");
+  wahr(stapel.karten.length >= 15, `nur ${stapel.karten.length} Vokabeln`);
 });
 
 pruefe("Die Ränge steigen und fangen bei 0 an", () => {

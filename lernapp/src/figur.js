@@ -4,7 +4,7 @@
 // fester Reihenfolge übereinander: Fahne hinten, Haar vorn. Jedes Kleidungs-
 // stück sagt über sein Feld `art`, wie es gezeichnet wird — nicht über seine
 // Kennung, damit ein neuer Anzug keine Codeänderung braucht.
-import { nachId } from "./held.js";
+import { nachId, haarfarbe } from "./held.js";
 import { KOEPFE } from "./koepfe.js";
 
 // Alles, was in das SVG eingesetzt wird, muss hier durch. Farben kommen
@@ -361,12 +361,13 @@ const KOPF_VERSATZ_Y = KOPF_Y - 346 * KOPF_MASSSTAB;
 
 export const kopfFuer = (id) => KOEPFE.find((k) => k.id === id) || KOEPFE[0];
 
-function kopf(haut, frisur) {
+function kopf(haut, frisur, haarId) {
   const k = kopfFuer(frisur);
   if (!k) return "";
   const h = farbe(haut, "#f2d3b8");
+  const haar = farbe(haarfarbe(haarId), "#1d1a17");
   return `<g transform="translate(${KOPF_X} ${KOPF_VERSATZ_Y}) scale(${KOPF_MASSSTAB})">
-    ${k.svg.split("{{HAUT}}").join(h)}
+    ${k.svg.split("{{HAUT}}").join(h).split("{{HAAR}}").join(haar)}
   </g>`;
 }
 
@@ -392,6 +393,6 @@ export function figurSvg(h, beuteFarben, klasse = "figur") {
     ${zipfelbund(g("guertel"), m)}
     ${arme(m, h.haut, aermel, kleid)}
     ${inDerHand(m, g("hand"), aermel, kleid)}
-    ${kopf(h.haut, h.haar)}
+    ${kopf(h.haut, h.haar, h.haarfarbe)}
   </svg>`;
 }

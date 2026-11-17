@@ -25,6 +25,38 @@ const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Platzhalter gemacht — so bleibt sie zur Laufzeit frei wählbar.
 const HAUT_MARKE = "#abcdef";
 const PLATZHALTER = "{{HAUT}}";
+const HAAR_PLATZHALTER = "{{HAAR}}";
+
+// In der Vorlage ist das Haar schwarz gefüllt — genau wie die Gesichtszüge.
+// Trennen lassen sie sich über den Aufbau: Schädel und Haar stecken in der
+// Gruppe mit der matrix()-Transformation, die Gesichtszüge in eigenen
+// Gruppen mit translate() daneben. Alles Schwarze in der Kopfgruppe ist
+// also Haar. Dazu die natürlichen Haarfarben der Vorlage.
+const NATUERLICHE_HAARFARBEN = ["#b58143", "#e8e1e1", "#d2b48c"];
+
+// Die Kopfgruppe herausgreifen und darin das Schwarz färbbar machen.
+function haarFaerbbar(svg) {
+  const anfang = svg.search(/<g transform="matrix\([^"]*\)"\s*>/);
+  if (anfang < 0) return { svg, haarPfade: 0 };
+  const start = svg.indexOf(">", anfang) + 1;
+  let tiefe = 1, i = start;
+  const teile = svg.slice(start).split(/(<\/?g[^>]*>)/);
+  let pos = start, ende = -1;
+  for (const tok of teile) {
+    if (/^<g/.test(tok)) tiefe++;
+    else if (/^<\/g/.test(tok)) { tiefe--; if (tiefe === 0) { ende = pos; break; } }
+    pos += tok.length;
+  }
+  if (ende < 0) return { svg, haarPfade: 0 };
+
+  let kopf = svg.slice(start, ende);
+  let haarPfade = 0;
+  kopf = kopf.replace(/fill="#000"/g, () => { haarPfade++; return `fill="${HAAR_PLATZHALTER}"`; });
+  for (const farbe of NATUERLICHE_HAARFARBEN) {
+    if (kopf.includes(farbe)) { haarPfade++; kopf = kopf.split(farbe).join(HAAR_PLATZHALTER); }
+  }
+  return { svg: svg.slice(0, start) + kopf + svg.slice(ende), haarPfade };
+}
 
 // Ausgewählt aus den 48 Varianten: was als Frisur taugt und sauber zeichnet.
 const AUSWAHL = [
@@ -87,18 +119,30 @@ for (const [id, name] of AUSWAHL) {
   const hautFlaechen = (ohne.match(new RegExp(HAUT_MARKE, "gi")) || []).length;
   if (hautFlaechen < 1) { verworfen.push([id, "zeichnet keinen Kopf"]); continue; }
 
-  const koerper = innen(ohne)
+  let koerper = innen(ohne)
     .replace(/<metadata[\s\S]*?<\/metadata>/g, "")
-    .replace(new RegExp(HAUT_MARKE, "gi"), PLATZHALTER)
-    .replace(/\s+/g, " ").trim();
-  koepfe.push({ id, name, svg: koerper });
+    .replace(new RegExp(HAUT_MARKE, "gi"), PLATZHALTER);
+
+  // Haar färbbar machen; die Gesichtszüge bleiben schwarz.
+  const gefaerbt = haarFaerbbar(koerper);
+  koerper = gefaerbt.svg;
+  // Gegenprobe: die Gesichtszüge müssen noch da sein, sonst wäre das
+  // Gesicht mitgefärbt worden.
+  if (!/fill="#000"/.test(koerper)) {
+    verworfen.push([id, "keine schwarzen Gesichtszüge mehr übrig"]); continue;
+  }
+
+  koerper = koerper.replace(/\s+/g, " ").trim();
+  koepfe.push({ id, name, svg: koerper, faerbbar: gefaerbt.haarPfade > 0 });
 }
 
 const ausgabe = `// ERZEUGT von tools/koepfe-bauen.mjs — nicht von Hand ändern.
 //
 // Frisuren aus „Open Peeps“ von Pablo Stanley (https://www.openpeeps.com/),
 // gemeinfrei unter CC0 1.0. Herausgeschnitten mit @dicebear/collection.
-// ${PLATZHALTER} wird zur Laufzeit durch den gewählten Hautton ersetzt.
+// ${PLATZHALTER} wird zur Laufzeit durch den gewählten Hautton ersetzt,
+// ${HAAR_PLATZHALTER} durch die gewählte Haarfarbe. Die Gesichtszüge bleiben
+// schwarz — sie sind bei jeder Frisur derselbe Pfad und daran erkennbar.
 export const KOPF_ANSICHT = "0 0 704 704";
 export const KOEPFE = ${JSON.stringify(koepfe, null, 1)};
 `;
