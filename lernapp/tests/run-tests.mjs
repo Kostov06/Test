@@ -66,6 +66,35 @@ for (const id of manifest.stapel) {
   });
 }
 
+// Eine Begriffskarte kann eigene Ablenker tragen — das sind Definitionen.
+// Andersherum gefragt („Welcher Begriff?“) dürfen sie nicht auftauchen:
+// ein einzelnes Wort zwischen drei Sätzen verrät sich von selbst.
+pruefe("Begriffskarten mischen ihre Ablenker nicht über die Richtungen", () => {
+  const stapel = json("decks", "verbandskunde.json");
+  const karte = stapel.karten.find((k) => k.id === "farbentragend");
+  wahr(Boolean(karte && karte.ablenker), "Testkarte hat keine Ablenker mehr");
+  const wahl = moeglichkeiten({ stapel, karte, richtung: "definition-begriff" },
+    karte.begriff, (k) => k.begriff, undefined, []);
+  for (const m of wahl) {
+    wahr(m.text.length < 60, `Definition als Begriff angeboten: ${m.text.slice(0, 40)}…`);
+  }
+});
+
+// Ein Spielstand kommt aus einer Datei und kann beschädigt sein.
+pruefe("Ein kaputter Spielstand bringt den Helden nicht durcheinander", () => {
+  const vorher = held().name;
+  ersetze({ muenzen: "viele", verdient: null, besitz: "alles", getragen: 7, name: 42, serie: -3 });
+  const h0 = held();
+  gleich(h0.muenzen, 0, "Münzen");
+  gleich(h0.verdient, 0, "Verdient");
+  gleich(h0.serie, 0, "Serie");
+  gleich(h0.name, "", "Name");
+  wahr(Array.isArray(h0.besitz), "Besitz muss eine Liste sein");
+  wahr(h0.getragen && typeof h0.getragen === "object", "Getragenes muss ein Objekt sein");
+  zuruecksetzen();
+  void vorher;
+});
+
 // ----------------------------------------------------------- Kneipspiel
 pruefe("Das Kneipspiel hat seinen Stapel", () =>
   wahr(manifest.stapel.includes(SPIEL_STAPEL), `${SPIEL_STAPEL} fehlt im Manifest`));
@@ -182,6 +211,15 @@ E: zwei | zwo`);
   gleich(karten[1].notiz, "Viele SV-Bünde.");
   gleich(karten[3].elemente, ["eins", ["zwei", "zwo"]]);
 });
+pruefe("Schnelleingabe liest Ablenker und Zusatzzeile", () => {
+  const { karten, fehler } = ausSchnelleingabe(
+    "F: Wie lautet der Wahlspruch des SV?\nP: Drei Wörter\n" +
+    "A: Lied, Freundschaft, Vaterland\nX: Ehre, Freiheit, Vaterland\nX: Lied, Freiheit, Vaterland\n");
+  gleich(fehler.length, 0, fehler.join("; "));
+  gleich(karten[0].prompt, "Drei Wörter", "Zusatzzeile");
+  gleich(karten[0].ablenker, ["Ehre, Freiheit, Vaterland", "Lied, Freiheit, Vaterland"], "Ablenker");
+});
+
 pruefe("Schnelleingabe meldet einen Lückentext ohne Lücke", () => {
   const { fehler } = ausSchnelleingabe("L: Ohne\nT: kein Platzhalter hier");
   wahr(fehler.length === 1, `erwartete einen Fehler, bekam ${fehler.length}`);
@@ -416,23 +454,33 @@ pruefe("Die richtige Antwort landet gleich oft auf jedem Platz", () => {
   const textVon = (k) => k.antworten.map((a) => a.name).join(" / ");
 
   const DURCHLAEUFE = 20000;
-  const zaehler = [0, 0, 0, 0];
-  let anzahlFalsch = 0;
-  for (let i = 0; i < DURCHLAEUFE; i++) {
-    const wahl = moeglichkeiten(einheit, richtig, textVon, 4);
-    if (wahl.length !== 4) anzahlFalsch++;
-    const platz = wahl.findIndex((m) => m.richtig);
-    if (platz < 0 || wahl.filter((m) => m.richtig).length !== 1) anzahlFalsch++;
-    zaehler[platz]++;
-  }
-  gleich(anzahlFalsch, 0, "jede Wahl hat vier Möglichkeiten und genau eine richtige");
+  const lauf = () => {
+    const zaehler = [0, 0, 0, 0];
+    let anzahlFalsch = 0;
+    for (let i = 0; i < DURCHLAEUFE; i++) {
+      const wahl = moeglichkeiten(einheit, richtig, textVon, 4);
+      if (wahl.length !== 4) anzahlFalsch++;
+      const platz = wahl.findIndex((m) => m.richtig);
+      if (platz < 0 || wahl.filter((m) => m.richtig).length !== 1) anzahlFalsch++;
+      zaehler[platz]++;
+    }
+    const erwartet = DURCHLAEUFE / 4;
+    const chi = zaehler.reduce((summe, n) => summe + (n - erwartet) ** 2 / erwartet, 0);
+    return { zaehler, chi, anzahlFalsch };
+  };
 
-  const erwartet = DURCHLAEUFE / 4;
   // Chi-Quadrat über drei Freiheitsgrade: 16,27 ist die Schranke für 0,1 %.
-  // Eine Gleichverteilung reißt sie nur in einem von tausend Läufen.
-  const chi = zaehler.reduce((summe, n) => summe + (n - erwartet) ** 2 / erwartet, 0);
-  const anteile = zaehler.map((n) => (n / DURCHLAEUFE * 100).toFixed(1) + " %");
-  wahr(chi < 16.27, `Plätze: ${anteile.join(", ")} — Chi-Quadrat ${chi.toFixed(1)}, zu ungleich`);
+  // Eine echte Gleichverteilung reißt sie in einem von tausend Läufen — der
+  // Test lief sonst alle paar hundert Male grundlos rot. Deshalb zwei
+  // unabhängige Läufe: nur wenn beide ausschlagen, stimmt etwas nicht.
+  let erster = lauf();
+  gleich(erster.anzahlFalsch, 0, "jede Wahl hat vier Möglichkeiten und genau eine richtige");
+  if (erster.chi >= 16.27) {
+    const zweiter = lauf();
+    const anteile = zweiter.zaehler.map((n) => (n / DURCHLAEUFE * 100).toFixed(1) + " %");
+    wahr(zweiter.chi < 16.27,
+      `Plätze: ${anteile.join(", ")} — Chi-Quadrat ${erster.chi.toFixed(1)} und ${zweiter.chi.toFixed(1)}, zu ungleich`);
+  }
 });
 
 pruefe("Lange Antworten bekommen weniger Möglichkeiten", () => {

@@ -95,6 +95,22 @@ Ohne Code anzufassen:
    dann `node tools/build-einzeldatei.mjs`.
 5. Committen.
 
+Die **Schnelleingabe** liest Blöcke, die durch eine Leerzeile getrennt sind.
+Die erste Zeile bestimmt die Art: `F:` Frage, `B:` Begriff, `L:` Lückentext,
+`R:` Reihenfolge. Dazu `A:` Antwort, `D:` Definition, `T:` Text, `E:` Element,
+`N:` Notiz — und für Fragen und Begriffe `P:` für die Zusatzzeile sowie `X:`
+für je eine falsche Möglichkeit:
+
+```
+F: Wie lautet der Wahlspruch des SV?
+A: „Lied, Freundschaft, Vaterland“
+X: „Ehre, Freiheit, Vaterland“
+X: „Lied, Freiheit, Vaterland“
+N: „Ehre, Freiheit, Vaterland“ ist der Wahlspruch vieler Burschenschaften.
+```
+
+Dieselben Felder gibt es auch einzeln im Karteneditor.
+
 Der Stempelschritt schreibt eine Kennung aus dem Inhalt in `sw.js`. Ohne ihn
 liefern schon installierte Handys weiter die alte Fassung aus dem Cache aus —
 `tests/run-tests.mjs` schlägt deshalb fehl, wenn der Stempel fehlt.
@@ -368,7 +384,11 @@ Leitner-Verfahren auf der Bewertung steht.
 dem 0,1-%-Niveau besteht.
 
 Ablenker stehen zuerst in der Karte selbst (`ablenker`), danach kommen sie
-aus derselben `gruppe` und erst zuletzt aus dem ganzen Stapel. Handgeschrieben
+aus derselben `gruppe` und erst zuletzt aus dem ganzen Stapel. Auf einer
+Begriffskarte sind die eigenen Ablenker *Definitionen*; wird dieselbe Karte
+andersherum abgefragt („Welcher Begriff?“), bleiben sie weg und die
+Möglichkeiten kommen aus dem Stapel — ein einzelnes Wort zwischen drei
+Sätzen verriete sich von selbst. Handgeschrieben
 sind sie am besten: beim SV-Wahlspruch stehen die Wahlsprüche anderer Verbände
 zur Wahl, bei der Nadel die Seite, auf der sie gerade nicht sitzt. Ohne das
 antworten die Ablenker auf andere Fragen und lassen sich allein am Gegenstand

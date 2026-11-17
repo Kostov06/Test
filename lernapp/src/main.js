@@ -358,11 +358,8 @@ function spielstandOeffnen() {
 }
 
 function tasten(ev) {
-  const ziel0 = ev.target;
   if (location.hash === "#/kneipspiel") {
-    if (ziel0 && (ziel0.matches("input, textarea, select") || ziel0.isContentEditable)) return;
-    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
-    if (/^[1-9]$/.test(ev.key) && kneipTaste(Number(ev.key))) ev.preventDefault();
+    if (kneipTaste(ev)) ev.preventDefault();
     return;
   }
   if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig || !kartenObjekt) return;

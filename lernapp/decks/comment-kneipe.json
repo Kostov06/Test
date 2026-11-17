@@ -176,13 +176,13 @@
     {
       "id": "rollen-kneipe",
       "typ": "frage",
-      "rev": 2,
+      "rev": 3,
       "frage": "In welche Rollen sind die Kneipant*innen unterteilt?",
       "antworten": [
         "Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"
       ],
       "ablenker": [
-        "Präsidium, Chargen, Zapfen, Contrarium, Fuxmajor, Bierversorgung und Corona",
+        "Präsidium, Chargen, Zapfen, Contrarium, Ältestenrat, Bierversorgung und Corona",
         "Präsidium, Chargen, Zapfen, Biermusikus, Kantus und Corona",
         "Präsidium, Contrarium, Zapfen, Bierorgel und Philisterium"
       ]
@@ -218,7 +218,7 @@
     {
       "id": "braeuche-bummeln",
       "typ": "frage",
-      "rev": 2,
+      "rev": 3,
       "frage": "Welche drei Bräuche beim Bummeln nennt der Ältestenratsabend?",
       "antworten": [
         "Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"
@@ -226,7 +226,7 @@
       "notiz": "Scherzhaft auch Tierlunge und Generaltierlunge.",
       "ablenker": [
         "Die Stafette, der Bierjunge und der Salamander",
-        "Der Bierjunge, der Generalbierjunge und der Fuxenulk",
+        "Der Bierjunge, der Generalbierjunge und das Couleurbier",
         "Die Stafette, das Couleurbier und der Zipfeltausch"
       ]
     },

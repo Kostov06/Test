@@ -99,10 +99,10 @@
     {
       "id": "adk-seit",
       "typ": "frage",
-      "rev": 2,
+      "rev": 3,
       "gruppe": "liedjahr",
-      "prompt": "Seit wann?",
-      "frage": "Seit wann gibt es das Allgemeine Deutsche Kommersbuch?",
+      "prompt": "Seit wann gibt es das?",
+      "frage": "Das Allgemeine Deutsche Kommersbuch (ADK)",
       "antworten": [
         "1858"
       ],
@@ -133,10 +133,10 @@
     {
       "id": "sv-liederbuch-auflage",
       "typ": "frage",
-      "rev": 2,
+      "rev": 3,
       "gruppe": "liedjahr",
-      "prompt": "Welches Jahr?",
-      "frage": "Aus welchem Jahr stammt die heute gültige 2. Auflage des SV-Liederbuchs?",
+      "prompt": "Aus welchem Jahr stammt sie?",
+      "frage": "Die heute gültige 2. Auflage des SV-Liederbuchs",
       "antworten": [
         "2010"
       ],

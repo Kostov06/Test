@@ -129,10 +129,10 @@ export function szeneSvg(spieler) {
 }
 
 // ---------------------------------------------------------------- Ablauf
-let spiel = null;   // { sitzung, karte, wahl, feld, ergebnis, gesagt, lohn }
+let spiel = null;   // { sitzung, einheit, feld, ergebnis, gesagt, lohn, verdient }
+let weiterAktion = null;   // was die Leertaste tut, solange eine Antwort steht
 
-export function kneipeLaeuft() { return Boolean(spiel); }
-export function kneipeBeenden() { spiel = null; }
+export function kneipeBeenden() { spiel = null; weiterAktion = null; }
 
 function starte(stapel, neuZeichnen) {
   spiel = { sitzung: neueSitzung(lerneinheiten(stapel), "alle"),
@@ -148,7 +148,7 @@ function naechste(neuZeichnen) {
   spiel.einheit = einheit;
   if (!einheit) { spiel.feld = null; return; }
   const richtig = einheit.karte.antworten[0];
-  const wahl = moeglichkeiten(einheit, richtig, (k) => (k.antworten && k.antworten[0]) || "", 4);
+  const wahl = moeglichkeiten(einheit, richtig, (k) => (k.antworten && k.antworten[0]) || "");
   spiel.feld = wahlfeld(wahl || [{ text: richtig, richtig: true }], (stimmt, gewaehlt) => {
     const altesFach = stand(einheit).fach;
     spiel.gesagt = gewaehlt ? gewaehlt.text : richtig;
@@ -170,10 +170,11 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
   }
   const spieler = held();
 
+  weiterAktion = null;
   if (!spiel) {
     return [
       kopf(zurueck),
-      h("p", { class: "frage", text: "Kneipspiel" }),
+      h("p", { class: "frage", text: "Eine Kneipe durchspielen" }),
       h("div", { class: "szenekasten" }, szene(spieler, null, null)),
       h("p", { class: "sub" },
         "Du stehst mit deiner Figur an der Tafel. Links und rechts ein Zapfen, ",
@@ -187,13 +188,15 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
     ];
   }
 
-  if (spiel.sitzung.fertig) {
+  // Erst wenn die letzte Szene mit „Weiter“ abgehakt ist, ist die Kneipe
+  // aus — sonst verschluckte der Abschluss das Urteil der letzten Szene.
+  if (spiel.sitzung.fertig && !spiel.einheit) {
     const s = spiel.sitzung;
     return [
       kopf(zurueck),
       h("p", { class: "frage", text: "Die Kneipe ist aus." }),
       h("div", { class: "szenekasten" }, szene(spieler, null, "Ex est!")),
-      h("p", { class: "text", text: `${s.richtig} von ${s.richtig + s.falsch} Zurufen saßen.` }),
+      h("p", { class: "text", text: `${s.richtig} von ${s.richtig + s.falsch} Antworten saßen.` }),
       h("p", { class: "text", text: `Verdient: ${spiel.verdient} Coins.` }),
       h("div", { class: "row" },
         h("button", { class: "solid", onclick: () => { starte(stapel, neuZeichnen); neuZeichnen(); } },
@@ -206,6 +209,8 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
   const einheit = spiel.einheit;
   const karte = einheit.karte;
   const beantwortet = spiel.ergebnis !== null;
+  const weiter = () => { naechste(neuZeichnen); neuZeichnen(); };
+  weiterAktion = beantwortet ? weiter : null;
 
   return [
     kopf(zurueck),
@@ -221,9 +226,8 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
           karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null,
           spiel.lohn ? h("p", { class: "lohn", text: `+${spiel.lohn}` }) : null,
           h("div", { class: "row" },
-            h("button", { class: "solid", onclick: () => { naechste(neuZeichnen); neuZeichnen(); } },
-              "Weiter")))
-      : h("p", { class: "hinweis", text: "Antippen zählt sofort — 1 bis 4 gehen auch." }),
+            h("button", { class: "solid", onclick: weiter }, "Weiter")))
+      : h("p", { class: "hinweis", text: "Antippen zählt sofort — die Tasten 1 bis 4 gehen auch." }),
   ];
 
   function kopf(zur) {
@@ -246,8 +250,22 @@ function szene(spieler, ruf, gesagt) {
   return kasten;
 }
 
-// Tastatur: 1 bis 4 wählen wie im Lernen.
-export function kneipTaste(nr) {
-  if (!spiel || !spiel.feld || spiel.ergebnis !== null) return false;
-  return spiel.feld.waehle(nr);
+// Tastatur wie im Lernen: 1 bis 4 wählen, Leertaste und Enter gehen weiter.
+export function kneipTaste(ev) {
+  if (!spiel) return false;
+  const ziel = ev.target;
+  if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return false;
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return false;
+  if (/^[1-9]$/.test(ev.key)) {
+    if (spiel.ergebnis !== null || !spiel.feld) return false;
+    return spiel.feld.waehle(Number(ev.key));
+  }
+  const leer = ev.key === " " || ev.key.toLowerCase() === "enter";
+  // Auf einem Knopf löst die Leertaste schon den Knopf aus — sonst
+  // passierte zweierlei auf einen Druck.
+  if (leer && weiterAktion && !(ziel && ziel.tagName === "BUTTON")) {
+    weiterAktion();
+    return true;
+  }
+  return false;
 }

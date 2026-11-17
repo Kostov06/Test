@@ -20,7 +20,11 @@ export function erstelle(einheit, ctx) {
     h("p", { class: "prompt", text: vonBegriff ? "Was heißt das?" : "Welcher Begriff?" }),
   ];
 
-  const wahl = moeglichkeiten(einheit, gesucht, textVon);
+  // Die eigenen Ablenker einer Begriffskarte sind Definitionen. In der
+  // Gegenrichtung ist der Begriff gesucht — dann kommen die Ablenker aus
+  // dem Stapel, sonst stünde ein Wort zwischen drei Sätzen.
+  const wahl = moeglichkeiten(einheit, gesucht, textVon, undefined,
+    vonBegriff ? karte.ablenker : []);
   if (!wahl) return { modus: "selbst", frage, antwort };
 
   const feld = wahlfeld(wahl, ctx.beiAntwort);

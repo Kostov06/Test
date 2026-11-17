@@ -6,7 +6,11 @@
 //
 // Woher die Ablenker kommen, in dieser Reihenfolge:
 //   1. aus dem Feld `ablenker` der Karte — von Hand geschrieben, damit sie
-//      wirklich zur Frage passen und nicht am Thema zu erkennen sind;
+//      wirklich zur Frage passen und nicht am Thema zu erkennen sind. Sie
+//      gelten für eine Richtung: auf einer Begriffskarte sind es weitere
+//      Definitionen. Wird dieselbe Karte andersherum abgefragt („Welcher
+//      Begriff?“), lässt der Aufrufer sie weg — sonst stünde ein einzelnes
+//      Wort zwischen drei Sätzen und wäre ohne Wissen zu erkennen;
 //   2. aus Karten derselben `gruppe` im selben Stapel;
 //   3. notfalls aus dem ganzen Stapel.
 // Ohne (1) oder (2) antworten die Ablenker auf andere Fragen und lassen
@@ -49,11 +53,12 @@ function nachNaehe(richtigerText, kandidaten) {
   return sortiert.slice(0, Math.max(6, Math.ceil(sortiert.length / 2)));
 }
 
-export function moeglichkeiten(einheit, richtigerText, textVon, anzahl) {
+export function moeglichkeiten(einheit, richtigerText, textVon, anzahl, eigeneAblenker) {
   if (anzahl === undefined) {
     anzahl = String(richtigerText).length > LANG ? MINDEST_ANZAHL : WUNSCH_ANZAHL;
   }
-  const eigene = (einheit.karte.ablenker || []).filter((t) => t && t !== richtigerText);
+  const liste = eigeneAblenker === undefined ? einheit.karte.ablenker : eigeneAblenker;
+  const eigene = (liste || []).filter((t) => t && t !== richtigerText);
   const ausDemStapel = ausStapel(einheit, textVon).filter((t) => t !== richtigerText);
 
   // Erst die eigenen, dann nach Bedarf aus dem Stapel auffüllen.

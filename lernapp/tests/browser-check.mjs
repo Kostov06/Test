@@ -61,11 +61,11 @@ async function durchlauf(name, url, breite) {
   await s.waitForTimeout(200);
   sag(await s.locator('.farbknopf[aria-pressed="true"]').count() === 2,
       "je eine Haarfarbe und ein Hautton gewählt");
-  await s.locator('button:has-text("Los geht")').click();
+  await s.getByRole("button", { name: /^Los geht/, exact: false }).click();
   await s.waitForTimeout(350);
   sag(await s.locator(".heldzeile .figur").count() === 1, "Figur mit gewählter Frisur auf der Übersicht");
   sag(await s.locator(".heldzeile").count() === 1, "Held steht oben auf der Übersicht");
-  sag(await s.locator('button:has-text("Redaktion")').count() === 0,
+  sag(await s.getByRole("button", { name: "Redaktion", exact: true }).count() === 0,
       "Redaktions-Knopf nicht mehr auf der Startseite");
 
   // Jeden Stapel einzeln anlernen, damit jeder Kartentyp drankommt
@@ -87,7 +87,7 @@ async function durchlauf(name, url, breite) {
       else if (await s.locator(".frage").count()) {
         gesehen.add(await s.locator(".prompt").count() ? "begriff" : "frage");
       }
-      gewusstGesehen += await s.locator('button:has-text("Antwort zeigen")').count();
+      gewusstGesehen += await s.getByRole("button", { name: "Antwort zeigen", exact: true }).count();
 
       // Antworten, je nach Abfrageart
       if (await s.locator(".wahlfeld button").count()) {
@@ -104,7 +104,7 @@ async function durchlauf(name, url, breite) {
         await s.getByRole("button", { name: "Prüfen", exact: true }).click();
       } else {
         // Karte in Selbsteinschätzung — zurückstellen und weitermachen
-        const spaeter = s.locator('button:has-text("Später")');
+        const spaeter = s.getByRole("button", { name: "Später", exact: true });
         if (!(await spaeter.count())) break;
         await spaeter.click(); await s.waitForTimeout(80);
         continue;
@@ -122,7 +122,7 @@ async function durchlauf(name, url, breite) {
     if (gesehen.has(art)) return;
     await s.goto(url, { waitUntil: "domcontentloaded" });
     await s.waitForTimeout(250);
-    await s.locator('button:has-text("Alle")').click();
+    await s.getByRole("button", { name: "Alle", exact: true }).click();
     await s.waitForTimeout(150);
     const k = s.locator(".stapel input[type=checkbox]");
     for (let j = 0; j < anzahl; j++) if (!(await k.nth(j).isChecked())) await k.nth(j).click();
@@ -136,7 +136,7 @@ async function durchlauf(name, url, breite) {
         sag(await s.locator(".urteil").count() === 1, `${art} wird selbst bewertet`);
         return;
       }
-      const spaeter = s.locator('button:has-text("Später")');
+      const spaeter = s.getByRole("button", { name: "Später", exact: true });
       if (!(await spaeter.count())) return;
       await spaeter.click(); await s.waitForTimeout(40);
     }
@@ -172,7 +172,7 @@ async function durchlauf(name, url, breite) {
   // Kleiderkammer
   await s.goto(url, { waitUntil: "domcontentloaded" });
   await s.waitForTimeout(250);
-  await s.locator('button:has-text("Kleiderkammer")').first().click();
+  await s.getByRole("button", { name: "Kleiderkammer", exact: true }).first().click();
   await s.waitForTimeout(350);
   sag(await s.locator(".laden li").count() >= 10, "Kleiderkammer zeigt die Waren");
   sag(await s.locator(".schaufenster .figur").count() === 1, "Figur steht im Schaufenster");
@@ -184,7 +184,7 @@ async function durchlauf(name, url, breite) {
   });
   await s.goto(url, { waitUntil: "domcontentloaded" });
   await s.waitForTimeout(300);
-  await s.locator('button:has-text("Kleiderkammer")').first().click();
+  await s.getByRole("button", { name: "Kleiderkammer", exact: true }).first().click();
   await s.waitForTimeout(350);
   await s.locator('.laden li:has-text("Prunkfahne (SV)") button:has-text("Aussuchen")').first().click();
   await s.waitForTimeout(350);
@@ -212,10 +212,10 @@ async function durchlauf(name, url, breite) {
   await s.waitForTimeout(250);
   await s.locator(".heldknopf").click();
   await s.waitForTimeout(300);
-  sag(await s.locator('button:has-text("Von vorn anfangen")').count() === 1,
+  sag(await s.getByRole("button", { name: "Von vorn anfangen", exact: true }).count() === 1,
       "„Von vorn anfangen“ steht beim Ändern des Helden");
   s.once("dialog", (d) => d.accept());
-  await s.locator('button:has-text("Von vorn anfangen")').click();
+  await s.getByRole("button", { name: "Von vorn anfangen", exact: true }).click();
   await s.waitForTimeout(400);
   const leer = await s.evaluate(() => ({
     held: localStorage.getItem("ael.held.v1"),

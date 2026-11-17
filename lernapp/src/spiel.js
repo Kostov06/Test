@@ -1,7 +1,7 @@
 // Charaktererstellung und Kleiderkammer.
 import { h, leere } from "./dom.js";
-import { figurSvg, kopfFuer } from "./figur.js";
-import { KOEPFE, KOPF_ANSICHT } from "./koepfe.js";
+import { figurSvg } from "./figur.js";
+import { KOEPFE } from "./koepfe.js";
 import { band } from "./karten/couleur.js";
 import { hellPruefer } from "./decks.js";
 import {

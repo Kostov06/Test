@@ -189,8 +189,26 @@ export function zuruecksetzen() {
   return zwischen;
 }
 
+// Ein geladener Spielstand kommt aus einer Datei. Die kann beschädigt oder
+// von Hand verändert sein — dann darf die App trotzdem nicht in einen
+// Zustand geraten, in dem „Münzen“ plötzlich Text sind.
+function gesund(stand) {
+  const s = { ...START(), ...(stand && typeof stand === "object" ? stand : {}) };
+  const zahl = (wert) => (Number.isFinite(Number(wert)) ? Math.max(0, Math.floor(Number(wert))) : 0);
+  s.muenzen = zahl(s.muenzen);
+  s.verdient = zahl(s.verdient);
+  s.serie = zahl(s.serie);
+  s.name = typeof s.name === "string" ? s.name.slice(0, 24) : "";
+  s.angelegt = Boolean(s.angelegt);
+  if (!Array.isArray(s.besitz)) s.besitz = START().besitz;
+  else s.besitz = s.besitz.filter((id) => typeof id === "string");
+  if (!s.getragen || typeof s.getragen !== "object") s.getragen = START().getragen;
+  if (!s.beute || typeof s.beute !== "object") s.beute = {};
+  return s;
+}
+
 export function ersetze(neuerStand) {
-  zwischen = { ...START(), ...neuerStand };
+  zwischen = gesund(neuerStand);
   sichere();
   return zwischen;
 }
@@ -232,7 +250,6 @@ export function sitzungsBonus() {
   return SITZUNGS_BONUS;
 }
 
-export const kannZahlen = (gegenstand) => roh().muenzen >= gegenstand.preis;
 export const besitzt = (id) => roh().besitz.includes(id);
 export const traegt = (id) => Object.values(roh().getragen).includes(id);
 
@@ -259,4 +276,3 @@ export function trage(gegenstand) {
   sichere();
 }
 
-export const getragenerAuf = (platz) => nachId(roh().getragen[platz]);

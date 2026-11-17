@@ -199,7 +199,9 @@ function kragen(m, oberteil) {
 
 function halsstueck(hals) {
   if (!hals) return "";
-  const o = SCHULTER_Y - 4;
+  // Der Kopf wird zuletzt gezeichnet und deckt alles unter dem Kinn zu.
+  // Die Fliege sitzt deshalb tiefer, auf dem Kragen, statt am Hals.
+  const o = hals.art === "fliege" ? SCHULTER_Y + 3 : SCHULTER_Y - 4;
   const strich = `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`;
   if (hals.art === "fliege") {
     const f = farbe(hals.farbe, "#1d1a17");
@@ -303,7 +305,10 @@ function jacke(m, j) {
 function zipfelbund(g, m) {
   if (!g) return "";
   const [rot, gold, schwarz] = BUNDESFARBEN;
-  const y = BUND_Y + 1, x = MITTE + m.taille / 2 - 10;
+  // Vorn in der Mitte am Bund: an der Hüfte lag er unter der Hand, rechts
+  // im Glas. Der Zipfel hängt dort, wo er auch wirklich hängt — am Bund,
+  // vor der Schließe.
+  const y = BUND_Y + 1, x = MITTE - 4;
   const strich = `stroke="${L}" stroke-width="${Sd}" stroke-linejoin="round"`;
   const band = (bx, bw, bh) => `
     <rect x="${bx}" y="${y + 6}" width="${bw}" height="${bh}" rx="2" fill="${rot}" ${strich}/>
@@ -367,7 +372,7 @@ function inDerHand(m, g, aermel, kleid) {
   const l = x - breit / 2, r = x + breit / 2;
   const schaumY = o + 13;
   return `<g>
-    ${p(`M${l - 10} ${o + 16} q-11 3 -11 14 t11 14`, null,
+    ${p(`M${l} ${o + 16} q-13 3 -13 14 t13 14`, null,
         `fill="none" stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
     ${p(`M${l} ${o + 4} L${l + 2} ${o + hoch - 4} q0 4 4 4 h${breit - 12} q4 0 4 -4
          L${r} ${o + 4} Z`, glas, `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`)}
@@ -423,8 +428,8 @@ export function figurTeile(h, beuteFarben) {
     ${schuhe(m, g("schuhe"))}
     ${torso(m, oberteil, h.haut)}
     ${hosenbund(m, g("hose"), kleid)}
-    ${halsstueck(g("hals"))}
     ${kragen(m, oberteil)}
+    ${halsstueck(g("hals"))}
     ${jacke(m, j)}
     ${zipfelbund(g("guertel"), m)}
     ${arme(m, h.haut, aermel, kleid)}

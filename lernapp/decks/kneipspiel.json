@@ -9,10 +9,9 @@
     {
       "id": "szene-tempus",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
       "frage": "Das Officium läuft, und du musst dringend hinaus. Was sagst du?",
-      "prompt": "Du stehst an der Tafel, das Officium läuft.",
       "antworten": [
         "„Praeside, ich bitte um ein Tempus!“"
       ],
@@ -242,7 +241,7 @@
     {
       "id": "szene-praesidium",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
       "frage": "Du möchtest dich an das Präsidium wenden. Wie sprichst du es an?",
       "antworten": [
@@ -251,7 +250,7 @@
       "ablenker": [
         "„Contrarium!“",
         "„Corona!“",
-        "„Fuxmajor!“"
+        "„Zapfen!“"
       ],
       "notiz": "Praeses ist der oder die Vorsitzende der Kneipe, bei uns Präside. Das Kommando liegt allein dort; das Contrarium sitzt am anderen Ende der Tafel."
     }
