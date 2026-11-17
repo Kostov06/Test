@@ -301,3 +301,7 @@ input[type=text].lueckefeld[readonly]{cursor:default}
 .urteil.gut{color:var(--accent)}
 .urteil.schlecht{color:var(--warn)}
 @media (prefers-reduced-motion:reduce){.urteil{animation:none}}
+
+/* Ein Knopf, der etwas unwiderruflich löscht, soll nicht aussehen wie die
+   anderen — aber auch nicht schreien. */
+button.gefaehrlich{color:var(--warn);border-color:var(--warn)}

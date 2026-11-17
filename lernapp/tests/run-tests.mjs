@@ -12,7 +12,9 @@ import { istRichtig, gruppen } from "../src/karten/reihenfolge.js";
 import { ausSchnelleingabe } from "../src/redaktion.js";
 import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/leitner.js";
 import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held, ersetze,
-         LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS, HAARFARBEN, haarfarbe } from "../src/held.js";
+         LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS, HAARFARBEN, haarfarbe,
+         zuruecksetzen } from "../src/held.js";
+import { eintraege, zuruecksetzen as fortschrittZuruecksetzen } from "../src/store.js";
 import { KOEPFE } from "../src/koepfe.js";
 import { moeglichkeiten } from "../src/karten/auswahl.js";
 import { stimmt } from "../src/karten/lueckentext.js";
@@ -479,6 +481,45 @@ pruefe("Die Kennungen der Frisuren sind eindeutig", () => {
 pruefe("Die voreingestellte Frisur gibt es wirklich", () => {
   ersetze({});
   wahr(KOEPFE.some((k) => k.id === held().haar), `Vorgabe „${held().haar}“ steht nicht in koepfe.js`);
+});
+
+// ------------------------------------------- Held bleibt auf dem Gerät
+// Die verschickte Einzeldatei darf nur Stapel enthalten. Landete darin je
+// ein Held, spielten alle Empfänger mit derselben Figur.
+pruefe("Die Einzeldatei trägt keinen Helden mit sich", () => {
+  let datei;
+  try { datei = lies("lernapp.html"); }
+  catch { return; }                      // noch nicht gebaut — dann nichts zu prüfen
+  const eingebettet = datei.match(/window\.STAPEL_EINGEBETTET = (\[[\s\S]*?\]);/);
+  wahr(Boolean(eingebettet), "die Stapel stecken nicht wie erwartet in der Datei");
+  const stapel = JSON.parse(eingebettet[1]);
+  wahr(Array.isArray(stapel) && stapel.length > 0, "keine Stapel eingebettet");
+  for (const feld of ["muenzen", "verdient", "besitz", "getragen", "haarfarbe", "angelegt"]) {
+    wahr(!eingebettet[1].includes(`"${feld}"`), `Heldendaten in der Einzeldatei: ${feld}`);
+  }
+  // Außerhalb der Stapel darf kein gespeicherter Stand stehen.
+  wahr(!/"was"\s*:\s*"aeltestenrat-spielstand"/.test(datei),
+    "ein Spielstand ist in die Einzeldatei geraten");
+});
+
+pruefe("Von vorn anfangen löscht Held und Fortschritt", () => {
+  ersetze({ angelegt: true, name: "Weg damit", muenzen: 500, verdient: 900 });
+  verbuche(true, 1);
+  wahr(held().verdient > 0, "Vorbedingung: es gibt etwas zu löschen");
+  zuruecksetzen();
+  gleich(held().angelegt, false, "angelegt");
+  gleich(held().name, "", "Name");
+  gleich(held().muenzen, 0, "Münzen");
+  gleich(held().verdient, 0, "insgesamt verdient");
+  gleich(held().besitz.sort(), ["chino-beige", "hemd-weiss", "socken-weiss"].sort(), "Besitz");
+});
+
+pruefe("Von vorn anfangen räumt auch die Leitner-Fächer", () => {
+  const e = { schluessel: "probe/weg", karte: { rev: 1 } };
+  bewerte(e, true);
+  wahr(Object.keys(eintraege()).length > 0, "Vorbedingung: es gibt Fächer");
+  fortschrittZuruecksetzen();
+  gleich(Object.keys(eintraege()).length, 0);
 });
 
 pruefe("Die Ränge sind die Stufen des Bundes", () => {

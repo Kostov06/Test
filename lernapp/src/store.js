@@ -48,3 +48,10 @@ export function ersetzeAlles(daten) {
   sichere();
   return zwischen;
 }
+
+// Den gesamten Lernfortschritt verwerfen.
+export function zuruecksetzen() {
+  zwischen = { ...LEER, eintraege: {} };
+  try { localStorage.removeItem(SCHLUESSEL); } catch { /* Speicher gesperrt */ }
+  return zwischen;
+}

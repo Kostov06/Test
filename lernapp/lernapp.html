@@ -309,6 +309,10 @@ input[type=text].lueckefeld[readonly]{cursor:default}
 .urteil.gut{color:var(--accent)}
 .urteil.schlecht{color:var(--warn)}
 @media (prefers-reduced-motion:reduce){.urteil{animation:none}}
+
+/* Ein Knopf, der etwas unwiderruflich löscht, soll nicht aussehen wie die
+   anderen — aber auch nicht schreien. */
+button.gefaehrlich{color:var(--warn);border-color:var(--warn)}
 </style>
 </head>
 <body>
@@ -529,6 +533,13 @@ function ersetzeAlles(daten) {
   return zwischen;
 }
 
+// Den gesamten Lernfortschritt verwerfen.
+function zuruecksetzen() {
+  zwischen = { ...LEER, eintraege: {} };
+  try { localStorage.removeItem(SCHLUESSEL); } catch { /* Speicher gesperrt */ }
+  return zwischen;
+}
+
   __exporte["speicherVerfuegbar"] = speicherVerfuegbar;
   __exporte["eintraege"] = eintraege;
   __exporte["eintrag"] = eintrag;
@@ -537,6 +548,7 @@ function ersetzeAlles(daten) {
   __exporte["setzeAuswahl"] = setzeAuswahl;
   __exporte["alleDaten"] = alleDaten;
   __exporte["ersetzeAlles"] = ersetzeAlles;
+  __exporte["zuruecksetzen"] = zuruecksetzen;
   return __exporte;
 };
 __module["src/leitner.js"] = function (__hole) {
@@ -950,6 +962,14 @@ function aendere(aenderung) {
   return roh();
 }
 
+// Alles vergessen und von vorn anfangen — für das Gerät, das weitergereicht
+// wird, oder wenn jemand neu beginnen will.
+function zuruecksetzen() {
+  zwischen = START();
+  try { localStorage.removeItem(SCHLUESSEL); } catch { /* Speicher gesperrt */ }
+  return zwischen;
+}
+
 function ersetze(neuerStand) {
   zwischen = { ...START(), ...neuerStand };
   sichere();
@@ -1035,6 +1055,7 @@ const getragenerAuf = (platz) => nachId(roh().getragen[platz]);
   __exporte["held"] = held;
   __exporte["speicherVerfuegbar"] = speicherVerfuegbar;
   __exporte["aendere"] = aendere;
+  __exporte["zuruecksetzen"] = zuruecksetzen;
   __exporte["ersetze"] = ersetze;
   __exporte["LOHN_FALSCH"] = LOHN_FALSCH;
   __exporte["SERIE_FUER_BONUS"] = SERIE_FUER_BONUS;
@@ -1681,7 +1702,7 @@ __module["src/spiel.js"] = function (__hole) {
   const { KOEPFE, KOPF_ANSICHT } = __hole("src/koepfe.js");
   const { band } = __hole("src/karten/couleur.js");
   const { hellPruefer } = __hole("src/decks.js");
-  const { held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN, HAARFARBEN, haarfarbe, nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht } = __hole("src/held.js");
+  const { held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN, HAARFARBEN, haarfarbe, nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht, zuruecksetzen } = __hole("src/held.js");
 // Charaktererstellung und Kleiderkammer.
 
 const MUENZE = "◉";
@@ -1723,7 +1744,7 @@ function beuteKandidaten(alleStapel, g) {
 }
 
 // --------------------------------------------------- Charaktererstellung
-function heldAnlegen(fertig) {
+function heldAnlegen(fertig, vonVorn) {
   const wurzel = h("div", {});
   const erstmalig = !held().angelegt;
 
@@ -1796,7 +1817,22 @@ function heldAnlegen(fertig) {
           onclick: () => { aendere({ angelegt: true }); fertig(); },
         }, erstmalig ? "Los geht’s" : "Fertig")),
       h("p", { class: "hinweis",
-        text: "Lässt sich später jederzeit ändern — die Ausrüstung bleibt." }),
+        text: "Lässt sich später jederzeit ändern — die Ausrüstung bleibt. "
+          + "Held, Coins und Fortschritt liegen nur auf diesem Gerät: wer die App "
+          + "weitergibt, gibt seinen Helden nicht mit." }),
+
+      erstmalig ? null : h("div", { class: "row eng" },
+        h("button", {
+          class: "ghost gefaehrlich",
+          onclick: () => {
+            if (!confirm("Alles löschen und von vorn anfangen?\n\n"
+                + "Held, Ausrüstung, Coins und der gesamte Lernfortschritt sind dann weg. "
+                + "Das lässt sich nicht rückgängig machen — sichere vorher den Spielstand, "
+                + "wenn du ihn behalten willst.")) return;
+            zuruecksetzen();
+            if (vonVorn) vonVorn();
+          },
+        }, "Von vorn anfangen")),
     );
   }
   function pruefe() {
@@ -3163,7 +3199,10 @@ function zeichne() {
   let inhalt;
   if (route === "#/lernen") inhalt = ansichtLernen();
   else if (route === "#/statistik") inhalt = ansichtStatistik();
-  else if (route === "#/held") inhalt = heldAnlegen(() => { location.hash = "#/"; });
+  else if (route === "#/held") inhalt = heldAnlegen(
+    () => { location.hash = "#/"; },
+    // Von vorn: auch den Lernfortschritt verwerfen, dann neu anlegen.
+    () => { store.zuruecksetzen(); sitzung = null; gewaehlt = new Set(alleStapel.map((x) => x.id)); zeichne(); });
   else if (route === "#/kleiderkammer") inhalt = kleiderkammer(alleStapel, () => { location.hash = "#/"; });
   // Die Redaktion steht nicht mehr auf der Startseite — die Neuen brauchen
   // sie nicht. Über die Adresse bleibt sie erreichbar.

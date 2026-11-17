@@ -299,7 +299,10 @@ function zeichne() {
   let inhalt;
   if (route === "#/lernen") inhalt = ansichtLernen();
   else if (route === "#/statistik") inhalt = ansichtStatistik();
-  else if (route === "#/held") inhalt = heldAnlegen(() => { location.hash = "#/"; });
+  else if (route === "#/held") inhalt = heldAnlegen(
+    () => { location.hash = "#/"; },
+    // Von vorn: auch den Lernfortschritt verwerfen, dann neu anlegen.
+    () => { store.zuruecksetzen(); sitzung = null; gewaehlt = new Set(alleStapel.map((x) => x.id)); zeichne(); });
   else if (route === "#/kleiderkammer") inhalt = kleiderkammer(alleStapel, () => { location.hash = "#/"; });
   // Die Redaktion steht nicht mehr auf der Startseite — die Neuen brauchen
   // sie nicht. Über die Adresse bleibt sie erreichbar.

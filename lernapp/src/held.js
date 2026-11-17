@@ -178,6 +178,14 @@ export function aendere(aenderung) {
   return roh();
 }
 
+// Alles vergessen und von vorn anfangen — für das Gerät, das weitergereicht
+// wird, oder wenn jemand neu beginnen will.
+export function zuruecksetzen() {
+  zwischen = START();
+  try { localStorage.removeItem(SCHLUESSEL); } catch { /* Speicher gesperrt */ }
+  return zwischen;
+}
+
 export function ersetze(neuerStand) {
   zwischen = { ...START(), ...neuerStand };
   sichere();

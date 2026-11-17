@@ -6,7 +6,7 @@ import { band } from "./karten/couleur.js";
 import { hellPruefer } from "./decks.js";
 import {
   held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN, HAARFARBEN, haarfarbe,
-  nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht,
+  nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht, zuruecksetzen,
 } from "./held.js";
 
 export const MUENZE = "◉";
@@ -48,7 +48,7 @@ function beuteKandidaten(alleStapel, g) {
 }
 
 // --------------------------------------------------- Charaktererstellung
-export function heldAnlegen(fertig) {
+export function heldAnlegen(fertig, vonVorn) {
   const wurzel = h("div", {});
   const erstmalig = !held().angelegt;
 
@@ -121,7 +121,22 @@ export function heldAnlegen(fertig) {
           onclick: () => { aendere({ angelegt: true }); fertig(); },
         }, erstmalig ? "Los geht’s" : "Fertig")),
       h("p", { class: "hinweis",
-        text: "Lässt sich später jederzeit ändern — die Ausrüstung bleibt." }),
+        text: "Lässt sich später jederzeit ändern — die Ausrüstung bleibt. "
+          + "Held, Coins und Fortschritt liegen nur auf diesem Gerät: wer die App "
+          + "weitergibt, gibt seinen Helden nicht mit." }),
+
+      erstmalig ? null : h("div", { class: "row eng" },
+        h("button", {
+          class: "ghost gefaehrlich",
+          onclick: () => {
+            if (!confirm("Alles löschen und von vorn anfangen?\n\n"
+                + "Held, Ausrüstung, Coins und der gesamte Lernfortschritt sind dann weg. "
+                + "Das lässt sich nicht rückgängig machen — sichere vorher den Spielstand, "
+                + "wenn du ihn behalten willst.")) return;
+            zuruecksetzen();
+            if (vonVorn) vonVorn();
+          },
+        }, "Von vorn anfangen")),
     );
   }
   function pruefe() {

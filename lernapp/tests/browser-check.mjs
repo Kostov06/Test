@@ -207,6 +207,23 @@ async function durchlauf(name, url, breite) {
   // Nirgends seitlich über den Rand
   const breit = await s.evaluate(() =>
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  // Von vorn anfangen — und danach muss wirklich alles weg sein.
+  await s.goto(url, { waitUntil: "domcontentloaded" });
+  await s.waitForTimeout(250);
+  await s.locator(".heldknopf").click();
+  await s.waitForTimeout(300);
+  sag(await s.locator('button:has-text("Von vorn anfangen")').count() === 1,
+      "„Von vorn anfangen“ steht beim Ändern des Helden");
+  s.once("dialog", (d) => d.accept());
+  await s.locator('button:has-text("Von vorn anfangen")').click();
+  await s.waitForTimeout(400);
+  const leer = await s.evaluate(() => ({
+    held: localStorage.getItem("ael.held.v1"),
+    fortschritt: localStorage.getItem("ael.fortschritt.v1"),
+  }));
+  sag(leer.held === null && leer.fortschritt === null, "Held und Fortschritt sind gelöscht");
+  sag(await s.locator(".frisurknopf").count() > 0, "die Erstellung steht wieder da");
+
   sag(!breit, "Seite läuft nicht seitlich über");
 
   sag(meldungen.length === 0, meldungen.length ? `Konsolenfehler: ${meldungen.join(" | ")}` : "keine Konsolenfehler");

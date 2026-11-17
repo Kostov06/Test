@@ -279,6 +279,24 @@ Bei den Trophäen sucht man sich aus, bei welchem Bund die Fahne
 abhandenkommt. Die Liste kommt aus dem jeweiligen Couleur-Stapel, mit den
 geprüften Farben daneben — der Diebstahl ist damit nebenbei eine Übung.
 
+## Der Held bleibt auf dem Gerät
+
+Held, Ausrüstung, Coins und Lernfortschritt liegen im localStorage — also im
+Browser des jeweiligen Geräts, nicht in der App. **Wer die App weitergibt,
+gibt seinen Helden nicht mit:** `lernapp.html` enthält nur die Stapel, und
+der Pages-Link ist für jeden Besucher eine leere Seite. Wer sie zum ersten
+Mal öffnet, landet in der Charaktererstellung und fängt bei null an.
+
+`tests/run-tests.mjs` sieht in der gebauten Einzeldatei nach, dass dort
+wirklich kein Heldenfeld steht, und `tests/browser-check.mjs` legt in zwei
+getrennten Browserkontexten — also auf zwei Geräten — je einen eigenen
+Helden an.
+
+Auf **demselben** Gerät teilen sich alle denselben Speicher. Dafür steht
+beim Ändern des Helden **Von vorn anfangen**: das löscht Held, Ausrüstung,
+Coins und alle Leitner-Fächer nach Rückfrage. Wer seinen Stand behalten
+will, sichert ihn vorher als Datei.
+
 ## Spielstand
 
 Fortschritt, Coins und Ausrüstung liegen im localStorage dieses Geräts, in
