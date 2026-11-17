@@ -97,7 +97,7 @@ function ansichtStart() {
           : h("p", { class: "meta", text: "höchster Rang" })),
       h("button", { class: "ghost", onclick: () => { location.hash = "#/kleiderkammer"; } },
         "Kleiderkammer")),
-    h("p", { class: "sub", text: "Stoff für die Neuen: Couleur, Comment, Verbandskunde, Geschichte." }),
+    h("p", { class: "sub", text: "Stoff für die Neuen: Couleur, Comment, Verbandskunde, Geschichte, Kneiplatein." }),
     kaputt.length ? h("p", { class: "fehler" },
       `${kaputt.length} Stapel konnten nicht geladen werden: ${kaputt.map((k) => k.id).join(", ")}. `,
       "Die Redaktionsansicht sagt, was fehlt.") : null,

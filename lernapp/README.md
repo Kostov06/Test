@@ -426,7 +426,7 @@ Bilder von außen.
 | `ingvaeonia-geschichte` | Ältestenrat, „Die Geschichte des AMB Ingvaeonia“ |
 | `comment-kneipe`, `begriffe`, `verbandskunde`, `lieder` | Ältestenratsabend „Studentische Traditionen und Bummeln“ |
 | `sv-verbandskunde` | Ältestenratsabend „Sondershäuser Verband — Geschichte & Struktur“ |
-| `kneipvokabeln` | **noch nicht geprüft** — allgemein übliches Kneiplatein, nicht aus euren Unterlagen |
+| `kneipvokabeln`, `kneipspiel` | **noch nicht geprüft** — allgemein übliches Kneiplatein, nicht aus euren Unterlagen |
 
 An den Liedstrophen sind drei Schreibfehler der Vorlage stillschweigend
 berichtigt: `heisst’s` → `heißt’s`, das Wiederholungszeichen `¦:` → `|:`

@@ -25,9 +25,9 @@
     {
       "id": "szene-silentium",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was tust du?",
+      "frage": "Das Silentium ist gegeben. Was tust du?",
       "prompt": "Der Präside ruft: „Silentium!“",
       "antworten": [
         "Du schweigst augenblicklich und legst jedes Gespräch nieder."
@@ -42,9 +42,9 @@
     {
       "id": "szene-strictissimum",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was bedeutet das für dich?",
+      "frage": "Das strengste Silentium ist gegeben. Was bedeutet das für dich?",
       "prompt": "Der Präside ruft: „Silentium strictissimum!“",
       "antworten": [
         "Strengste Ruhe: kein Wort, kein Glas, keine Bewegung — gleich folgt eine Rede oder ein feierlicher Akt."
@@ -59,9 +59,9 @@
     {
       "id": "szene-prosit",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was antwortest du?",
+      "frage": "Dir wird zugetrunken. Was antwortest du?",
       "prompt": "Ein Bundesbruder hebt sein Glas und ruft dir zu: „Prosit!“",
       "antworten": [
         "„Fiducit!“"
@@ -92,9 +92,9 @@
     {
       "id": "szene-bibite",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was tust du?",
+      "frage": "Das Kommando zum Trinken ist gegeben. Was tust du?",
       "prompt": "Der Präside ruft: „Bibite!“",
       "antworten": [
         "Du trinkst — die Aufforderung gilt der ganzen Corona."
@@ -109,9 +109,9 @@
     {
       "id": "szene-ex",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was tust du?",
+      "frage": "Dir wird „Ex!“ zugerufen. Was tust du?",
       "prompt": "Der Präside ruft dir zu: „Ex!“",
       "antworten": [
         "Du trinkst dein Glas in einem Zug ganz aus."
@@ -126,9 +126,9 @@
     {
       "id": "szene-salamander",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was tust du?",
+      "frage": "Der Salamander wird angekündigt. Was tust du?",
       "prompt": "Der Präside kündigt an: „Ad exercitium salamandris!“",
       "antworten": [
         "Du setzt dein Glas an den Tisch und wartest auf das Kommando: reiben, trinken, dreimal aufschlagen."
@@ -175,9 +175,9 @@
     {
       "id": "szene-colloquium",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was heißt das für dich?",
+      "frage": "Das Colloquium ist gegeben. Was heißt das für dich?",
       "prompt": "Der Präside gibt: „Colloquium!“",
       "antworten": [
         "Das Gespräch ist freigegeben — du bleibst aber auf deinem Platz."
@@ -192,9 +192,9 @@
     {
       "id": "szene-cantus",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "gruppe": "kneipspiel",
-      "frage": "Was heißt das?",
+      "frage": "„Cantus ex est“ — was heißt das?",
       "prompt": "Nach dem Lied ruft der Präside: „Cantus ex est!“",
       "antworten": [
         "Das Lied ist zu Ende."

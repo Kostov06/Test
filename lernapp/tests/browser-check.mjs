@@ -33,6 +33,19 @@ await new Promise((r) => server.listen(8321, r));
 let gefallen = 0;
 const sag = (gut, text) => { if (!gut) gefallen++; console.log(`  ${gut ? "ok  " : "FEHLT"} ${text}`); };
 
+// Welcher Stapel enthält welche Kartenart? Damit sucht der Durchlauf
+// gezielt statt sich durch zweihundert gemischte Karten zu klicken —
+// das ging gut, solange es wenige Stapel waren, und wurde mit jedem
+// weiteren Stapel unzuverlässiger.
+const manifest = JSON.parse(await readFile(join(WURZEL, "decks", "index.json"), "utf8"));
+const stapelMitArt = {};
+for (const id of manifest.stapel) {
+  const stapel = JSON.parse(await readFile(join(WURZEL, "decks", `${id}.json`), "utf8"));
+  for (const k of stapel.karten) {
+    if (!stapelMitArt[k.typ]) stapelMitArt[k.typ] = stapel.titel;
+  }
+}
+
 const browser = await chromium.launch();
 
 async function durchlauf(name, url, breite) {
@@ -124,11 +137,17 @@ async function durchlauf(name, url, breite) {
     await s.waitForTimeout(250);
     await s.getByRole("button", { name: "Alle", exact: true }).click();
     await s.waitForTimeout(150);
+    // Nur den Stapel wählen, in dem diese Art überhaupt vorkommt.
+    const titel = stapelMitArt[art];
     const k = s.locator(".stapel input[type=checkbox]");
-    for (let j = 0; j < anzahl; j++) if (!(await k.nth(j).isChecked())) await k.nth(j).click();
+    for (let j = 0; j < anzahl; j++) {
+      const zeile = s.locator(".stapel li").nth(j);
+      const passt = titel ? (await zeile.innerText()).includes(titel) : true;
+      if ((await k.nth(j).isChecked()) !== passt) await k.nth(j).click();
+    }
     await s.locator("button.solid").first().click();
     await s.waitForTimeout(250);
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 120; i++) {
       if (await erkennen()) {
         gesehen.add(art);
         await beantworten();
@@ -168,6 +187,27 @@ async function durchlauf(name, url, breite) {
   // Münzen verdient?
   const muenzen = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).muenzen);
   sag(muenzen > 0, `Münzen verdient: ${muenzen}`);
+
+  // Kneipspiel: Szene, Wahl, Urteil — und die Tastatur
+  await s.goto(url, { waitUntil: "domcontentloaded" });
+  await s.waitForTimeout(250);
+  await s.getByRole("button", { name: /^Kneipspiel/ }).first().click();
+  await s.waitForTimeout(250);
+  sag(await s.locator("svg.szene").count() === 1, "die Kneipszene wird gezeichnet");
+  await s.getByRole("button", { name: "Kneipe eröffnen", exact: true }).click();
+  await s.waitForTimeout(250);
+  const wahlen = await s.locator("ul.wahlfeld button").count();
+  sag(wahlen >= 3 && wahlen <= 4, `drei oder vier Möglichkeiten (${wahlen})`);
+  const vorher = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).muenzen);
+  await s.keyboard.press("1");
+  await s.waitForTimeout(200);
+  sag(await s.locator(".urteil").count() === 1, "die Tastatur wählt im Kneipspiel");
+  const nachher = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).muenzen);
+  sag(nachher > vorher, "das Kneipspiel zahlt Coins aus");
+  await s.keyboard.press(" ");
+  await s.waitForTimeout(200);
+  sag(await s.locator(".urteil").count() === 0, "die Leertaste geht zur nächsten Szene");
+  sag(await s.locator("svg.szene").count() === 1, "die Szene steht auch in der zweiten Runde");
 
   // Kleiderkammer
   await s.goto(url, { waitUntil: "domcontentloaded" });

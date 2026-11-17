@@ -52,6 +52,18 @@ for (const id of manifest.stapel) {
     wahr(fehler.length === 0, fehler.join("\n       "));
   });
   pruefe(`${id}: id im Kopf gleich Dateiname`, () => gleich(stapel.id, id, "Kopf-id"));
+  // Zwei Karten mit demselben Wortlaut sind in der Statistik, in der
+  // Redaktion und im Stapel nicht mehr auseinanderzuhalten.
+  pruefe(`${id}: keine zwei Karten mit gleichem Wortlaut`, () => {
+    const gesehen = new Map();
+    for (const k of stapel.karten) {
+      const wort = (k.frage || k.begriff || k.titel || "").trim().toLowerCase();
+      if (!wort) continue;
+      wahr(!gesehen.has(wort), `${k.id} und ${gesehen.get(wort)} fragen beide „${wort}“`);
+      gesehen.set(wort, k.id);
+    }
+  });
+
   // Ein Ablenker, der die richtige Antwort wiederholt, macht zwei Knöpfe
   // richtig — und die Auswahl hätte keine eindeutige Lösung mehr.
   pruefe(`${id}: kein Ablenker wiederholt seine eigene Antwort`, () => {
