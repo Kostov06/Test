@@ -33,6 +33,8 @@ export function pruefeStapel(stapel) {
     if (!Number.isInteger(k.rev) || k.rev < 1) meld(wo, "rev muss eine ganze Zahl ab 1 sein");
     if (!TYPEN.includes(k.typ)) return meld(wo, `typ „${k.typ}“ ist unbekannt (erlaubt: ${TYPEN.join(", ")})`);
     if (k.notiz !== undefined && !istText(k.notiz)) meld(wo, "notiz ist leer");
+    if (k.prompt !== undefined && !istText(k.prompt)) meld(wo, "prompt ist leer");
+    if (k.gruppe !== undefined && !istText(k.gruppe)) meld(wo, "gruppe ist leer");
 
     if (k.typ === "couleur") {
       const s = k.band && k.band.streifen;

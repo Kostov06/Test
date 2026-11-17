@@ -14,6 +14,8 @@ import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/le
 import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held, ersetze,
          LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS } from "../src/held.js";
 import { KOEPFE } from "../src/koepfe.js";
+import { moeglichkeiten } from "../src/karten/auswahl.js";
+import { stimmt } from "../src/karten/lueckentext.js";
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
@@ -326,11 +328,11 @@ pruefe("Eine falsche Antwort reißt die Serie ab", () => {
 pruefe("Kaufen zieht ab, zweimal kaufen geht nicht, zu arm auch nicht", () => {
   ersetze({ angelegt: true, muenzen: 200 });
   const schuhe = GEGENSTAENDE.find((g) => g.id === "bootsschuhe");
-  const kanne = GEGENSTAENDE.find((g) => g.id === "kanne");
+  const teuer = [...GEGENSTAENDE].sort((a, b) => b.preis - a.preis)[0];
   wahr(kaufe(schuhe), "Bootsschuhe sollten bezahlbar sein");
   gleich(held().muenzen, 200 - schuhe.preis, "Kontostand nach dem Kauf");
   wahr(!kaufe(schuhe), "zweimal dasselbe Stück darf nicht gehen");
-  wahr(!kaufe(kanne), "zu teuer darf nicht gehen");
+  wahr(!kaufe(teuer), "zu teuer darf nicht gehen");
   wahr(held().getragen.schuhe === "bootsschuhe", "Gekauftes wird gleich getragen");
 });
 
@@ -362,6 +364,94 @@ pruefe("Die Bundesfarben hängen am Zipfelbund, nicht an der Krawatte", () => {
 
 pruefe("Jedes Stück sagt, wie es gezeichnet wird", () => {
   for (const g of GEGENSTAENDE) wahr(g.art, `${g.id}: art fehlt`);
+});
+
+// ------------------------------------------------- Lage der richtigen Wahl
+// Die Sorge ist berechtigt: bei maschinell gebauten Multiple-Choice-Fragen
+// steht die richtige Antwort oft auffällig oft an derselben Stelle. Hier
+// wird nachgezählt statt behauptet.
+pruefe("Die richtige Antwort landet gleich oft auf jedem Platz", () => {
+  const stapel = json("decks", "muenster-couleur.json");
+  const karte = stapel.karten[0];
+  const einheit = { stapel, karte };
+  const richtig = karte.antworten.map((a) => a.name).join(" / ");
+  const textVon = (k) => k.antworten.map((a) => a.name).join(" / ");
+
+  const DURCHLAEUFE = 20000;
+  const zaehler = [0, 0, 0, 0];
+  let anzahlFalsch = 0;
+  for (let i = 0; i < DURCHLAEUFE; i++) {
+    const wahl = moeglichkeiten(einheit, richtig, textVon, 4);
+    if (wahl.length !== 4) anzahlFalsch++;
+    const platz = wahl.findIndex((m) => m.richtig);
+    if (platz < 0 || wahl.filter((m) => m.richtig).length !== 1) anzahlFalsch++;
+    zaehler[platz]++;
+  }
+  gleich(anzahlFalsch, 0, "jede Wahl hat vier Möglichkeiten und genau eine richtige");
+
+  const erwartet = DURCHLAEUFE / 4;
+  // Chi-Quadrat über drei Freiheitsgrade: 16,27 ist die Schranke für 0,1 %.
+  // Eine Gleichverteilung reißt sie nur in einem von tausend Läufen.
+  const chi = zaehler.reduce((summe, n) => summe + (n - erwartet) ** 2 / erwartet, 0);
+  const anteile = zaehler.map((n) => (n / DURCHLAEUFE * 100).toFixed(1) + " %");
+  wahr(chi < 16.27, `Plätze: ${anteile.join(", ")} — Chi-Quadrat ${chi.toFixed(1)}, zu ungleich`);
+});
+
+pruefe("Lange Antworten bekommen weniger Möglichkeiten", () => {
+  const stapel = json("decks", "ingvaeonia-geschichte.json");
+  const lang = stapel.karten.find((k) => k.typ === "frage" && k.antworten[0].length > 120);
+  const kurz = stapel.karten.find((k) => k.gruppe === "jahr");
+  if (lang) {
+    const w = moeglichkeiten({ stapel, karte: lang }, lang.antworten[0], (k) => k.antworten[0]);
+    gleich(w.length, 3, "lange Antwort");
+  }
+  const w2 = moeglichkeiten({ stapel, karte: kurz }, kurz.antworten[0], (k) => k.antworten[0]);
+  gleich(w2.length, 4, "kurze Antwort");
+});
+
+pruefe("Die Ablenker sind alle verschieden und keiner ist die Lösung", () => {
+  const stapel = json("decks", "begriffe.json");
+  for (const karte of stapel.karten) {
+    const wahl = moeglichkeiten({ stapel, karte }, karte.definition, (k) => k.definition);
+    if (!wahl) continue;
+    const texte = wahl.map((m) => m.text);
+    gleich(texte.length, new Set(texte).size, `${karte.id}: doppelte Möglichkeit`);
+    gleich(wahl.filter((m) => m.richtig).length, 1, `${karte.id}: nicht genau eine richtige`);
+  }
+});
+
+pruefe("Ablenker kommen aus derselben Gruppe", () => {
+  const stapel = json("decks", "ingvaeonia-geschichte.json");
+  const jahresKarte = stapel.karten.find((k) => k.gruppe === "jahr");
+  const jahre = new Set(stapel.karten.filter((k) => k.gruppe === "jahr").map((k) => k.antworten[0]));
+  for (let i = 0; i < 200; i++) {
+    const wahl = moeglichkeiten({ stapel, karte: jahresKarte }, jahresKarte.antworten[0],
+      (k) => k.antworten[0], 4);
+    for (const m of wahl) {
+      wahr(jahre.has(m.text), `„${m.text}“ ist keine Jahreszahl aus dem Dokument`);
+    }
+  }
+});
+
+pruefe("Die Jahreskarten fragen das Ereignis, nicht das Datum", () => {
+  const stapel = json("decks", "ingvaeonia-geschichte.json");
+  const jahresKarten = stapel.karten.filter((k) => k.gruppe === "jahr");
+  wahr(jahresKarten.length >= 15, `nur ${jahresKarten.length} Jahreskarten`);
+  for (const k of jahresKarten) {
+    wahr(k.antworten.length === 1, `${k.id}: genau eine Antwort nötig`);
+    wahr(/\d{4}/.test(k.antworten[0]), `${k.id}: Antwort „${k.antworten[0]}“ ist kein Datum`);
+    wahr(!/^\d/.test(k.frage), `${k.id}: Frage fängt mit einer Zahl an — vermutlich nicht gedreht`);
+  }
+});
+
+// -------------------------------------------------------- Lückentext-Prüfung
+pruefe("Eingetippte Lücken werden nachsichtig, aber nicht blind verglichen", () => {
+  wahr(stimmt("herz", ["Herz"]), "Großschreibung darf egal sein");
+  wahr(stimmt("  Herz, ", ["Herz"]), "Leerzeichen und Komma am Rand auch");
+  wahr(stimmt("Liedchen", ["Lied", "Liedchen"]), "jede Alternative gilt");
+  wahr(!stimmt("heisst", ["heißt"]), "ß gegen ss ist nicht dasselbe");
+  wahr(!stimmt("", ["Herz"]), "leer ist falsch");
+  wahr(!stimmt("Kopf", ["Herz"]), "falsch ist falsch");
 });
 
 // ---------------------------------------------------------------- Köpfe

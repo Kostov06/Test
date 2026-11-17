@@ -15,45 +15,64 @@ export function zerlege(text) {
   return teile;
 }
 
+// Beim Vergleich großzügig bei Groß- und Kleinschreibung, Leerzeichen und
+// Satzzeichen am Rand — aber nicht bei der Schreibweise selbst. Wer „heisst“
+// statt „heißt“ tippt, hat es nicht gewusst.
+export const vergleichbar = (s) => String(s || "")
+  .trim().toLowerCase()
+  .replace(/[.,;:!?„“"'’]/g, "")
+  .replace(/\s+/g, " ");
+
+export const stimmt = (eingabe, loesungen) =>
+  loesungen.some((l) => vergleichbar(l) === vergleichbar(eingabe));
+
 export function erstelle(einheit) {
   const { karte } = einheit;
   const teile = zerlege(karte.text);
   const luecken = [];
+  let geprueft = false;
 
   const absatz = h("p", { class: "lueckentext" },
     teile.map((t) => {
       if (!t.luecke) return document.createTextNode(t.text);
-      // Die Lösung steht schon da, nur unsichtbar: so springt beim Auflösen
-      // keine Zeile um, und die Länge der Lücke bleibt der Hinweis, der sie
-      // beim Auswendiglernen einer Strophe sein soll.
-      //
-      // Unsichtbar heißt aber nicht verborgen: als bloß durchsichtiger Text
-      // ließe sich die Lösung markieren, kopieren und vorlesen. Sie liegt
-      // deshalb in einem eigenen Kind, das die CSS-Regel mit visibility
-      // ausblendet, und für Screenreader steht daneben das Wort „Lücke“.
-      const loesung = h("span", { class: "wort", text: t.loesungen[0] });
-      const marke = h("span", { class: "nur-vorlesen", text: "Lücke" });
-      const el = h("span", { class: "luecke" }, loesung, marke);
-      luecken.push({ el, marke, teil: t });
-      return el;
+      const breite = Math.max(5, t.loesungen[0].length + 2);
+      const feld = h("input", {
+        type: "text", class: "lueckefeld", autocapitalize: "off", autocomplete: "off",
+        autocorrect: "off", spellcheck: "false",
+        style: `width:${breite}ch`, "aria-label": `Lücke ${luecken.length + 1}`,
+      });
+      luecken.push({ feld, teil: t });
+      return feld;
     }));
 
   return {
+    modus: "tippen",
     frage: () => [
       karte.titel ? h("p", { class: "prompt", text: karte.titel }) : null,
       h("div", { class: "antwort" }, absatz),
+      h("p", { class: "prompt", text: `${luecken.length} ${luecken.length === 1 ? "Lücke" : "Lücken"} ausfüllen.` }),
     ],
-    antwort: () => {
-      for (const { el, marke } of luecken) {
-        el.classList.add("gefuellt");
-        marke.remove();
+    // Geprüft wird jederzeit; eine leere Lücke zählt als falsch.
+    bereit: () => true,
+    auswerten: () => {
+      geprueft = true;
+      let alle = true;
+      for (const { feld, teil } of luecken) {
+        const gut = stimmt(feld.value, teil.loesungen);
+        feld.classList.add(gut ? "richtig" : "falsch");
+        feld.readOnly = true;
+        if (!gut) { feld.value = teil.loesungen[0]; alle = false; }
       }
+      return alle;
+    },
+    antwort: () => {
       const mehrere = luecken.filter(({ teil }) => teil.loesungen.length > 1);
-      // Die Trennlinie unter der Zählzeile nur, wenn darunter auch etwas steht.
-      const folgt = mehrere.length > 0 || Boolean(karte.notiz);
+      const falsche = luecken.filter(({ feld }) => feld.classList.contains("falsch")).length;
       return h("div", { class: "antwort" },
-        h("p", { class: folgt ? "multi" : "meta",
-                 text: `${luecken.length} ${luecken.length === 1 ? "Lücke" : "Lücken"} — oben eingesetzt.` }),
+        h("p", { class: mehrere.length || karte.notiz ? "multi" : "meta",
+                 text: !geprueft ? "" : falsche
+                   ? `${falsche} von ${luecken.length} daneben — oben richtig eingesetzt.`
+                   : "Alle Lücken richtig." }),
         mehrere.map(({ teil }) =>
           h("p", { class: "meta", text: `Ebenso richtig: ${teil.loesungen.slice(1).join(", ")}` })),
         karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);

@@ -323,14 +323,30 @@ function inDerHand(m, g, aermel, kleid) {
       ${p(`M${x - 7} ${o + 16} V${o + 32}`, null, `stroke="rgba(255,255,255,.6)" stroke-width="3"`)}
     </g>`;
   }
-  const o = y - 24;
+  // Octopott: hohes Facettenglas, Henkel links, Ausguss rechts, Bier drin
+  // mit Schaumkrone. Alles durchscheinend, deshalb sitzt die Kontur vorn.
+  const glas = "#eceef0";
+  const bier = farbe(g.farbe, "#e3a92f");
+  const hoch = 58, breit = 30;
+  const o = y - hoch + 10;
+  const l = x - breit / 2, r = x + breit / 2;
+  const schaumY = o + 13;
   return `<g>
-    ${p(`M${x + 15} ${o + 16} q13 2 13 12 t-13 12`, null, `${strich} fill="none" stroke-width="5"`)}
-    ${p(`M${x - 15} ${o + 8} h30 l4 8 v24 l-4 8 h-30 l-4 -8 v-24 Z`, "#c3c7cc", strich)}
-    ${p(`M${x - 15} ${o + 8} h30 l4 8 h-38 Z`, "#dfe2e6", `stroke="${L}" stroke-width="${Sd}"`)}
-    ${p(`M${x - 18} ${o} h36 v9 h-36 Z`, "#aeb2b8", strich)}
-    ${p(`M${x - 5} ${o - 7} h10 v8 h-10 Z`, "#aeb2b8", `stroke="${L}" stroke-width="${Sd}"`)}
-    ${p(`M${x - 8} ${o + 20} V${o + 38}`, null, `stroke="rgba(255,255,255,.55)" stroke-width="3"`)}
+    ${p(`M${l - 10} ${o + 16} q-11 3 -11 14 t11 14`, null,
+        `fill="none" stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l} ${o + 4} L${l + 2} ${o + hoch - 4} q0 4 4 4 h${breit - 12} q4 0 4 -4
+         L${r} ${o + 4} Z`, glas, `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`)}
+    ${p(`M${l + 1.2} ${schaumY} L${l + 2} ${o + hoch - 4} q0 4 4 4 h${breit - 12} q4 0 4 -4
+         L${r - 1.2} ${schaumY} Z`, bier, "")}
+    ${p(`M${l + 1} ${schaumY} h${breit - 2}`, null, `stroke="#fdf6e6" stroke-width="7"`)}
+    ${[-9, -3, 3, 9].map((dx) =>
+      p(`M${x + dx} ${o + 6} V${o + hoch - 2}`, null,
+        `stroke="rgba(255,255,255,.5)" stroke-width="1.6"`)).join("")}
+    ${p(`M${r - 1} ${o + 4} q7 -3 10 2`, null,
+        `fill="none" stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l} ${o + 4} L${r} ${o + 4}`, null, `stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l + 5} ${o + 20} V${o + hoch - 10}`, null,
+        `stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round"`)}
   </g>`;
 }
 

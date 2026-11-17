@@ -18,6 +18,7 @@ let modus = "faellig";       // faellig | alle | fehler
 let sitzung = null;
 let enthuellt = false;
 let kartenObjekt = null;
+let ergebnis = null;        // null = noch offen, sonst ob richtig beantwortet
 let letzterLohn = null;     // was die eben beantwortete Karte eingebracht hat
 let sitzungsLohn = 0;
 let bonusGezahlt = false;
@@ -137,6 +138,7 @@ function starteSitzung() {
   enthuellt = false;
   kartenObjekt = null;
   letzterLohn = null;
+  ergebnis = null;
   sitzungsLohn = 0;
   bonusGezahlt = false;
   location.hash = "#/lernen";
@@ -148,42 +150,57 @@ function ansichtLernen() {
 
   const einheit = sitzung.aktuell;
   if (!kartenObjekt) {
-    kartenObjekt = erstelleKarte(einheit, () => zeichne());
+    kartenObjekt = erstelleKarte(einheit, {
+      neuZeichnen: () => zeichne(),
+      // Eine angetippte Wahl zählt sofort — kein „Gewusst“ hinterher,
+      // bei dem man sich selbst belügen könnte.
+      beiAntwort: (richtig) => { ergebnis = richtig; zeichne(); },
+    });
     enthuellt = false;
+    ergebnis = null;
   }
 
-  const weiter = (gewusst) => {
-    // Das Fach vor der Bewertung bestimmt den Lohn: eine Karte, die noch
-    // im ersten Fach steckt, bringt am meisten.
-    const altesFach = stand(einheit).fach;
-    sitzung.antworte(gewusst);
-    letzterLohn = verbuche(gewusst, altesFach);
-    sitzungsLohn += letzterLohn.betrag + letzterLohn.bonus;
-    kartenObjekt = null;
-    enthuellt = false;
-    zeichne();
-  };
+  const weiter = fortfahren;
+  const spaeter = h("button", { class: "ghost",
+    onclick: () => { sitzung.zurueckstellen(); kartenObjekt = null; ergebnis = null; zeichne(); } },
+    "Später");
 
-  const kannEnthuellen = !kartenObjekt.bereit || kartenObjekt.bereit();
-  const vorschlag = enthuellt && kartenObjekt.vorschlag ? kartenObjekt.vorschlag() : null;
+  const selbst = kartenObjekt.modus === "selbst";
+  const beantwortet = selbst ? enthuellt : ergebnis !== null;
 
-  const knoepfe = enthuellt
-    ? h("div", { class: "row" },
-        h("button", { class: vorschlag === false ? "solid" : null, onclick: () => weiter(false) }, "Falsch"),
-        h("button", { class: vorschlag === null || vorschlag === true ? "solid" : null,
-                      onclick: () => weiter(true) }, "Gewusst"))
-    : h("div", { class: "row" },
-        h("button", { class: "solid", disabled: !kannEnthuellen,
-                      onclick: () => { enthuellt = true; zeichne(); } }, "Antwort zeigen"),
-        h("button", { class: "ghost", onclick: () => { sitzung.zurueckstellen(); kartenObjekt = null; zeichne(); } },
-          "Später"));
+  let knoepfe;
+  if (selbst && !enthuellt) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", onclick: () => { enthuellt = true; zeichne(); } }, "Antwort zeigen"),
+      spaeter);
+  } else if (selbst) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { onclick: () => weiter(false) }, "Falsch"),
+      h("button", { class: "solid", onclick: () => weiter(true) }, "Gewusst"));
+  } else if (!beantwortet && kartenObjekt.modus === "auswahl") {
+    knoepfe = h("div", { class: "row" }, spaeter);     // das Antippen beantwortet
+  } else if (!beantwortet) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", disabled: kartenObjekt.bereit && !kartenObjekt.bereit(),
+        onclick: () => { ergebnis = kartenObjekt.auswerten(); zeichne(); } }, "Prüfen"),
+      spaeter);
+  } else {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", onclick: () => weiter(ergebnis) }, "Weiter"));
+  }
+
+  const urteil = ergebnis === null ? null
+    : h("p", { class: `urteil ${ergebnis ? "gut" : "schlecht"}`,
+               text: ergebnis ? "Richtig." : "Daneben." });
 
   return [
     h("div", { class: "kopf" },
       h("p", { class: "sub", text: einheit.stapel.titel }),
       h("button", { class: "zurueck", onclick: () => { location.hash = "#/"; } }, "Übersicht")),
     kartenObjekt.frage(),
-    enthuellt ? kartenObjekt.antwort() : null,
+    kartenObjekt.feld ? kartenObjekt.feld() : null,
+    urteil,
+    beantwortet ? kartenObjekt.antwort() : null,
     knoepfe,
     h("div", { class: "score" },
       h("span", {}, "Offen ", h("b", { text: String(sitzung.schlange.length) }),
@@ -193,12 +210,17 @@ function ansichtLernen() {
           ? h("span", { class: "lohn" }, `+${letzterLohn.betrag + letzterLohn.bonus} `, MUENZE,
               letzterLohn.bonus ? h("b", { text: ` ${letzterLohn.serie}er-Serie!` }) : null)
           : null,
-        " Gewusst ", h("b", { text: String(sitzung.richtig) }),
+        " Richtig ", h("b", { text: String(sitzung.richtig) }),
         " · Falsch ", h("b", { text: String(sitzung.falsch) }))),
-    h("p", { class: "hinweis tasten-hinweis", text: enthuellt
-      ? "Tastatur: G gewusst, F falsch."
-      : "Tastatur: Leertaste zeigt die Antwort, S stellt zurück." }),
+    h("p", { class: "hinweis tasten-hinweis", text: tastenHinweis(selbst, beantwortet) }),
   ];
+}
+
+function tastenHinweis(selbst, beantwortet) {
+  if (beantwortet) return selbst ? "Tastatur: G gewusst, F falsch." : "Tastatur: Leertaste geht weiter.";
+  if (selbst) return "Tastatur: Leertaste zeigt die Antwort, S stellt zurück.";
+  if (kartenObjekt && kartenObjekt.modus === "auswahl") return "Tastatur: 1 bis 4 wählen, S stellt zurück.";
+  return "Tastatur: Leertaste prüft, S stellt zurück.";
 }
 
 function ansichtFertig() {
@@ -326,7 +348,7 @@ function spielstandOeffnen() {
 }
 
 function tasten(ev) {
-  if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig) return;
+  if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig || !kartenObjekt) return;
   const ziel = ev.target;
   if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return;
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
@@ -335,18 +357,47 @@ function tasten(ev) {
   // Griffe die Abkürzung zusätzlich, passierte zweierlei auf einen Druck.
   const aufKnopf = ziel && ziel.tagName === "BUTTON";
   const taste = ev.key.toLowerCase();
-  if (!enthuellt && (ev.key === " " || taste === "enter")) {
-    if (aufKnopf) return;
-    if (!kartenObjekt.bereit || kartenObjekt.bereit()) {
-      ev.preventDefault(); enthuellt = true; zeichne();
-    }
-  } else if (!enthuellt && taste === "s") {
-    ev.preventDefault(); sitzung.zurueckstellen(); kartenObjekt = null; zeichne();
-  } else if (enthuellt && (taste === "g" || taste === "j")) {
-    ev.preventDefault(); sitzung.antworte(true); kartenObjekt = null; enthuellt = false; zeichne();
-  } else if (enthuellt && (taste === "f" || taste === "n")) {
-    ev.preventDefault(); sitzung.antworte(false); kartenObjekt = null; enthuellt = false; zeichne();
+  const leer = ev.key === " " || taste === "enter";
+  const selbst = kartenObjekt.modus === "selbst";
+  const beantwortet = selbst ? enthuellt : ergebnis !== null;
+
+  const tu = (fn) => { ev.preventDefault(); fn(); };
+
+  if (!beantwortet && taste === "s") {
+    return tu(() => { sitzung.zurueckstellen(); kartenObjekt = null; ergebnis = null; zeichne(); });
   }
+  if (!beantwortet && kartenObjekt.modus === "auswahl" && /^[1-9]$/.test(ev.key)) {
+    return tu(() => kartenObjekt.waehle(Number(ev.key)));
+  }
+  if (leer && aufKnopf) return;
+  if (!beantwortet && leer) {
+    if (selbst) return tu(() => { enthuellt = true; zeichne(); });
+    if (kartenObjekt.auswerten && (!kartenObjekt.bereit || kartenObjekt.bereit())) {
+      return tu(() => { ergebnis = kartenObjekt.auswerten(); zeichne(); });
+    }
+    return;
+  }
+  if (beantwortet && !selbst && leer) {
+    return tu(() => fortfahren(ergebnis));
+  }
+  if (beantwortet && selbst && (taste === "g" || taste === "j")) return tu(() => fortfahren(true));
+  if (beantwortet && selbst && (taste === "f" || taste === "n")) return tu(() => fortfahren(false));
+}
+
+// Ein Weg nach vorn für Knöpfe und Tastatur. Das Fach vor der Bewertung
+// bestimmt den Lohn: eine Karte, die noch im ersten Fach steckt, bringt
+// am meisten.
+function fortfahren(gewusst) {
+  const einheit = sitzung.aktuell;
+  if (!einheit) return;
+  const altesFach = stand(einheit).fach;
+  sitzung.antworte(gewusst);
+  letzterLohn = verbuche(gewusst, altesFach);
+  sitzungsLohn += letzterLohn.betrag + letzterLohn.bonus;
+  kartenObjekt = null;
+  enthuellt = false;
+  ergebnis = null;
+  zeichne();
 }
 
 async function start() {

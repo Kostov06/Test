@@ -6,9 +6,12 @@ import * as reihenfolge from "./reihenfolge.js";
 
 const NACH_TYP = { couleur, frage, begriff, lueckentext, reihenfolge };
 
-export function erstelleKarte(einheit, beiAenderung) {
+// ctx trägt zwei Rückrufe: neuZeichnen für Zwischenschritte (Reihenfolge)
+// und beiAntwort, mit dem eine angetippte Wahl sofort zählt.
+export function erstelleKarte(einheit, ctx) {
   const modul = NACH_TYP[einheit.karte.typ];
   if (!modul) throw new Error(`Kein Renderer für Typ ${einheit.karte.typ}`);
-  return modul.erstelle(einheit, beiAenderung);
+  const objekt = modul.erstelle(einheit, ctx);
+  return { modus: "selbst", ...objekt };
 }
 export { band } from "./couleur.js";

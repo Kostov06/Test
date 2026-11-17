@@ -42,56 +42,57 @@ export const GEGENSTAENDE = [
     beschreibung: "Niemand hat dir etwas anderes gesagt.", farbe: "#f4f2ea" },
 
   // --- Erschwingliches --------------------------------------------------
-  { id: "bootsschuhe", platz: "schuhe", preis: 150, art: "boot", name: "Bootsschuhe",
+  { id: "bootsschuhe", platz: "schuhe", preis: 80, art: "boot", name: "Bootsschuhe",
     beschreibung: "Braunes Leder, helle Sohle. Der erste richtige Schritt.", farbe: "#8a5a32" },
-  { id: "krawatte-dunkelblau", platz: "hals", preis: 180, art: "krawatte", name: "Krawatte, dunkelblau",
+  { id: "krawatte-dunkelblau", platz: "hals", preis: 120, art: "krawatte", name: "Krawatte, dunkelblau",
     beschreibung: "Die, mit der man nichts falsch macht.", farbe: "#243352" },
-  { id: "krawatte-bordeaux", platz: "hals", preis: 180, art: "krawatte", name: "Krawatte, bordeaux",
+  { id: "krawatte-bordeaux", platz: "hals", preis: 120, art: "krawatte", name: "Krawatte, bordeaux",
     beschreibung: "Etwas mehr Meinung als dunkelblau.", farbe: "#6d2230" },
-  { id: "krawatte-silber", platz: "hals", preis: 220, art: "krawatte", name: "Krawatte, silbergrau",
+  { id: "krawatte-silber", platz: "hals", preis: 140, art: "krawatte", name: "Krawatte, silbergrau",
     beschreibung: "Für Stiftungsfeste und Hochzeiten.", farbe: "#a9adb3" },
-  { id: "krawatte-gestreift", platz: "hals", preis: 260, art: "krawatte-gestreift", name: "Krawatte, gestreift",
+  { id: "krawatte-gestreift", platz: "hals", preis: 160, art: "krawatte-gestreift", name: "Krawatte, gestreift",
     beschreibung: "Diagonal, dunkelgrün auf nachtblau.", farbe: "#1e3048", zweitfarbe: "#2f5d3a" },
-  { id: "fliege", platz: "hals", preis: 240, art: "fliege", name: "Schwarze Fliege",
+  { id: "fliege", platz: "hals", preis: 140, art: "fliege", name: "Schwarze Fliege",
     beschreibung: "Für den festlichen Kommers.", farbe: "#1d1a17" },
-  { id: "helles", platz: "hand", preis: 250, art: "glas", name: "Helles im Henkelglas",
+  { id: "helles", platz: "hand", preis: 150, art: "glas", name: "Helles im Henkelglas",
     beschreibung: "Der Zapfen hat ein Auge auf dich.", farbe: "#e0a52a" },
 
   // --- Mittelklasse ------------------------------------------------------
-  { id: "wachsjacke-gruen", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, dunkelgrün",
+  { id: "wachsjacke-gruen", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, dunkelgrün",
     beschreibung: "Riecht nach Wachs und nassem Hund. Unverwüstlich.", farbe: "#2f4232" },
-  { id: "wachsjacke-blau", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, dunkelblau",
+  { id: "wachsjacke-blau", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, dunkelblau",
     beschreibung: "Dieselbe Jacke, andere Meinung.", farbe: "#273449" },
-  { id: "wachsjacke-braun", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, braun",
+  { id: "wachsjacke-braun", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, braun",
     beschreibung: "Die vom Onkel geerbte.", farbe: "#4a3626" },
-  { id: "kanne", platz: "hand", preis: 900, art: "kanne", name: "Zinnkanne mit Deckel",
-    beschreibung: "Acht Ecken, ein Deckel, kein Zurück.", farbe: "#b9bcc0" },
+  { id: "octopott", platz: "hand", preis: 500, art: "octopott", name: "Octopott",
+    beschreibung: "Hohes Facettenglas mit Henkel und Ausguss. Acht Kanten, anderthalb Liter, kein Zurück.",
+    farbe: "#e3a92f" },
 
   // --- Gehobenes ---------------------------------------------------------
-  { id: "anzug-anthrazit", platz: "jacke", preis: 1100, art: "anzug", name: "Anzug, anthrazit",
+  { id: "anzug-anthrazit", platz: "jacke", preis: 550, art: "anzug", name: "Anzug, anthrazit",
     beschreibung: "Jackett bleibt an, bis das Präsidium es auszieht.", farbe: "#2e3238" },
-  { id: "anzug-nachtblau", platz: "jacke", preis: 1100, art: "anzug", name: "Anzug, nachtblau",
+  { id: "anzug-nachtblau", platz: "jacke", preis: 550, art: "anzug", name: "Anzug, nachtblau",
     beschreibung: "Abends das bessere Schwarz.", farbe: "#20283d" },
-  { id: "anzug-schwarz", platz: "jacke", preis: 1250, art: "anzug", name: "Anzug, schwarz",
+  { id: "anzug-schwarz", platz: "jacke", preis: 650, art: "anzug", name: "Anzug, schwarz",
     beschreibung: "Trauer, Trauung, Kommers.", farbe: "#1a1b1d" },
-  { id: "anzug-grau", platz: "jacke", preis: 1000, art: "anzug", name: "Anzug, mittelgrau",
+  { id: "anzug-grau", platz: "jacke", preis: 500, art: "anzug", name: "Anzug, mittelgrau",
     beschreibung: "Geht auch tagsüber durch.", farbe: "#595f66" },
-  { id: "kleid-dunkelblau", platz: "oberteil", preis: 1100, art: "kleid", name: "Kleid, dunkelblau",
+  { id: "kleid-dunkelblau", platz: "oberteil", preis: 550, art: "kleid", name: "Kleid, dunkelblau",
     beschreibung: "Schultern bedeckt, knielang, dem Anlass angemessen.", farbe: "#2b3550" },
-  { id: "kleid-bordeaux", platz: "oberteil", preis: 1100, art: "kleid", name: "Kleid, bordeaux",
+  { id: "kleid-bordeaux", platz: "oberteil", preis: 550, art: "kleid", name: "Kleid, bordeaux",
     beschreibung: "Dasselbe in kräftiger.", farbe: "#5d2330" },
-  { id: "kleid-schwarz", platz: "oberteil", preis: 1250, art: "kleid", name: "Kleid, schwarz",
+  { id: "kleid-schwarz", platz: "oberteil", preis: 650, art: "kleid", name: "Kleid, schwarz",
     beschreibung: "Das kleine Schwarze. Geht immer.", farbe: "#1f2023" },
 
   // --- Couleur ------------------------------------------------------------
-  { id: "zipfelbund", platz: "guertel", preis: 1800, art: "zipfelbund", name: "Zipfelbund in Bundesfarben",
+  { id: "zipfelbund", platz: "guertel", preis: 800, art: "zipfelbund", name: "Zipfelbund in Bundesfarben",
     beschreibung: "Ein Bierzipfel, zwei Weinzipfel, rot-gold-schwarz. Getauscht, nicht gekauft — aber wir drücken ein Auge zu." },
 
   // --- Trophäen -----------------------------------------------------------
-  { id: "fahne-muenster", platz: "trophaee", preis: 3000, art: "fahne", name: "Erbeutete Prunkfahne (Münster)",
+  { id: "fahne-muenster", platz: "trophaee", preis: 1500, art: "fahne", name: "Erbeutete Prunkfahne (Münster)",
     beschreibung: "Vom Haus eines Münsteraner Bundes. Kommt nach dem Stiftungsfest zurück. Versprochen.",
     quelle: "muenster-couleur" },
-  { id: "fahne-sv", platz: "trophaee", preis: 5000, art: "fahne", name: "Erbeutete Prunkfahne (SV)",
+  { id: "fahne-sv", platz: "trophaee", preis: 2500, art: "fahne", name: "Erbeutete Prunkfahne (SV)",
     beschreibung: "Vom Vertretertag mitgenommen. Die Verhandlungen laufen noch.",
     quelle: "sv-couleur" },
 ];
@@ -102,11 +103,11 @@ export const nachId = (id) => GEGENSTAENDE.find((g) => g.id === id) || null;
 // sonst stiege man beim Einkaufen wieder ab.
 export const RAENGE = [
   { ab: 0, name: "Spefux" },
-  { ab: 250, name: "Fux" },
-  { ab: 900, name: "Kneipgänger" },
-  { ab: 2200, name: "Kannenträger" },
-  { ab: 4500, name: "Chargierter" },
-  { ab: 9000, name: "Ältestenrat" },
+  { ab: 400, name: "Fux" },
+  { ab: 1500, name: "Kneipgänger" },
+  { ab: 3500, name: "Kannenträger" },
+  { ab: 7000, name: "Chargierter" },
+  { ab: 14000, name: "Ältestenrat" },
 ];
 
 export const rang = (verdient) =>
@@ -169,15 +170,16 @@ export function ersetze(neuerStand) {
 // „Falsch“ bringt weniger, aber nie null. Wer für Ehrlichkeit bestraft wird,
 // klickt irgendwann auf „Gewusst“, ohne es zu wissen — und dann ist die
 // Selbsteinschätzung wertlos.
-export const LOHN_FALSCH = 1;
+export const LOHN_FALSCH = 2;
 export const SERIE_FUER_BONUS = 5;
-export const SERIEN_BONUS = 10;
-export const SITZUNGS_BONUS = 25;
+export const SERIEN_BONUS = 20;
+export const SITZUNGS_BONUS = 50;
 
-// Fach 1 bringt am meisten: da wird wirklich etwas gelernt. Die Untergrenze
-// liegt über LOHN_FALSCH, damit eine richtige Antwort nie gleich viel wert
-// ist wie eine falsche.
-export const lohn = (altesFach) => Math.max(LOHN_FALSCH + 1, 7 - altesFach);
+// Lohn nach dem Fach vor der Antwort. Fach 1 bringt am meisten, da wird
+// wirklich etwas gelernt; auch die letzte Stufe bleibt über LOHN_FALSCH,
+// damit richtig immer mehr wert ist als falsch.
+export const LOEHNE = [10, 8, 6, 5, 4];
+export const lohn = (altesFach) => LOEHNE[Math.min(LOEHNE.length, Math.max(1, altesFach)) - 1];
 
 export function verbuche(gewusst, altesFach) {
   const h = roh();

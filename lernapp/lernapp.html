@@ -268,6 +268,47 @@ textarea.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-s
   aspect-ratio:1;display:block;overflow:hidden}
 .frisurknopf svg{width:100%;height:100%;display:block}
 .frisurknopf[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+
+/* ================================================== Echte Abfragen === */
+
+/* Multiple Choice. Welche Möglichkeit die richtige ist, entscheidet eine
+   Mischung in auswahl.js — nicht die Position. */
+.wahlfeld{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:7px}
+.wahlfeld button{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;
+  border-color:var(--rule);padding:12px 13px;font-size:15px;line-height:1.35}
+.wahlfeld .nr{flex:0 0 1.3em;font-size:12.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;padding-top:2px}
+.wahlfeld .wahltext{flex:1 1 auto;min-width:0}
+.wahlfeld button.richtig{border-color:var(--accent);border-width:2px;padding:11px 12px;
+  background:rgba(61,90,63,.10)}
+.wahlfeld button.richtig .nr{color:var(--accent)}
+.wahlfeld button.falsch{border-color:var(--warn);border-width:2px;padding:11px 12px;
+  background:rgba(125,58,46,.09)}
+.wahlfeld button.falsch .nr{color:var(--warn)}
+.wahlfeld button.blass{opacity:.45}
+.wahlfeld button[disabled]{opacity:1}
+.wahlfeld button.blass[disabled]{opacity:.45}
+
+/* Lücken zum Eintippen. Die Auswahl muss mindestens so genau sein wie die
+   allgemeine Regel für input[type=text], sonst gewinnt deren Rahmen. */
+input[type=text].lueckefeld{
+  font:inherit;font-size:16px;font-weight:600;text-align:center;width:auto;
+  border:0;border-bottom:2px solid var(--ink);border-radius:0;background:transparent;
+  padding:0 .15em;margin:0 .12em;color:var(--ink);vertical-align:baseline;
+  line-height:inherit;-webkit-appearance:none;appearance:none}
+input[type=text].lueckefeld:focus{outline:none;border-bottom-color:var(--accent);
+  background:rgba(61,90,63,.08)}
+input[type=text].lueckefeld:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text].lueckefeld.richtig{border-bottom-color:var(--accent);color:var(--accent)}
+input[type=text].lueckefeld.falsch{border-bottom-color:var(--warn);color:var(--warn)}
+input[type=text].lueckefeld[readonly]{cursor:default}
+
+/* Das Urteil nach einer Abfrage */
+.urteil{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  font-size:19px;margin:14px 0 0;animation:lohnAuf .2s ease-out}
+.urteil.gut{color:var(--accent)}
+.urteil.schlecht{color:var(--warn)}
+@media (prefers-reduced-motion:reduce){.urteil{animation:none}}
 </style>
 </head>
 <body>
@@ -275,7 +316,7 @@ textarea.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-s
 <script>
 // Einzeldatei-Fassung: die Stapel liegen hier drin, nichts wird nachgeladen.
 // Gebaut mit tools/build-einzeldatei.mjs — Änderungen gehören in decks/ und src/.
-window.STAPEL_EINGEBETTET = [{"schema":1,"id":"sv-couleur","titel":"Couleur des SV","untertitel":"Die aktiven Verbindungen des Sondershäuser Verbands","quelle":"quellen/sv-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#fefefe","#fcc256","#fcc356","#fcb543","#98d1fe","#97d0fd","#f59dae","#f59cad"],"karten":[{"id":"agv-muenchen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59dae"},{"farbe":"#fefefe"}]},"farben":"rosa-weiß","antworten":[{"name":"AGV München","ort":"München"},{"name":"AMV Fridericiana","ort":"Erlangen"}]},{"id":"amb-ingvaeonia-muenster","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe192b"},{"farbe":"#e3ae4d","breite":0.05},{"farbe":"#0a0a0a","breite":0.9},{"farbe":"#fdc356","breite":0.05},{"farbe":"#fe182b"}]},"farben":"rot-schwarz-rot, schwarzer Balken golden durchzogen","antworten":[{"name":"AMB Ingvaeonia","ort":"Münster"}]},{"id":"amdv-caecilia-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe154d"},{"farbe":"#fefefe"},{"farbe":"#fe8916"}]},"farben":"karmesinrot-weiß-orange","antworten":[{"name":"AMDV Caecilia","ort":"Hamburg"}]},{"id":"amv-albingia-kiel","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59cad"},{"farbe":"#fefefe"},{"farbe":"#0c9526"}]},"farben":"rosa-weiß-grün","antworten":[{"name":"AMV Albingia","ort":"Kiel"}]},{"id":"amv-arion-aachen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#3e50fe"},{"farbe":"#fefefe"},{"farbe":"#007e0e"}]},"farben":"blau-weiß-grün","antworten":[{"name":"AMV Arion","ort":"Aachen"}]},{"id":"amv-arminia-braunschweig","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7e0037"},{"farbe":"#fefefe"},{"farbe":"#007f46"}]},"farben":"weinrot-weiß-meergrün","antworten":[{"name":"AMV Arminia","ort":"Braunschweig"}]},{"id":"amv-ascania-halle-clausthal","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#089415"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"grün-weiß-rot","antworten":[{"name":"AMV Ascania","ort":"Halle-Clausthal"}]},{"id":"amv-berlin","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"}]},"farben":"rot-weiß","antworten":[{"name":"AMV Berlin","ort":"Berlin"},{"name":"AMV Würzburg","ort":"Würzburg"}]},{"id":"amv-fridericiana-marburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#007f47"},{"farbe":"#fe0000"}]},"farben":"schwarz-meergrün-rot","antworten":[{"name":"AMV Fridericiana","ort":"Marburg"}]},{"id":"amv-innsbruck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"rot-weiß-rot","antworten":[{"name":"AMV Innsbruck","ort":"Innsbruck"}]},{"id":"amv-mainz","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#97d0fd"},{"farbe":"#fefefe"},{"farbe":"#f59cad"}]},"farben":"hellblau-weiß-rosa","antworten":[{"name":"AMV Mainz","ort":"Mainz"}]},{"id":"amv-makaria-bonn","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"hellblau-weiß-rot","antworten":[{"name":"AMV Makaria","ort":"Bonn"}]},{"id":"amv-nordmark-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#5da7fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"AMV Nordmark","ort":"Hamburg"}]},{"id":"amv-stauffia-heidelberg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fcc356"}]},"farben":"rot-weiß-gold","antworten":[{"name":"AMV Stauffia","ort":"Heidelberg"}]},{"id":"amv-stochdorphia-tuebingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010101"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"AMV Stochdorphia","ort":"Tübingen"}]},{"id":"amv-waltharia-frankfurt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"AMV Waltharia","ort":"Frankfurt"}],"notiz":"Praktisch dasselbe Band führt auch MSG Alt-Straßburg (Freiburg)."},{"id":"awv-makaria-stuttgart","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fc0000"},{"farbe":"#0063fe"}]},"farben":"schwarz-rot-blau","antworten":[{"name":"AWV Makaria","ort":"Stuttgart"}]},{"id":"msg-alt-strassburg-freiburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"MSG Alt-Straßburg","ort":"Freiburg"}],"notiz":"Praktisch dasselbe Band führt auch AMV Waltharia (Frankfurt)."},{"id":"mv-liubicia-luebeck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fefefe"},{"farbe":"#fd0002"},{"farbe":"#2e8a57"}]},"farben":"weiß-rot-meergrün","antworten":[{"name":"MV Liubicia","ort":"Lübeck"}]},{"id":"stmv-blaue-saenger-goettingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#98d1fe"}]},"farben":"hellblau-weiß-hellblau","antworten":[{"name":"StMV Blaue Sänger","ort":"Göttingen"}]},{"id":"musische-gruppe-auerbach-darmstadt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"musische gruppe auerbach","ort":"Darmstadt"}]}]},{"schema":1,"id":"muenster-couleur","titel":"Couleur in Münster","untertitel":"Die aktiven Verbindungen am Ort","quelle":"quellen/muenster-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#ffffff","#c3c6cb","#f2d200","#f0c31c","#95cef0","#f3b4c6","#2fd3bd"],"karten":[{"id":"l-sorabia-westfalen-1716","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#f0c31c"},{"farbe":"#0f37cf"}]},"farben":"blau-gold-blau","antworten":[{"name":"L! Sorabia-Westfalen","jahr":1716,"verband":"CC","anmerkung":"Zweitband: weiß-schwarz-grün-weiß"}]},{"id":"s-zu-st-pauli-jena-et-burgundia-breslau-1828","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#ffffff"},{"farbe":"#101f78"}]},"farben":"hellblau-weiß-dunkelblau (v.u.)","antworten":[{"name":"S! zu St. Pauli Jena et Burgundia Breslau","jahr":1828,"verband":"DS","anmerkung":"Zweitband: weiß-blau-rot-weiß"},{"name":"Akad. Ruderverbindung Westfalen","jahr":1891,"verband":"ARB"}]},{"id":"b-der-pflueger-halle-1837","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"violett-weiß-gold","antworten":[{"name":"B! der Pflüger Halle","jahr":1837,"verband":"verbandsfrei"}]},{"id":"kdstv-sauerlandia-1847","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"blau-weiß-grün","antworten":[{"name":"KDStV Sauerlandia","jahr":1847,"verband":"CV"}]},{"id":"l-rhenania-1850","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"blau-weiß-rot","antworten":[{"name":"L! Rhenania","jahr":1850,"verband":"CC"}]},{"id":"kdstv-winfridia-breslau-1856","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#e2122b"},{"farbe":"#f0c31c"}]},"farben":"grün-rot-gold","antworten":[{"name":"KDStV Winfridia Breslau","jahr":1856,"verband":"CV"}]},{"id":"vkdst-saxonia-1863","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"rot-weiß-grün","antworten":[{"name":"VKDSt Saxonia","jahr":1863,"verband":"CV"}]},{"id":"kstv-germania-1864","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"rot-weiß-schwarz","antworten":[{"name":"KStV Germania","jahr":1864,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"b-franconia-1878","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"violett-weiß-rot","antworten":[{"name":"B! Franconia","jahr":1878,"verband":"DB"}]},{"id":"vdst-muenster-1881","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"VDSt Münster","jahr":1881,"verband":"VVDSt","anmerkung":"farbenführend"}]},{"id":"kdstv-alemannia-zu-greifswald-und-muenster-1891","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#17a02a"}]},"farben":"schwarz-gold-grün","antworten":[{"name":"KDStV Alemannia zu Greifswald und Münster","jahr":1891,"verband":"CV"}]},{"id":"av-cheruscia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"violett-weiß-schwarz","antworten":[{"name":"AV Cheruscia","jahr":1901,"verband":"CV"}]},{"id":"av-zollern-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff","breite":0.5},{"farbe":"#e2122b"},{"farbe":"#141414"},{"farbe":"#ffffff","breite":0.5}]},"farben":"rot-schwarz auf weiß","antworten":[{"name":"AV Zollern","jahr":1901,"verband":"CV"}]},{"id":"kstv-markomannia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"schwarz-gold-rot","antworten":[{"name":"KStV Markomannia","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-cimbria-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f0c31c"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"gold-schwarz-weiß","antworten":[{"name":"KStV Cimbria","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"atv-westmark-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"rot-weiß-gold","antworten":[{"name":"ATV Westmark","jahr":1902,"verband":"ATB","anmerkung":"farbenführend"},{"name":"Münsterscher Wingolf","jahr":1903,"verband":"WB"}]},{"id":"wkstv-unitas-winfridia-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"blau-weiß-gold","antworten":[{"name":"WKStV Unitas Winfridia","jahr":1902,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Rolandia","jahr":1919,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Anna Westphalia","jahr":2016,"verband":"UV","anmerkung":"farbenführend"}]},{"id":"av-alsatia-1904","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#c3c6cb"},{"farbe":"#141414"}]},"farben":"hellblau-silber-schwarz","antworten":[{"name":"AV Alsatia","jahr":1904,"verband":"CV"}]},{"id":"corps-rheno-guestphalia-1908","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#0f37cf"},{"farbe":"#e2122b"}]},"farben":"weiß-blau-rot","antworten":[{"name":"Corps Rheno-Guestphalia","jahr":1908,"verband":"KSCV","anmerkung":"pflichtschlagend"}]},{"id":"kstv-ravensberg-1919","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"grün-gold-rot","antworten":[{"name":"KStV Ravensberg","jahr":1919,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-franko-silesia-breslau-et-eresburg-1922","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#f2d200"}]},"farben":"schwarz-weiß-gelb","antworten":[{"name":"KStV Franko-Silesia-Breslau et Eresburg","jahr":1922,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"amb-ingvaeonia-1947","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#f2d200","breite":0.09},{"farbe":"#141414","breite":0.9},{"farbe":"#f2d200","breite":0.09},{"farbe":"#e2122b"}]},"farben":"gelb-schwarz-gelb auf rot","antworten":[{"name":"AMB Ingvaeonia","jahr":1947,"verband":"SV","anmerkung":"farbenführend"}]},{"id":"akad-jagdverbindung-hermann-loens-1954","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"grün-schwarz-weiß","antworten":[{"name":"Akad. Jagdverbindung Hermann Löns","jahr":1954,"verband":"WJSC"}]},{"id":"adv-helenia-monasteria-1988","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#c3c6cb"},{"farbe":"#2fd3bd"},{"farbe":"#f0c31c"}]},"farben":"silber-türkisgrün-gold","antworten":[{"name":"ADV Helenia Monasteria","jahr":1988,"verband":"verbandsfrei"}]},{"id":"adv-athena-2012","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#f3b4c6"},{"farbe":"#141414"}]},"farben":"weiß-rosa-schwarz","antworten":[{"name":"ADV Athena","jahr":2012,"verband":"verbandsfrei"}]}]},{"schema":1,"id":"ingvaeonia-geschichte","titel":"Geschichte des AMB Ingvaeonia","untertitel":"Von der AB Universitas bis heute","quelle":"Ältestenrat, „Die Geschichte des AMB Ingvaeonia“","stand":"2026-09-07","karten":[{"id":"j-1947","typ":"frage","rev":1,"frage":"17.05.1947","antworten":["Gründungsdatum — Feier des ersten Verbindungsfests"],"notiz":"Der Bund heißt zunächst AB Universitas: Männerbund, nicht schlagend, farbentragend (schwarz-gold-rot-gold-schwarz), hauptsächlich Studenten aus Osnabrück."},{"id":"j-1950","typ":"frage","rev":1,"frage":"1950","antworten":["Umbenennung in AB Ingvaeonia"]},{"id":"j-1952","typ":"frage","rev":1,"frage":"22.05.1952","antworten":["Vorläufige Aufnahme in den SV — der Kontakt lief über den OV Osnabrück"],"notiz":"Die Bänder wurden abgelegt, der Bund blieb aber farbenführend. Das führte zur Spaltung: die schlagende Verbindung „Salingia“ wurde gegründet, ging aber schnell wieder ein."},{"id":"j-1953","typ":"frage","rev":1,"frage":"Pfingsten 1953","antworten":["Endgültige Aufnahme in den SV"],"notiz":"Damit: Praktizierung des musikalischen Prinzips, Lebensbundprinzip als gelebte Wirklichkeit durch den Austausch mit anderen Bünden, Alternative zur Eindimensionalität des Fachstudiums."},{"id":"j-1954","typ":"frage","rev":1,"frage":"19.06.1954","antworten":["Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau (1883–1937)"]},{"id":"j-1957","typ":"frage","rev":1,"frage":"16.02.1957","antworten":["Heim in der Wolbecker Straße"],"notiz":"Kneipsaal, Vorstandszimmer, Nebenräume und Keller. Finanzierung und Ausgestaltung waren Gemeinschaftsleistung der Aktiven, der SV-Alten Herren und der Partnerverbindung Fridericiana zu Breslau."},{"id":"j-1961","typ":"frage","rev":1,"frage":"Ende WiSe 1961/62","antworten":["Auszug aus der Wolbecker Straße"],"notiz":"Danach nur noch ein Nebenzimmer im „Schlegeleck“ am Ludgeriplatz."},{"id":"j-1963","typ":"frage","rev":1,"frage":"Ab 1963","antworten":["Kellerraum in der Königsstraße 45"]},{"id":"j-1968-haus","typ":"frage","rev":1,"frage":"Sommer 1968","antworten":["Kauf des Hauses in der Wehrstraße 1a für 150.000 DM"],"notiz":"Der Umbau dauerte 2½ Jahre und kostete weitere 150.000 DM. Die Aktiven konnten Ende 1970 einziehen."},{"id":"j-1968-satzung","typ":"frage","rev":1,"frage":"WiSe 1968/69","antworten":["Satzungsänderung"],"notiz":"Abgeschafft: Fuxenstatus, Burschung, Zipfel, Kommerse, Singen von Studentenliedern. Umbenannt: AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender."},{"id":"j-1971","typ":"frage","rev":1,"frage":"1971","antworten":["Kieler Beschlüsse — die Aufnahme von Damen wird erlaubt"],"notiz":"Wenig Unterstützung vom SV. Der AMB war damals drittstärkster Bund im SV und wuchs durch die Aufnahme von Frauen und das Haus stark."},{"id":"j-bis-1983","typ":"frage","rev":1,"frage":"Bis 1983","antworten":["Zwar Bewohner und Mitglieder auf dem Haus, aber kein Bundesleben"]},{"id":"j-1983","typ":"frage","rev":1,"frage":"1983","antworten":["Wiederbelebung des AMB durch die Verbandsbrüder Ingo Freiherr von Stillfried und Uwe Focke"],"notiz":"Beide zweitaktiv in Münster."},{"id":"j-1985","typ":"frage","rev":1,"frage":"WiSe 1985/86","antworten":["SV-Vertretertag in München — Umbenennung in AMB Ingvaeonia und Verabschiedung der neuen Satzung"],"notiz":"Das „Bonner SV-Präsidium“ war komplett zweitaktiv in Münster. Verstärktes Interesse am AMB als Gemischtbund, der AMB wurde zum „Musterbund“. Erste Verleihung des Traditionsträgers der Fridericiana zu Breslau."},{"id":"j-1987","typ":"frage","rev":1,"frage":"1987","antworten":["Großes Stiftungsfest zum 40-jährigen Bestehen"]},{"id":"j-1988","typ":"frage","rev":1,"frage":"1988","antworten":["Stiftung des bronzenen Hausschilds durch „OK“ Dietrich Heinemann"]},{"id":"j-1980er","typ":"frage","rev":1,"frage":"Ende der 1980er Jahre","antworten":["Viel Engagement im SV — insgesamt vier Mal das komplette SV-Präsidium gestellt und zwei Mal den SV-Kassenwart"]},{"id":"j-1993","typ":"frage","rev":1,"frage":"Ab 1993","antworten":["Aufnahme von Damen in den AHV"],"notiz":"Erst zu diesem Zeitpunkt erlaubte der VASV Damen."},{"id":"j-1996","typ":"frage","rev":1,"frage":"1996","antworten":["Überreichung des Fechters durch die Fridericiana zu Breslau"]},{"id":"j-2000er","typ":"frage","rev":1,"frage":"2000er Jahre","antworten":["Große Fluktuation auf dem Haus und dadurch wenige Eintritte in den AHV"]},{"id":"warum-universitas","typ":"frage","rev":1,"frage":"Warum hieß der Bund bei der Gründung AB Universitas und nicht Ingvaeonia?","antworten":["Der englischen Militärregierung gefiel der Name Ingvaeonia nicht. Außerdem wünschte sie sich Frauen im Bund. Der Bund erhielt die Wahl: entweder ein entmilitarisierter Name oder Frauen im Bund — der Name wurde geopfert."]},{"id":"woher-ingvaeonia","typ":"frage","rev":1,"frage":"Wonach ist der Name Ingvaeonia benannt?","antworten":["Nach der Kulturgemeinschaft germanischer Stämme, die im Raum Münster/Osnabrück siedelten"]},{"id":"warum-patenschaft","typ":"frage","rev":1,"frage":"Warum schloss der Bund 1954 ein Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau?","antworten":["Die AB Ingvaeonia hatte eine Aktivitas, aber keinen bzw. nur einen sehr kleinen AHV. Breslau hatte einen AHV, aber keine Aktivitas mehr."]},{"id":"abgeschafft-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 abgeschafft?","antworten":["Fuxenstatus, Burschung, Zipfel, Kommerse und das Singen von Studentenliedern"]},{"id":"umbenannt-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 umbenannt?","antworten":["AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender"]},{"id":"gesundschrumpfen","typ":"frage","rev":1,"frage":"Was folgte auf die lose Führung des Bundes nach 1971?","antworten":["Motivgruppen und Info-AG statt erzwungener Teilnahme am Bundesleben, dazu fehlende bzw. aufgelöste Strukturen — daraus ein starker Schwund der Mitgliederzahlen, das „Gesundschrumpfen“. Die Gefahr wurde zu spät erkannt."]},{"id":"fruehes-bundesleben","typ":"frage","rev":1,"frage":"Wie sah das frühe Bundesleben nach der Aufnahme in den SV aus?","antworten":["Wöchentliche Fuxenstunden durch den Fuxmajor, Chorübungen, wöchentliche Treffen und wissenschaftliche Vorträge. Füxe durften am Burschenkonvent nicht teilnehmen."]},{"id":"reihe-heime","typ":"reihenfolge","rev":1,"frage":"Bringe die Heime des Bundes in die richtige Reihenfolge.","elemente":["Wolbecker Straße (ab 1957)","Nebenzimmer im „Schlegeleck“ am Ludgeriplatz (ab 1961/62)","Kellerraum in der Königsstraße 45 (ab 1963)","Eigenes Haus in der Wehrstraße 1a (Einzug Ende 1970)"]},{"id":"reihe-namen","typ":"reihenfolge","rev":1,"frage":"Bringe die Namen des Bundes in die richtige Reihenfolge.","elemente":["AB Universitas","AB Ingvaeonia","AMB Münster","AMB Ingvaeonia"]}]},{"schema":1,"id":"comment-kneipe","titel":"Comment: Kneipe und Kommers","untertitel":"Ablauf, Regeln, Kleidung","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"reihe-drei-teile","typ":"reihenfolge","rev":1,"frage":"Bringe die drei Teile eines Kneipabends in die richtige Reihenfolge.","elemente":["Officium","Inoffizium","Bierdorf"]},{"id":"reihe-ablauf","typ":"reihenfolge","rev":1,"frage":"Bringe den Ablauf einer Kneipe in die richtige Reihenfolge.","elemente":["Eröffnung","Begrüßung","Grußworte","Prinzipienrede","Kolloquium",["Biermimik","Spiele"],"Bierdorf"],"notiz":"Eröffnung bis Kolloquium gehören zum Officium, Biermimik und Spiele zum Inoffizium. Untereinander ist ihre Reihenfolge nicht festgelegt."},{"id":"eroeffnungssatz","typ":"frage","rev":1,"frage":"Mit welchem Satz eröffnet der oder die Präsid*in die Kneipe?","antworten":["„Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.“"]},{"id":"kneiplatein-regel","typ":"lueckentext","rev":1,"titel":"Die Regel auf der Kneipe","text":"non licet {{vagari}} neque {{fumare}} neque {{telecomunicare}}","notiz":"Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren."},{"id":"regeln-kneipe","typ":"frage","rev":1,"frage":"Welche Regeln gelten auf der Kneipe?","antworten":["Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren, nicht laut reden — aufpassen und aktiv teilnehmen"],"notiz":"„non licet vagari neque fumare neque telecomunicare“"},{"id":"sehr-verehrlich","typ":"frage","rev":1,"frage":"Welche Bünde werden bei der Begrüßung mit „sehr verehrlich“ angesprochen?","antworten":["Die Gründungsbünde und die Bünde, die das Präsidium stellen. Alle anderen werden mit „verehrlich“ angesprochen."],"notiz":"Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt."},{"id":"begruessung-ablauf","typ":"frage","rev":1,"frage":"Wie läuft die Begrüßung auf einer Kneipe ab?","antworten":["Alle anwesenden Bünde werden namentlich genannt — man steht auf und stößt an. Träger von Ehrenzeichen werden persönlich begrüßt, wichtige Vorstände oder Vertreter namentlich."]},{"id":"grussworte","typ":"frage","rev":1,"frage":"Wann meldet man Grußworte an, und was gehört hinein?","antworten":["Ist man irgendwo zu Gast, meldet man Grußworte an und richtet sie an den Gastgeberbund: Danken, Loben, Werben."],"notiz":"Gerne bringt man ein Gastgeschenk mit, bei uns häufig Sasse — eine Münsteraner Spezialität."},{"id":"prinzipienrede","typ":"frage","rev":1,"frage":"Wer hält die Prinzipienrede und worüber?","antworten":["Der oder die Kneippräsid*in hält eine dem Anlass angemessene Rede, gerne mit persönlichen Meinungen."]},{"id":"kolloquium-regel","typ":"frage","rev":1,"frage":"Was darf man im Kolloquium, und was nicht?","antworten":["Man darf miteinander sprechen, bleibt aber an seinem Platz, bis der oder die Kneippräsid*in das OK gibt. Im Zweifel bittet man durch Handzeichen darum."],"notiz":"Das Kolloquium wird vom Kneippräsidium ausgerufen."},{"id":"spiele-sv","typ":"frage","rev":1,"frage":"Auf wessen Kneipen gibt es Spiele, und wie sehen sie aus?","antworten":["Nur auf Kneipen des Sondershäuser Verbands. Das Präsidium überlegt sie sich für die Kneipe, gerne kurz gehalten, häufig ein Abdecken der Musen: Schreiben, Malen, Theater, Singen."]},{"id":"bierdorf-ablauf","typ":"frage","rev":1,"frage":"Was geschieht nach Beendigung der Kneipe?","antworten":["Das Bierdorf wird eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."]},{"id":"kleidung-herren","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Herren vor?","antworten":["Anzug, mindestens Jackett und Hemd, dazu Krawatte oder Fliege. Das Jackett bleibt an, bis der oder die Präsid*in das eigene Jackett auszieht. Die SV-Nadel sitzt am rechten Revers und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"kleidung-damen","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Damen vor?","antworten":["Anzug oder Kleid, schick: Schultern bedeckt, knielang oder mit Strumpfhose, nicht zu freizügig. Die SV-Nadel sitzt rechts und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"sv-nadel","typ":"frage","rev":1,"frage":"Wo wird die SV-Nadel getragen?","antworten":["Rechts, zum Herzen zeigend — bei den Herren am rechten Revers"]},{"id":"rollen-kneipe","typ":"frage","rev":1,"frage":"In welche Rollen sind die Kneipant*innen unterteilt?","antworten":["Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"]},{"id":"zipfel-wann","typ":"frage","rev":1,"frage":"Wann werden Zipfel getauscht?","antworten":["Das erste Mal üblicherweise im Offiz einer Kneipe oder eines Kommerses. Freundschaftszipfel hingegen, wenn überhaupt, im Inoffiz."]},{"id":"zipfel-farben","typ":"frage","rev":1,"frage":"Wessen Farben tragen getauschte Zipfel?","antworten":["Immer die Farben des oder der Schenkenden"]},{"id":"braeuche-bummeln","typ":"frage","rev":1,"frage":"Welche drei Bräuche beim Bummeln nennt die Fuxenstunde?","antworten":["Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"],"notiz":"Scherzhaft auch Tierlunge und Generaltierlunge."},{"id":"couleurbummel-sitte","typ":"frage","rev":1,"frage":"Was erhält ein Korporierter, der auf dem Couleurbummel um Einlass bittet?","antworten":["Nach guter Sitte ein kostenloses Couleurbier"]},{"id":"couleurbummel-gruppe","typ":"frage","rev":1,"frage":"Wie groß ist eine Bummelgruppe üblicherweise, und wann kündigt man sich an?","antworten":["Normalerweise spontan und nicht größer als drei bis fünf Leute. Will man sicher eingelassen werden oder plant einen größeren Bummel, etwa im Semesterferienprogramm, ruft man vorher auf den angepeilten Häusern an und kündigt sich an."]}]},{"schema":1,"id":"begriffe","titel":"Fachbegriffe","untertitel":"Was heißt das eigentlich?","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"kommers","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kommers","definition":"Umtrunk, dessen äußerer Ablauf mit seinen Trinksitten durch einen Comment geregelt wird — die feierliche Form der Kneipe.","notiz":"Hat sich aus Bräuchen des 18. und 19. Jahrhunderts entwickelt und ist mehr als eine scherzhafte Parodie des früher streng eingehaltenen allgemeinen Comments."},{"id":"kneipe","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kneipe","definition":"Lockerer Comment, freiere Gestaltung mit Reden, Einlagen und Gesängen — von unterhaltsamem Charakter."},{"id":"kolloquium","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kolloquium","definition":"Vom Kneippräsidium ausgerufener Abschnitt, in dem miteinander gesprochen werden darf. Alle bleiben an ihren Plätzen, bis das Präsidium das OK gibt."},{"id":"biermimik","typ":"begriff","rev":1,"richtung":"beide","begriff":"Biermimik","definition":"Ein Sketch, den ein oder mehrere Verbindungsmitglieder auf einer Kneipe halten.","notiz":"Auch Bierschwefel oder Fuxenulk genannt."},{"id":"bierdorf","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierdorf","definition":"Wird nach Beendigung der Kneipe eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."},{"id":"leibverhaeltnis","typ":"begriff","rev":1,"richtung":"beide","begriff":"Leib- bzw. Bierverhältnis","definition":"Beziehung zwischen einem endgültigen und traditionell einem vorläufigen Mitglied, vergleichbar mit Pat*innen — geprägt von tiefer Freundschaft und Verbundenheit.","notiz":"Begrifflichkeiten: Biervater und Biermutter, Biertochter und Biersohn. Symbolisiert durch den Zipfeltausch."},{"id":"zipfelbund","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zipfelbund","definition":"Besteht aus zwei- oder mehrfarbigen Bändern und einigen gravierten Metallschiebern, die die Bänder halten. Ein Zipfelbund enthält immer einen Bierzipfel und unterschiedlich viele, später getauschte Weinzipfel."},{"id":"bierzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierzipfel","definition":"Das breite Band im Zipfelbund. Jeder Zipfelbund enthält genau einen."},{"id":"weinzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Weinzipfel","definition":"Das schmale Band im Zipfelbund. Davon gibt es unterschiedlich viele, sie werden später getauscht."},{"id":"couleurbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Couleurbummel","definition":"Zug über die Häuser verschiedener Verbindungen. Gute Sitte ist, dass ein Korporierter, der um Einlass bittet, ein kostenloses Couleurbier erhält."},{"id":"fuxenbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Fuxenbummel","definition":"Besondere Form des Couleurbummels: der Fuxmajor zieht mit den Füxen über die Häuser, um sie in die couleurstudentische Gesellschaft einzuführen und ihnen andere Verbindungen zu zeigen."},{"id":"zirkel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zirkel","definition":"Erkennungszeichen einer Verbindung oder eines Verbandes, bestehend aus einem Zusammenschluss einzelner Anfangsbuchstaben — etwa des Verbindungsnamens oder des Wahlspruchs."},{"id":"wahlspruch","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wahlspruch","definition":"Stellt die wesentlichen Prinzipien einer Verbindung heraus, wobei immer die aktuell aktiv gelebte Interpretation Bedeutung haben sollte."},{"id":"wappen","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wappen","definition":"In Verbindungen weit verbreitet; enthält neben den Farben und dem Zirkel meist weitere Elemente aus der Stadt, der Region oder der Fakultät."},{"id":"studentische-farben","typ":"begriff","rev":1,"richtung":"beide","begriff":"Studentische Farben","definition":"Erkennungsmerkmal einzelner Verbindungen oder Dachverbände. Sie finden sich in Fahnen, Zipfeln, Mützen, Farbbändern und sonstigen Couleurartikeln."}]},{"schema":1,"id":"verbandskunde","titel":"Verbandskunde","untertitel":"SV, Prinzipien, Zirkel","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"sv-wahlspruch","typ":"frage","rev":1,"frage":"Wie lautet der Wahlspruch des SV?","antworten":["„Lied, Freundschaft, Vaterland“"]},{"id":"farbentragend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbentragend","definition":"Die Mitglieder tragen üblicherweise Band und Mütze, sobald sie in Verbindungssache unterwegs sind."},{"id":"farbenfuehrend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbenführend","definition":"Die Mitglieder führen Farben zu bestimmten Anlässen mit sich — etwa in Form von Zipfelbünden, Fahnen, Wappen und sonstigen Couleurgegenständen. Auf Band und Mütze wird verzichtet.","notiz":"Viele SV-Bünde sind farbenführend."},{"id":"schwarzes-prinzip","typ":"begriff","rev":1,"richtung":"beide","begriff":"Schwarzes Prinzip","definition":"Die Verbindung führt gar keine Farben, vereinzelt nur in Fahne und Wappen. Besteht zwischen den Mitgliedern ein echtes Freundschaftsband, muss dieses nicht durch äußere Zeichen bekundet werden."},{"id":"ingvaeonia-farben","typ":"frage","rev":1,"frage":"Wie beschreibt man die Farben des AMB Ingvaeonia?","antworten":["Schwarz mit goldgelber Perkussion auf karmesinrotem Grund","Karmesinrot-Goldgelb-Schwarz-Goldgelb-Karmesinrot"]},{"id":"zirkel-ingvaeonia","typ":"frage","rev":1,"frage":"Welche Buchstaben enthält unser Zirkel, und wofür stehen sie?","antworten":["V(ivat), C(rescat), F(loreat), I(ngvaeonia) — Blühe, wachse und gedeihe, Ingvaeonia"]},{"id":"zirkel-ausrufezeichen","typ":"frage","rev":1,"frage":"Was bedeutet das Ausrufezeichen „!“ im Zirkel?","antworten":["Es wird im SV als Zeichen der Aktiven geführt"]},{"id":"zirkel-wohin","typ":"frage","rev":1,"frage":"Wo gehört der Zirkel hin, und wer sollte ihn schreiben können?","antworten":["Jedes endgültige Mitglied sollte den Zirkel schreiben können. Er gehört in Verbindungsgästebücher und in den Schriftverkehr zwischen Verbindungen — hinter die Unterschrift, wenn man mag."]},{"id":"kein-wappen","typ":"frage","rev":1,"frage":"Warum haben wir weder ein „richtiges“ Wappen noch einen eigenen Wahlspruch?","antworten":["Wir mussten uns in der Gründungszeit den strengen Auflagen der englischen Besatzung unterwerfen, die keine Vereinigung mit konservativen Ansätzen zuließ."],"notiz":"Umso mehr fühlen wir uns dem Wahlspruch des SV verbunden: Lied, Freundschaft, Vaterland."},{"id":"nationalflagge","typ":"frage","rev":1,"frage":"Worauf beruhen die Farben der deutschen Nationalflagge?","antworten":["Auf den Farben der Urburschenschaft — Schwarz-Rot-Gold wird heute noch von einigen Burschenschaften getragen"]}]},{"schema":1,"id":"lieder","titel":"Lieder","untertitel":"Bundeslied und Liederbuch","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“ — Strophen wörtlich übernommen, bis auf drei Schreibfehler der Vorlage: „heisst’s“ → „heißt’s“, das Wiederholungszeichen ¦: → |:, und „noch“ nach einem Punkt großgeschrieben.","stand":"2026-09-07","karten":[{"id":"bundeslied-name","typ":"frage","rev":1,"frage":"Wie heißt unser Bundeslied?","antworten":["„Noch ist die blühende goldene Zeit“","„Noch sind die Tage der Rosen“"]},{"id":"bundeslied-melodie","typ":"frage","rev":1,"frage":"Von wem stammt die Melodie des Bundeslieds?","antworten":["W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist"]},{"id":"bundeslied-text","typ":"frage","rev":1,"frage":"Von wem stammt der Text des Bundeslieds?","antworten":["O. Roquette (1824–1896), deutscher Schriftsteller hugenottischer Abstammung und Professor für Literaturgeschichte"],"notiz":"Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia."},{"id":"bundeslied-str2","typ":"lueckentext","rev":2,"titel":"Bundeslied, 2. Strophe","text":"Frei ist das {{Herz}}, und frei das {{Lied}},\nund frei ist der {{Bursch}}, der die Welt durchzieht;\nund ein {{rosiger}} Kuss\nist nicht minder frei,\nso {{spröd}} und verschämt auch die Lippe sei.\nWo ein Lied erklingt, wo ein Kuss sich beut, da heißt’s:\nNoch ist blühende, goldene Zeit,\nnoch sind |:die {{Tage der Rosen}}!:|"},{"id":"bundeslied-str3","typ":"lueckentext","rev":2,"titel":"Bundeslied, 3. Strophe","text":"Ja im {{Herzen}} tief innen ist alles daheim,\nder {{Freude}} Saaten, der {{Schmerzen}} Keim.\nNoch ist die blühende goldene Zeit:\no du schöne Welt, wie bist du so {{weit}}!\nDrum {{frisch}} sei das Herz\nund {{lebendig}} der Sinn,\ndann brauset, ihr {{Stürme}}, daher und dahin!\nWir aber sind allzeit zu {{singen}} bereit:\nNoch ist die blühende, goldene Zeit,\nnoch sind |:die {{Tage der Rosen}}!:|"},{"id":"adk","typ":"frage","rev":1,"frage":"Was ist das ADK, und seit wann gibt es es?","antworten":["Das „Allgemeine Deutsche Kommersbuch“, seit 1858. Viele besitzen es."]},{"id":"sv-liederbuch","typ":"frage","rev":1,"frage":"Wie kam es zum SV-Liederbuch?","antworten":["Es wurde zu Beginn der 2000er Jahre unter Leitung von Vbr. Hans Dieter Fleischmann ausgearbeitet. Heute gilt die 2. Auflage von 2010."],"notiz":"Anlass waren die politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und die daraus folgende Auswahl der Lieder. Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung."},{"id":"liederbuch-struktur","typ":"reihenfolge","rev":1,"frage":"Wie ist das SV-Liederbuch gegliedert? Bringe die Teile in die richtige Reihenfolge.","elemente":["A — Verbandslieder, Nationalhymne, Bundeslieder","B — Lieder zum festlichen Kommers","C — Lieder zu Inoffizium, Fidulität und Bierdorf","D — Liedsätze und Kanons aus fünf Jahrhunderten"]}]}];
+window.STAPEL_EINGEBETTET = [{"schema":1,"id":"sv-couleur","titel":"Couleur des SV","untertitel":"Die aktiven Verbindungen des Sondershäuser Verbands","quelle":"quellen/sv-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#fefefe","#fcc256","#fcc356","#fcb543","#98d1fe","#97d0fd","#f59dae","#f59cad"],"karten":[{"id":"agv-muenchen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59dae"},{"farbe":"#fefefe"}]},"farben":"rosa-weiß","antworten":[{"name":"AGV München","ort":"München"},{"name":"AMV Fridericiana","ort":"Erlangen"}]},{"id":"amb-ingvaeonia-muenster","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe192b"},{"farbe":"#e3ae4d","breite":0.05},{"farbe":"#0a0a0a","breite":0.9},{"farbe":"#fdc356","breite":0.05},{"farbe":"#fe182b"}]},"farben":"rot-schwarz-rot, schwarzer Balken golden durchzogen","antworten":[{"name":"AMB Ingvaeonia","ort":"Münster"}]},{"id":"amdv-caecilia-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fe154d"},{"farbe":"#fefefe"},{"farbe":"#fe8916"}]},"farben":"karmesinrot-weiß-orange","antworten":[{"name":"AMDV Caecilia","ort":"Hamburg"}]},{"id":"amv-albingia-kiel","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f59cad"},{"farbe":"#fefefe"},{"farbe":"#0c9526"}]},"farben":"rosa-weiß-grün","antworten":[{"name":"AMV Albingia","ort":"Kiel"}]},{"id":"amv-arion-aachen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#3e50fe"},{"farbe":"#fefefe"},{"farbe":"#007e0e"}]},"farben":"blau-weiß-grün","antworten":[{"name":"AMV Arion","ort":"Aachen"}]},{"id":"amv-arminia-braunschweig","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7e0037"},{"farbe":"#fefefe"},{"farbe":"#007f46"}]},"farben":"weinrot-weiß-meergrün","antworten":[{"name":"AMV Arminia","ort":"Braunschweig"}]},{"id":"amv-ascania-halle-clausthal","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#089415"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"grün-weiß-rot","antworten":[{"name":"AMV Ascania","ort":"Halle-Clausthal"}]},{"id":"amv-berlin","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"}]},"farben":"rot-weiß","antworten":[{"name":"AMV Berlin","ort":"Berlin"},{"name":"AMV Würzburg","ort":"Würzburg"}]},{"id":"amv-fridericiana-marburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#007f47"},{"farbe":"#fe0000"}]},"farben":"schwarz-meergrün-rot","antworten":[{"name":"AMV Fridericiana","ort":"Marburg"}]},{"id":"amv-innsbruck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"rot-weiß-rot","antworten":[{"name":"AMV Innsbruck","ort":"Innsbruck"}]},{"id":"amv-mainz","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#97d0fd"},{"farbe":"#fefefe"},{"farbe":"#f59cad"}]},"farben":"hellblau-weiß-rosa","antworten":[{"name":"AMV Mainz","ort":"Mainz"}]},{"id":"amv-makaria-bonn","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"hellblau-weiß-rot","antworten":[{"name":"AMV Makaria","ort":"Bonn"}]},{"id":"amv-nordmark-hamburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#5da7fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"AMV Nordmark","ort":"Hamburg"}]},{"id":"amv-stauffia-heidelberg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fc0000"},{"farbe":"#fefefe"},{"farbe":"#fcc356"}]},"farben":"rot-weiß-gold","antworten":[{"name":"AMV Stauffia","ort":"Heidelberg"}]},{"id":"amv-stochdorphia-tuebingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010101"},{"farbe":"#fefefe"},{"farbe":"#fc0000"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"AMV Stochdorphia","ort":"Tübingen"}]},{"id":"amv-waltharia-frankfurt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#010000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"AMV Waltharia","ort":"Frankfurt"}],"notiz":"Praktisch dasselbe Band führt auch MSG Alt-Straßburg (Freiburg)."},{"id":"awv-makaria-stuttgart","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fc0000"},{"farbe":"#0063fe"}]},"farben":"schwarz-rot-blau","antworten":[{"name":"AWV Makaria","ort":"Stuttgart"}]},{"id":"msg-alt-strassburg-freiburg","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#000000"},{"farbe":"#fcb543"},{"farbe":"#007f46"}]},"farben":"schwarz-gold-meergrün","antworten":[{"name":"MSG Alt-Straßburg","ort":"Freiburg"}],"notiz":"Praktisch dasselbe Band führt auch AMV Waltharia (Frankfurt)."},{"id":"mv-liubicia-luebeck","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#fefefe"},{"farbe":"#fd0002"},{"farbe":"#2e8a57"}]},"farben":"weiß-rot-meergrün","antworten":[{"name":"MV Liubicia","ort":"Lübeck"}]},{"id":"stmv-blaue-saenger-goettingen","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#98d1fe"}]},"farben":"hellblau-weiß-hellblau","antworten":[{"name":"StMV Blaue Sänger","ort":"Göttingen"}]},{"id":"musische-gruppe-auerbach-darmstadt","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#98d1fe"},{"farbe":"#fefefe"},{"farbe":"#fcc256"}]},"farben":"hellblau-weiß-gold","antworten":[{"name":"musische gruppe auerbach","ort":"Darmstadt"}]}]},{"schema":1,"id":"muenster-couleur","titel":"Couleur in Münster","untertitel":"Die aktiven Verbindungen am Ort","quelle":"quellen/muenster-couleur.prototyp.html — Farben aus den Original-Wappen ausgelesen und geprüft","stand":"2026-09-07","helleFarben":["#ffffff","#c3c6cb","#f2d200","#f0c31c","#95cef0","#f3b4c6","#2fd3bd"],"karten":[{"id":"l-sorabia-westfalen-1716","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#f0c31c"},{"farbe":"#0f37cf"}]},"farben":"blau-gold-blau","antworten":[{"name":"L! Sorabia-Westfalen","jahr":1716,"verband":"CC","anmerkung":"Zweitband: weiß-schwarz-grün-weiß"}]},{"id":"s-zu-st-pauli-jena-et-burgundia-breslau-1828","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#ffffff"},{"farbe":"#101f78"}]},"farben":"hellblau-weiß-dunkelblau (v.u.)","antworten":[{"name":"S! zu St. Pauli Jena et Burgundia Breslau","jahr":1828,"verband":"DS","anmerkung":"Zweitband: weiß-blau-rot-weiß"},{"name":"Akad. Ruderverbindung Westfalen","jahr":1891,"verband":"ARB"}]},{"id":"b-der-pflueger-halle-1837","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"violett-weiß-gold","antworten":[{"name":"B! der Pflüger Halle","jahr":1837,"verband":"verbandsfrei"}]},{"id":"kdstv-sauerlandia-1847","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"blau-weiß-grün","antworten":[{"name":"KDStV Sauerlandia","jahr":1847,"verband":"CV"}]},{"id":"l-rhenania-1850","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"blau-weiß-rot","antworten":[{"name":"L! Rhenania","jahr":1850,"verband":"CC"}]},{"id":"kdstv-winfridia-breslau-1856","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#e2122b"},{"farbe":"#f0c31c"}]},"farben":"grün-rot-gold","antworten":[{"name":"KDStV Winfridia Breslau","jahr":1856,"verband":"CV"}]},{"id":"vkdst-saxonia-1863","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#17a02a"}]},"farben":"rot-weiß-grün","antworten":[{"name":"VKDSt Saxonia","jahr":1863,"verband":"CV"}]},{"id":"kstv-germania-1864","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"rot-weiß-schwarz","antworten":[{"name":"KStV Germania","jahr":1864,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"b-franconia-1878","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"violett-weiß-rot","antworten":[{"name":"B! Franconia","jahr":1878,"verband":"DB"}]},{"id":"vdst-muenster-1881","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#e2122b"}]},"farben":"schwarz-weiß-rot","antworten":[{"name":"VDSt Münster","jahr":1881,"verband":"VVDSt","anmerkung":"farbenführend"}]},{"id":"kdstv-alemannia-zu-greifswald-und-muenster-1891","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#17a02a"}]},"farben":"schwarz-gold-grün","antworten":[{"name":"KDStV Alemannia zu Greifswald und Münster","jahr":1891,"verband":"CV"}]},{"id":"av-cheruscia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#7b2f8f"},{"farbe":"#ffffff"},{"farbe":"#141414"}]},"farben":"violett-weiß-schwarz","antworten":[{"name":"AV Cheruscia","jahr":1901,"verband":"CV"}]},{"id":"av-zollern-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff","breite":0.5},{"farbe":"#e2122b"},{"farbe":"#141414"},{"farbe":"#ffffff","breite":0.5}]},"farben":"rot-schwarz auf weiß","antworten":[{"name":"AV Zollern","jahr":1901,"verband":"CV"}]},{"id":"kstv-markomannia-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"schwarz-gold-rot","antworten":[{"name":"KStV Markomannia","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-cimbria-1901","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#f0c31c"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"gold-schwarz-weiß","antworten":[{"name":"KStV Cimbria","jahr":1901,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"atv-westmark-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"rot-weiß-gold","antworten":[{"name":"ATV Westmark","jahr":1902,"verband":"ATB","anmerkung":"farbenführend"},{"name":"Münsterscher Wingolf","jahr":1903,"verband":"WB"}]},{"id":"wkstv-unitas-winfridia-1902","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#0f37cf"},{"farbe":"#ffffff"},{"farbe":"#f0c31c"}]},"farben":"blau-weiß-gold","antworten":[{"name":"WKStV Unitas Winfridia","jahr":1902,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Rolandia","jahr":1919,"verband":"UV","anmerkung":"farbenführend"},{"name":"WKStV Unitas Anna Westphalia","jahr":2016,"verband":"UV","anmerkung":"farbenführend"}]},{"id":"av-alsatia-1904","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#95cef0"},{"farbe":"#c3c6cb"},{"farbe":"#141414"}]},"farben":"hellblau-silber-schwarz","antworten":[{"name":"AV Alsatia","jahr":1904,"verband":"CV"}]},{"id":"corps-rheno-guestphalia-1908","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#0f37cf"},{"farbe":"#e2122b"}]},"farben":"weiß-blau-rot","antworten":[{"name":"Corps Rheno-Guestphalia","jahr":1908,"verband":"KSCV","anmerkung":"pflichtschlagend"}]},{"id":"kstv-ravensberg-1919","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#f0c31c"},{"farbe":"#e2122b"}]},"farben":"grün-gold-rot","antworten":[{"name":"KStV Ravensberg","jahr":1919,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"kstv-franko-silesia-breslau-et-eresburg-1922","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#141414"},{"farbe":"#ffffff"},{"farbe":"#f2d200"}]},"farben":"schwarz-weiß-gelb","antworten":[{"name":"KStV Franko-Silesia-Breslau et Eresburg","jahr":1922,"verband":"KV","anmerkung":"farbenführend"}]},{"id":"amb-ingvaeonia-1947","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#e2122b"},{"farbe":"#f2d200","breite":0.09},{"farbe":"#141414","breite":0.9},{"farbe":"#f2d200","breite":0.09},{"farbe":"#e2122b"}]},"farben":"gelb-schwarz-gelb auf rot","antworten":[{"name":"AMB Ingvaeonia","jahr":1947,"verband":"SV","anmerkung":"farbenführend"}]},{"id":"akad-jagdverbindung-hermann-loens-1954","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#17a02a"},{"farbe":"#141414"},{"farbe":"#ffffff"}]},"farben":"grün-schwarz-weiß","antworten":[{"name":"Akad. Jagdverbindung Hermann Löns","jahr":1954,"verband":"WJSC"}]},{"id":"adv-helenia-monasteria-1988","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#c3c6cb"},{"farbe":"#2fd3bd"},{"farbe":"#f0c31c"}]},"farben":"silber-türkisgrün-gold","antworten":[{"name":"ADV Helenia Monasteria","jahr":1988,"verband":"verbandsfrei"}]},{"id":"adv-athena-2012","typ":"couleur","rev":1,"band":{"streifen":[{"farbe":"#ffffff"},{"farbe":"#f3b4c6"},{"farbe":"#141414"}]},"farben":"weiß-rosa-schwarz","antworten":[{"name":"ADV Athena","jahr":2012,"verband":"verbandsfrei"}]}]},{"schema":1,"id":"ingvaeonia-geschichte","titel":"Geschichte des AMB Ingvaeonia","untertitel":"Von der AB Universitas bis heute","quelle":"Ältestenrat, „Die Geschichte des AMB Ingvaeonia“ — die Jahreszahlkarten fragen das Ereignis und lassen aus vier Daten des Dokuments wählen.","stand":"2026-09-07","karten":[{"id":"j-1947","typ":"frage","rev":2,"frage":"Gründungsdatum — Feier des ersten Verbindungsfests","antworten":["17.05.1947"],"notiz":"Der Bund heißt zunächst AB Universitas: Männerbund, nicht schlagend, farbentragend (schwarz-gold-rot-gold-schwarz), hauptsächlich Studenten aus Osnabrück.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1950","typ":"frage","rev":2,"frage":"Umbenennung in AB Ingvaeonia","antworten":["1950"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1952","typ":"frage","rev":2,"frage":"Vorläufige Aufnahme in den SV — der Kontakt lief über den OV Osnabrück","antworten":["22.05.1952"],"notiz":"Die Bänder wurden abgelegt, der Bund blieb aber farbenführend. Das führte zur Spaltung: die schlagende Verbindung „Salingia“ wurde gegründet, ging aber schnell wieder ein.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1953","typ":"frage","rev":2,"frage":"Endgültige Aufnahme in den SV","antworten":["Pfingsten 1953"],"notiz":"Damit: Praktizierung des musikalischen Prinzips, Lebensbundprinzip als gelebte Wirklichkeit durch den Austausch mit anderen Bünden, Alternative zur Eindimensionalität des Fachstudiums.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1954","typ":"frage","rev":2,"frage":"Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau (1883–1937)","antworten":["19.06.1954"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1957","typ":"frage","rev":2,"frage":"Heim in der Wolbecker Straße","antworten":["16.02.1957"],"notiz":"Kneipsaal, Vorstandszimmer, Nebenräume und Keller. Finanzierung und Ausgestaltung waren Gemeinschaftsleistung der Aktiven, der SV-Alten Herren und der Partnerverbindung Fridericiana zu Breslau.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1961","typ":"frage","rev":2,"frage":"Auszug aus der Wolbecker Straße","antworten":["Ende WiSe 1961/62"],"notiz":"Danach nur noch ein Nebenzimmer im „Schlegeleck“ am Ludgeriplatz.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1963","typ":"frage","rev":2,"frage":"Kellerraum in der Königsstraße 45","antworten":["Ab 1963"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1968-haus","typ":"frage","rev":2,"frage":"Kauf des Hauses in der Wehrstraße 1a für 150.000 DM","antworten":["Sommer 1968"],"notiz":"Der Umbau dauerte 2½ Jahre und kostete weitere 150.000 DM. Die Aktiven konnten Ende 1970 einziehen.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1968-satzung","typ":"frage","rev":2,"frage":"Satzungsänderung","antworten":["WiSe 1968/69"],"notiz":"Abgeschafft: Fuxenstatus, Burschung, Zipfel, Kommerse, Singen von Studentenliedern. Umbenannt: AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1971","typ":"frage","rev":2,"frage":"Kieler Beschlüsse — die Aufnahme von Damen wird erlaubt","antworten":["1971"],"notiz":"Wenig Unterstützung vom SV. Der AMB war damals drittstärkster Bund im SV und wuchs durch die Aufnahme von Frauen und das Haus stark.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-bis-1983","typ":"frage","rev":2,"frage":"Zwar Bewohner und Mitglieder auf dem Haus, aber kein Bundesleben","antworten":["Bis 1983"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1983","typ":"frage","rev":2,"frage":"Wiederbelebung des AMB durch die Verbandsbrüder Ingo Freiherr von Stillfried und Uwe Focke","antworten":["1983"],"notiz":"Beide zweitaktiv in Münster.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1985","typ":"frage","rev":2,"frage":"SV-Vertretertag in München — Umbenennung in AMB Ingvaeonia und Verabschiedung der neuen Satzung","antworten":["WiSe 1985/86"],"notiz":"Das „Bonner SV-Präsidium“ war komplett zweitaktiv in Münster. Verstärktes Interesse am AMB als Gemischtbund, der AMB wurde zum „Musterbund“. Erste Verleihung des Traditionsträgers der Fridericiana zu Breslau.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1987","typ":"frage","rev":2,"frage":"Großes Stiftungsfest zum 40-jährigen Bestehen","antworten":["1987"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1988","typ":"frage","rev":2,"frage":"Stiftung des bronzenen Hausschilds durch „OK“ Dietrich Heinemann","antworten":["1988"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1980er","typ":"frage","rev":2,"frage":"Viel Engagement im SV — insgesamt vier Mal das komplette SV-Präsidium gestellt und zwei Mal den SV-Kassenwart","antworten":["Ende der 1980er Jahre"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1993","typ":"frage","rev":2,"frage":"Aufnahme von Damen in den AHV","antworten":["Ab 1993"],"notiz":"Erst zu diesem Zeitpunkt erlaubte der VASV Damen.","prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-1996","typ":"frage","rev":2,"frage":"Überreichung des Fechters durch die Fridericiana zu Breslau","antworten":["1996"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"j-2000er","typ":"frage","rev":2,"frage":"Große Fluktuation auf dem Haus und dadurch wenige Eintritte in den AHV","antworten":["2000er Jahre"],"prompt":"Wann war das?","gruppe":"jahr"},{"id":"warum-universitas","typ":"frage","rev":1,"frage":"Warum hieß der Bund bei der Gründung AB Universitas und nicht Ingvaeonia?","antworten":["Der englischen Militärregierung gefiel der Name Ingvaeonia nicht. Außerdem wünschte sie sich Frauen im Bund. Der Bund erhielt die Wahl: entweder ein entmilitarisierter Name oder Frauen im Bund — der Name wurde geopfert."],"gruppe":"ereignis"},{"id":"woher-ingvaeonia","typ":"frage","rev":1,"frage":"Wonach ist der Name Ingvaeonia benannt?","antworten":["Nach der Kulturgemeinschaft germanischer Stämme, die im Raum Münster/Osnabrück siedelten"],"gruppe":"ereignis"},{"id":"warum-patenschaft","typ":"frage","rev":1,"frage":"Warum schloss der Bund 1954 ein Patenschaftsabkommen mit dem AHV der Fridericiana zu Breslau?","antworten":["Die AB Ingvaeonia hatte eine Aktivitas, aber keinen bzw. nur einen sehr kleinen AHV. Breslau hatte einen AHV, aber keine Aktivitas mehr."],"gruppe":"ereignis"},{"id":"abgeschafft-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 abgeschafft?","antworten":["Fuxenstatus, Burschung, Zipfel, Kommerse und das Singen von Studentenliedern"],"gruppe":"ereignis"},{"id":"umbenannt-1968","typ":"frage","rev":1,"frage":"Was wurde mit der Satzungsänderung im WiSe 1968/69 umbenannt?","antworten":["AB Ingvaeonia in AMB Münster, Verbindung in Bund, Konvent in Mitgliederversammlung, Präside in 1. Vorsitzender"],"gruppe":"ereignis"},{"id":"gesundschrumpfen","typ":"frage","rev":1,"frage":"Was folgte auf die lose Führung des Bundes nach 1971?","antworten":["Motivgruppen und Info-AG statt erzwungener Teilnahme am Bundesleben, dazu fehlende bzw. aufgelöste Strukturen — daraus ein starker Schwund der Mitgliederzahlen, das „Gesundschrumpfen“. Die Gefahr wurde zu spät erkannt."],"gruppe":"ereignis"},{"id":"fruehes-bundesleben","typ":"frage","rev":1,"frage":"Wie sah das frühe Bundesleben nach der Aufnahme in den SV aus?","antworten":["Wöchentliche Fuxenstunden durch den Fuxmajor, Chorübungen, wöchentliche Treffen und wissenschaftliche Vorträge. Füxe durften am Burschenkonvent nicht teilnehmen."],"gruppe":"ereignis"},{"id":"reihe-heime","typ":"reihenfolge","rev":1,"frage":"Bringe die Heime des Bundes in die richtige Reihenfolge.","elemente":["Wolbecker Straße (ab 1957)","Nebenzimmer im „Schlegeleck“ am Ludgeriplatz (ab 1961/62)","Kellerraum in der Königsstraße 45 (ab 1963)","Eigenes Haus in der Wehrstraße 1a (Einzug Ende 1970)"]},{"id":"reihe-namen","typ":"reihenfolge","rev":1,"frage":"Bringe die Namen des Bundes in die richtige Reihenfolge.","elemente":["AB Universitas","AB Ingvaeonia","AMB Münster","AMB Ingvaeonia"]}]},{"schema":1,"id":"comment-kneipe","titel":"Comment: Kneipe und Kommers","untertitel":"Ablauf, Regeln, Kleidung","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"reihe-drei-teile","typ":"reihenfolge","rev":1,"frage":"Bringe die drei Teile eines Kneipabends in die richtige Reihenfolge.","elemente":["Officium","Inoffizium","Bierdorf"]},{"id":"reihe-ablauf","typ":"reihenfolge","rev":1,"frage":"Bringe den Ablauf einer Kneipe in die richtige Reihenfolge.","elemente":["Eröffnung","Begrüßung","Grußworte","Prinzipienrede","Kolloquium",["Biermimik","Spiele"],"Bierdorf"],"notiz":"Eröffnung bis Kolloquium gehören zum Officium, Biermimik und Spiele zum Inoffizium. Untereinander ist ihre Reihenfolge nicht festgelegt."},{"id":"eroeffnungssatz","typ":"frage","rev":1,"frage":"Mit welchem Satz eröffnet der oder die Präsid*in die Kneipe?","antworten":["„Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.“"]},{"id":"kneiplatein-regel","typ":"lueckentext","rev":1,"titel":"Die Regel auf der Kneipe","text":"non licet {{vagari}} neque {{fumare}} neque {{telecomunicare}}","notiz":"Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren."},{"id":"regeln-kneipe","typ":"frage","rev":1,"frage":"Welche Regeln gelten auf der Kneipe?","antworten":["Nicht aufstehen (außer in den Kolloquien), nicht rauchen, nicht telefonieren, nicht laut reden — aufpassen und aktiv teilnehmen"],"notiz":"„non licet vagari neque fumare neque telecomunicare“"},{"id":"sehr-verehrlich","typ":"frage","rev":1,"frage":"Welche Bünde werden bei der Begrüßung mit „sehr verehrlich“ angesprochen?","antworten":["Die Gründungsbünde und die Bünde, die das Präsidium stellen. Alle anderen werden mit „verehrlich“ angesprochen."],"notiz":"Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt."},{"id":"begruessung-ablauf","typ":"frage","rev":1,"frage":"Wie läuft die Begrüßung auf einer Kneipe ab?","antworten":["Alle anwesenden Bünde werden namentlich genannt — man steht auf und stößt an. Träger von Ehrenzeichen werden persönlich begrüßt, wichtige Vorstände oder Vertreter namentlich."]},{"id":"grussworte","typ":"frage","rev":1,"frage":"Wann meldet man Grußworte an, und was gehört hinein?","antworten":["Ist man irgendwo zu Gast, meldet man Grußworte an und richtet sie an den Gastgeberbund: Danken, Loben, Werben."],"notiz":"Gerne bringt man ein Gastgeschenk mit, bei uns häufig Sasse — eine Münsteraner Spezialität."},{"id":"prinzipienrede","typ":"frage","rev":1,"frage":"Wer hält die Prinzipienrede und worüber?","antworten":["Der oder die Kneippräsid*in hält eine dem Anlass angemessene Rede, gerne mit persönlichen Meinungen."]},{"id":"kolloquium-regel","typ":"frage","rev":1,"frage":"Was darf man im Kolloquium, und was nicht?","antworten":["Man darf miteinander sprechen, bleibt aber an seinem Platz, bis der oder die Kneippräsid*in das OK gibt. Im Zweifel bittet man durch Handzeichen darum."],"notiz":"Das Kolloquium wird vom Kneippräsidium ausgerufen."},{"id":"spiele-sv","typ":"frage","rev":1,"frage":"Auf wessen Kneipen gibt es Spiele, und wie sehen sie aus?","antworten":["Nur auf Kneipen des Sondershäuser Verbands. Das Präsidium überlegt sie sich für die Kneipe, gerne kurz gehalten, häufig ein Abdecken der Musen: Schreiben, Malen, Theater, Singen."]},{"id":"bierdorf-ablauf","typ":"frage","rev":1,"frage":"Was geschieht nach Beendigung der Kneipe?","antworten":["Das Bierdorf wird eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."]},{"id":"kleidung-herren","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Herren vor?","antworten":["Anzug, mindestens Jackett und Hemd, dazu Krawatte oder Fliege. Das Jackett bleibt an, bis der oder die Präsid*in das eigene Jackett auszieht. Die SV-Nadel sitzt am rechten Revers und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"kleidung-damen","typ":"frage","rev":1,"frage":"Was schreibt der Kleidungscomment den Damen vor?","antworten":["Anzug oder Kleid, schick: Schultern bedeckt, knielang oder mit Strumpfhose, nicht zu freizügig. Die SV-Nadel sitzt rechts und zeigt zum Herzen."],"notiz":"Bei uns gilt: zieht das an, worin ihr euch wohlfühlt — aber dem Anlass angemessen."},{"id":"sv-nadel","typ":"frage","rev":1,"frage":"Wo wird die SV-Nadel getragen?","antworten":["Rechts, zum Herzen zeigend — bei den Herren am rechten Revers"]},{"id":"rollen-kneipe","typ":"frage","rev":1,"frage":"In welche Rollen sind die Kneipant*innen unterteilt?","antworten":["Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"]},{"id":"zipfel-wann","typ":"frage","rev":1,"frage":"Wann werden Zipfel getauscht?","antworten":["Das erste Mal üblicherweise im Offiz einer Kneipe oder eines Kommerses. Freundschaftszipfel hingegen, wenn überhaupt, im Inoffiz."]},{"id":"zipfel-farben","typ":"frage","rev":1,"frage":"Wessen Farben tragen getauschte Zipfel?","antworten":["Immer die Farben des oder der Schenkenden"]},{"id":"braeuche-bummeln","typ":"frage","rev":1,"frage":"Welche drei Bräuche beim Bummeln nennt die Fuxenstunde?","antworten":["Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"],"notiz":"Scherzhaft auch Tierlunge und Generaltierlunge."},{"id":"couleurbummel-sitte","typ":"frage","rev":1,"frage":"Was erhält ein Korporierter, der auf dem Couleurbummel um Einlass bittet?","antworten":["Nach guter Sitte ein kostenloses Couleurbier"]},{"id":"couleurbummel-gruppe","typ":"frage","rev":1,"frage":"Wie groß ist eine Bummelgruppe üblicherweise, und wann kündigt man sich an?","antworten":["Normalerweise spontan und nicht größer als drei bis fünf Leute. Will man sicher eingelassen werden oder plant einen größeren Bummel, etwa im Semesterferienprogramm, ruft man vorher auf den angepeilten Häusern an und kündigt sich an."]}]},{"schema":1,"id":"begriffe","titel":"Fachbegriffe","untertitel":"Was heißt das eigentlich?","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"kommers","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kommers","definition":"Umtrunk, dessen äußerer Ablauf mit seinen Trinksitten durch einen Comment geregelt wird — die feierliche Form der Kneipe.","notiz":"Hat sich aus Bräuchen des 18. und 19. Jahrhunderts entwickelt und ist mehr als eine scherzhafte Parodie des früher streng eingehaltenen allgemeinen Comments."},{"id":"kneipe","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kneipe","definition":"Lockerer Comment, freiere Gestaltung mit Reden, Einlagen und Gesängen — von unterhaltsamem Charakter."},{"id":"kolloquium","typ":"begriff","rev":1,"richtung":"beide","begriff":"Kolloquium","definition":"Vom Kneippräsidium ausgerufener Abschnitt, in dem miteinander gesprochen werden darf. Alle bleiben an ihren Plätzen, bis das Präsidium das OK gibt."},{"id":"biermimik","typ":"begriff","rev":1,"richtung":"beide","begriff":"Biermimik","definition":"Ein Sketch, den ein oder mehrere Verbindungsmitglieder auf einer Kneipe halten.","notiz":"Auch Bierschwefel oder Fuxenulk genannt."},{"id":"bierdorf","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierdorf","definition":"Wird nach Beendigung der Kneipe eingeläutet: geselliges Zusammensitzen, Tanzen und die Wahl eines Bürgermeisters oder einer Bürgermeisterin."},{"id":"leibverhaeltnis","typ":"begriff","rev":1,"richtung":"beide","begriff":"Leib- bzw. Bierverhältnis","definition":"Beziehung zwischen einem endgültigen und traditionell einem vorläufigen Mitglied, vergleichbar mit Pat*innen — geprägt von tiefer Freundschaft und Verbundenheit.","notiz":"Begrifflichkeiten: Biervater und Biermutter, Biertochter und Biersohn. Symbolisiert durch den Zipfeltausch."},{"id":"zipfelbund","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zipfelbund","definition":"Besteht aus zwei- oder mehrfarbigen Bändern und einigen gravierten Metallschiebern, die die Bänder halten. Ein Zipfelbund enthält immer einen Bierzipfel und unterschiedlich viele, später getauschte Weinzipfel."},{"id":"bierzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Bierzipfel","definition":"Das breite Band im Zipfelbund. Jeder Zipfelbund enthält genau einen."},{"id":"weinzipfel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Weinzipfel","definition":"Das schmale Band im Zipfelbund. Davon gibt es unterschiedlich viele, sie werden später getauscht."},{"id":"couleurbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Couleurbummel","definition":"Zug über die Häuser verschiedener Verbindungen. Gute Sitte ist, dass ein Korporierter, der um Einlass bittet, ein kostenloses Couleurbier erhält."},{"id":"fuxenbummel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Fuxenbummel","definition":"Besondere Form des Couleurbummels: der Fuxmajor zieht mit den Füxen über die Häuser, um sie in die couleurstudentische Gesellschaft einzuführen und ihnen andere Verbindungen zu zeigen."},{"id":"zirkel","typ":"begriff","rev":1,"richtung":"beide","begriff":"Zirkel","definition":"Erkennungszeichen einer Verbindung oder eines Verbandes, bestehend aus einem Zusammenschluss einzelner Anfangsbuchstaben — etwa des Verbindungsnamens oder des Wahlspruchs."},{"id":"wahlspruch","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wahlspruch","definition":"Stellt die wesentlichen Prinzipien einer Verbindung heraus, wobei immer die aktuell aktiv gelebte Interpretation Bedeutung haben sollte."},{"id":"wappen","typ":"begriff","rev":1,"richtung":"beide","begriff":"Wappen","definition":"In Verbindungen weit verbreitet; enthält neben den Farben und dem Zirkel meist weitere Elemente aus der Stadt, der Region oder der Fakultät."},{"id":"studentische-farben","typ":"begriff","rev":1,"richtung":"beide","begriff":"Studentische Farben","definition":"Erkennungsmerkmal einzelner Verbindungen oder Dachverbände. Sie finden sich in Fahnen, Zipfeln, Mützen, Farbbändern und sonstigen Couleurartikeln."}]},{"schema":1,"id":"verbandskunde","titel":"Verbandskunde","untertitel":"SV, Prinzipien, Zirkel","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“","stand":"2026-09-07","karten":[{"id":"sv-wahlspruch","typ":"frage","rev":1,"frage":"Wie lautet der Wahlspruch des SV?","antworten":["„Lied, Freundschaft, Vaterland“"]},{"id":"farbentragend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbentragend","definition":"Die Mitglieder tragen üblicherweise Band und Mütze, sobald sie in Verbindungssache unterwegs sind."},{"id":"farbenfuehrend","typ":"begriff","rev":1,"richtung":"beide","begriff":"Farbenführend","definition":"Die Mitglieder führen Farben zu bestimmten Anlässen mit sich — etwa in Form von Zipfelbünden, Fahnen, Wappen und sonstigen Couleurgegenständen. Auf Band und Mütze wird verzichtet.","notiz":"Viele SV-Bünde sind farbenführend."},{"id":"schwarzes-prinzip","typ":"begriff","rev":1,"richtung":"beide","begriff":"Schwarzes Prinzip","definition":"Die Verbindung führt gar keine Farben, vereinzelt nur in Fahne und Wappen. Besteht zwischen den Mitgliedern ein echtes Freundschaftsband, muss dieses nicht durch äußere Zeichen bekundet werden."},{"id":"ingvaeonia-farben","typ":"frage","rev":1,"frage":"Wie beschreibt man die Farben des AMB Ingvaeonia?","antworten":["Schwarz mit goldgelber Perkussion auf karmesinrotem Grund","Karmesinrot-Goldgelb-Schwarz-Goldgelb-Karmesinrot"]},{"id":"zirkel-ingvaeonia","typ":"frage","rev":1,"frage":"Welche Buchstaben enthält unser Zirkel, und wofür stehen sie?","antworten":["V(ivat), C(rescat), F(loreat), I(ngvaeonia) — Blühe, wachse und gedeihe, Ingvaeonia"]},{"id":"zirkel-ausrufezeichen","typ":"frage","rev":1,"frage":"Was bedeutet das Ausrufezeichen „!“ im Zirkel?","antworten":["Es wird im SV als Zeichen der Aktiven geführt"]},{"id":"zirkel-wohin","typ":"frage","rev":1,"frage":"Wo gehört der Zirkel hin, und wer sollte ihn schreiben können?","antworten":["Jedes endgültige Mitglied sollte den Zirkel schreiben können. Er gehört in Verbindungsgästebücher und in den Schriftverkehr zwischen Verbindungen — hinter die Unterschrift, wenn man mag."]},{"id":"kein-wappen","typ":"frage","rev":1,"frage":"Warum haben wir weder ein „richtiges“ Wappen noch einen eigenen Wahlspruch?","antworten":["Wir mussten uns in der Gründungszeit den strengen Auflagen der englischen Besatzung unterwerfen, die keine Vereinigung mit konservativen Ansätzen zuließ."],"notiz":"Umso mehr fühlen wir uns dem Wahlspruch des SV verbunden: Lied, Freundschaft, Vaterland."},{"id":"nationalflagge","typ":"frage","rev":1,"frage":"Worauf beruhen die Farben der deutschen Nationalflagge?","antworten":["Auf den Farben der Urburschenschaft — Schwarz-Rot-Gold wird heute noch von einigen Burschenschaften getragen"]}]},{"schema":1,"id":"lieder","titel":"Lieder","untertitel":"Bundeslied und Liederbuch","quelle":"Ältestenrat, Fuxenstunde „Studentische Traditionen und Bummeln“ — Strophen wörtlich übernommen, bis auf drei Schreibfehler der Vorlage: „heisst’s“ → „heißt’s“, das Wiederholungszeichen ¦: → |:, und „noch“ nach einem Punkt großgeschrieben.","stand":"2026-09-07","karten":[{"id":"bundeslied-name","typ":"frage","rev":1,"frage":"Wie heißt unser Bundeslied?","antworten":["„Noch ist die blühende goldene Zeit“","„Noch sind die Tage der Rosen“"]},{"id":"bundeslied-melodie","typ":"frage","rev":1,"frage":"Von wem stammt die Melodie des Bundeslieds?","antworten":["W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist"]},{"id":"bundeslied-text","typ":"frage","rev":1,"frage":"Von wem stammt der Text des Bundeslieds?","antworten":["O. Roquette (1824–1896), deutscher Schriftsteller hugenottischer Abstammung und Professor für Literaturgeschichte"],"notiz":"Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia."},{"id":"bundeslied-str2","typ":"lueckentext","rev":2,"titel":"Bundeslied, 2. Strophe","text":"Frei ist das {{Herz}}, und frei das {{Lied}},\nund frei ist der {{Bursch}}, der die Welt durchzieht;\nund ein {{rosiger}} Kuss\nist nicht minder frei,\nso {{spröd}} und verschämt auch die Lippe sei.\nWo ein Lied erklingt, wo ein Kuss sich beut, da heißt’s:\nNoch ist blühende, goldene Zeit,\nnoch sind |:die {{Tage der Rosen}}!:|"},{"id":"bundeslied-str3","typ":"lueckentext","rev":2,"titel":"Bundeslied, 3. Strophe","text":"Ja im {{Herzen}} tief innen ist alles daheim,\nder {{Freude}} Saaten, der {{Schmerzen}} Keim.\nNoch ist die blühende goldene Zeit:\no du schöne Welt, wie bist du so {{weit}}!\nDrum {{frisch}} sei das Herz\nund {{lebendig}} der Sinn,\ndann brauset, ihr {{Stürme}}, daher und dahin!\nWir aber sind allzeit zu {{singen}} bereit:\nNoch ist die blühende, goldene Zeit,\nnoch sind |:die {{Tage der Rosen}}!:|"},{"id":"adk","typ":"frage","rev":1,"frage":"Was ist das ADK, und seit wann gibt es es?","antworten":["Das „Allgemeine Deutsche Kommersbuch“, seit 1858. Viele besitzen es."]},{"id":"sv-liederbuch","typ":"frage","rev":1,"frage":"Wie kam es zum SV-Liederbuch?","antworten":["Es wurde zu Beginn der 2000er Jahre unter Leitung von Vbr. Hans Dieter Fleischmann ausgearbeitet. Heute gilt die 2. Auflage von 2010."],"notiz":"Anlass waren die politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und die daraus folgende Auswahl der Lieder. Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung."},{"id":"liederbuch-struktur","typ":"reihenfolge","rev":1,"frage":"Wie ist das SV-Liederbuch gegliedert? Bringe die Teile in die richtige Reihenfolge.","elemente":["A — Verbandslieder, Nationalhymne, Bundeslieder","B — Lieder zum festlichen Kommers","C — Lieder zu Inoffizium, Fidulität und Bierdorf","D — Liedsätze und Kanons aus fünf Jahrhunderten"]}]}];
 </script>
 <script>
 (function () {
@@ -365,6 +406,8 @@ function pruefeStapel(stapel) {
     if (!Number.isInteger(k.rev) || k.rev < 1) meld(wo, "rev muss eine ganze Zahl ab 1 sein");
     if (!TYPEN.includes(k.typ)) return meld(wo, `typ „${k.typ}“ ist unbekannt (erlaubt: ${TYPEN.join(", ")})`);
     if (k.notiz !== undefined && !istText(k.notiz)) meld(wo, "notiz ist leer");
+    if (k.prompt !== undefined && !istText(k.prompt)) meld(wo, "prompt ist leer");
+    if (k.gruppe !== undefined && !istText(k.gruppe)) meld(wo, "gruppe ist leer");
 
     if (k.typ === "couleur") {
       const s = k.band && k.band.streifen;
@@ -771,56 +814,57 @@ const GEGENSTAENDE = [
     beschreibung: "Niemand hat dir etwas anderes gesagt.", farbe: "#f4f2ea" },
 
   // --- Erschwingliches --------------------------------------------------
-  { id: "bootsschuhe", platz: "schuhe", preis: 150, art: "boot", name: "Bootsschuhe",
+  { id: "bootsschuhe", platz: "schuhe", preis: 80, art: "boot", name: "Bootsschuhe",
     beschreibung: "Braunes Leder, helle Sohle. Der erste richtige Schritt.", farbe: "#8a5a32" },
-  { id: "krawatte-dunkelblau", platz: "hals", preis: 180, art: "krawatte", name: "Krawatte, dunkelblau",
+  { id: "krawatte-dunkelblau", platz: "hals", preis: 120, art: "krawatte", name: "Krawatte, dunkelblau",
     beschreibung: "Die, mit der man nichts falsch macht.", farbe: "#243352" },
-  { id: "krawatte-bordeaux", platz: "hals", preis: 180, art: "krawatte", name: "Krawatte, bordeaux",
+  { id: "krawatte-bordeaux", platz: "hals", preis: 120, art: "krawatte", name: "Krawatte, bordeaux",
     beschreibung: "Etwas mehr Meinung als dunkelblau.", farbe: "#6d2230" },
-  { id: "krawatte-silber", platz: "hals", preis: 220, art: "krawatte", name: "Krawatte, silbergrau",
+  { id: "krawatte-silber", platz: "hals", preis: 140, art: "krawatte", name: "Krawatte, silbergrau",
     beschreibung: "Für Stiftungsfeste und Hochzeiten.", farbe: "#a9adb3" },
-  { id: "krawatte-gestreift", platz: "hals", preis: 260, art: "krawatte-gestreift", name: "Krawatte, gestreift",
+  { id: "krawatte-gestreift", platz: "hals", preis: 160, art: "krawatte-gestreift", name: "Krawatte, gestreift",
     beschreibung: "Diagonal, dunkelgrün auf nachtblau.", farbe: "#1e3048", zweitfarbe: "#2f5d3a" },
-  { id: "fliege", platz: "hals", preis: 240, art: "fliege", name: "Schwarze Fliege",
+  { id: "fliege", platz: "hals", preis: 140, art: "fliege", name: "Schwarze Fliege",
     beschreibung: "Für den festlichen Kommers.", farbe: "#1d1a17" },
-  { id: "helles", platz: "hand", preis: 250, art: "glas", name: "Helles im Henkelglas",
+  { id: "helles", platz: "hand", preis: 150, art: "glas", name: "Helles im Henkelglas",
     beschreibung: "Der Zapfen hat ein Auge auf dich.", farbe: "#e0a52a" },
 
   // --- Mittelklasse ------------------------------------------------------
-  { id: "wachsjacke-gruen", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, dunkelgrün",
+  { id: "wachsjacke-gruen", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, dunkelgrün",
     beschreibung: "Riecht nach Wachs und nassem Hund. Unverwüstlich.", farbe: "#2f4232" },
-  { id: "wachsjacke-blau", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, dunkelblau",
+  { id: "wachsjacke-blau", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, dunkelblau",
     beschreibung: "Dieselbe Jacke, andere Meinung.", farbe: "#273449" },
-  { id: "wachsjacke-braun", platz: "jacke", preis: 600, art: "wachsjacke", name: "Wachsjacke, braun",
+  { id: "wachsjacke-braun", platz: "jacke", preis: 350, art: "wachsjacke", name: "Wachsjacke, braun",
     beschreibung: "Die vom Onkel geerbte.", farbe: "#4a3626" },
-  { id: "kanne", platz: "hand", preis: 900, art: "kanne", name: "Zinnkanne mit Deckel",
-    beschreibung: "Acht Ecken, ein Deckel, kein Zurück.", farbe: "#b9bcc0" },
+  { id: "octopott", platz: "hand", preis: 500, art: "octopott", name: "Octopott",
+    beschreibung: "Hohes Facettenglas mit Henkel und Ausguss. Acht Kanten, anderthalb Liter, kein Zurück.",
+    farbe: "#e3a92f" },
 
   // --- Gehobenes ---------------------------------------------------------
-  { id: "anzug-anthrazit", platz: "jacke", preis: 1100, art: "anzug", name: "Anzug, anthrazit",
+  { id: "anzug-anthrazit", platz: "jacke", preis: 550, art: "anzug", name: "Anzug, anthrazit",
     beschreibung: "Jackett bleibt an, bis das Präsidium es auszieht.", farbe: "#2e3238" },
-  { id: "anzug-nachtblau", platz: "jacke", preis: 1100, art: "anzug", name: "Anzug, nachtblau",
+  { id: "anzug-nachtblau", platz: "jacke", preis: 550, art: "anzug", name: "Anzug, nachtblau",
     beschreibung: "Abends das bessere Schwarz.", farbe: "#20283d" },
-  { id: "anzug-schwarz", platz: "jacke", preis: 1250, art: "anzug", name: "Anzug, schwarz",
+  { id: "anzug-schwarz", platz: "jacke", preis: 650, art: "anzug", name: "Anzug, schwarz",
     beschreibung: "Trauer, Trauung, Kommers.", farbe: "#1a1b1d" },
-  { id: "anzug-grau", platz: "jacke", preis: 1000, art: "anzug", name: "Anzug, mittelgrau",
+  { id: "anzug-grau", platz: "jacke", preis: 500, art: "anzug", name: "Anzug, mittelgrau",
     beschreibung: "Geht auch tagsüber durch.", farbe: "#595f66" },
-  { id: "kleid-dunkelblau", platz: "oberteil", preis: 1100, art: "kleid", name: "Kleid, dunkelblau",
+  { id: "kleid-dunkelblau", platz: "oberteil", preis: 550, art: "kleid", name: "Kleid, dunkelblau",
     beschreibung: "Schultern bedeckt, knielang, dem Anlass angemessen.", farbe: "#2b3550" },
-  { id: "kleid-bordeaux", platz: "oberteil", preis: 1100, art: "kleid", name: "Kleid, bordeaux",
+  { id: "kleid-bordeaux", platz: "oberteil", preis: 550, art: "kleid", name: "Kleid, bordeaux",
     beschreibung: "Dasselbe in kräftiger.", farbe: "#5d2330" },
-  { id: "kleid-schwarz", platz: "oberteil", preis: 1250, art: "kleid", name: "Kleid, schwarz",
+  { id: "kleid-schwarz", platz: "oberteil", preis: 650, art: "kleid", name: "Kleid, schwarz",
     beschreibung: "Das kleine Schwarze. Geht immer.", farbe: "#1f2023" },
 
   // --- Couleur ------------------------------------------------------------
-  { id: "zipfelbund", platz: "guertel", preis: 1800, art: "zipfelbund", name: "Zipfelbund in Bundesfarben",
+  { id: "zipfelbund", platz: "guertel", preis: 800, art: "zipfelbund", name: "Zipfelbund in Bundesfarben",
     beschreibung: "Ein Bierzipfel, zwei Weinzipfel, rot-gold-schwarz. Getauscht, nicht gekauft — aber wir drücken ein Auge zu." },
 
   // --- Trophäen -----------------------------------------------------------
-  { id: "fahne-muenster", platz: "trophaee", preis: 3000, art: "fahne", name: "Erbeutete Prunkfahne (Münster)",
+  { id: "fahne-muenster", platz: "trophaee", preis: 1500, art: "fahne", name: "Erbeutete Prunkfahne (Münster)",
     beschreibung: "Vom Haus eines Münsteraner Bundes. Kommt nach dem Stiftungsfest zurück. Versprochen.",
     quelle: "muenster-couleur" },
-  { id: "fahne-sv", platz: "trophaee", preis: 5000, art: "fahne", name: "Erbeutete Prunkfahne (SV)",
+  { id: "fahne-sv", platz: "trophaee", preis: 2500, art: "fahne", name: "Erbeutete Prunkfahne (SV)",
     beschreibung: "Vom Vertretertag mitgenommen. Die Verhandlungen laufen noch.",
     quelle: "sv-couleur" },
 ];
@@ -831,11 +875,11 @@ const nachId = (id) => GEGENSTAENDE.find((g) => g.id === id) || null;
 // sonst stiege man beim Einkaufen wieder ab.
 const RAENGE = [
   { ab: 0, name: "Spefux" },
-  { ab: 250, name: "Fux" },
-  { ab: 900, name: "Kneipgänger" },
-  { ab: 2200, name: "Kannenträger" },
-  { ab: 4500, name: "Chargierter" },
-  { ab: 9000, name: "Ältestenrat" },
+  { ab: 400, name: "Fux" },
+  { ab: 1500, name: "Kneipgänger" },
+  { ab: 3500, name: "Kannenträger" },
+  { ab: 7000, name: "Chargierter" },
+  { ab: 14000, name: "Ältestenrat" },
 ];
 
 const rang = (verdient) =>
@@ -898,15 +942,16 @@ function ersetze(neuerStand) {
 // „Falsch“ bringt weniger, aber nie null. Wer für Ehrlichkeit bestraft wird,
 // klickt irgendwann auf „Gewusst“, ohne es zu wissen — und dann ist die
 // Selbsteinschätzung wertlos.
-const LOHN_FALSCH = 1;
+const LOHN_FALSCH = 2;
 const SERIE_FUER_BONUS = 5;
-const SERIEN_BONUS = 10;
-const SITZUNGS_BONUS = 25;
+const SERIEN_BONUS = 20;
+const SITZUNGS_BONUS = 50;
 
-// Fach 1 bringt am meisten: da wird wirklich etwas gelernt. Die Untergrenze
-// liegt über LOHN_FALSCH, damit eine richtige Antwort nie gleich viel wert
-// ist wie eine falsche.
-const lohn = (altesFach) => Math.max(LOHN_FALSCH + 1, 7 - altesFach);
+// Lohn nach dem Fach vor der Antwort. Fach 1 bringt am meisten, da wird
+// wirklich etwas gelernt; auch die letzte Stufe bleibt über LOHN_FALSCH,
+// damit richtig immer mehr wert ist als falsch.
+const LOEHNE = [10, 8, 6, 5, 4];
+const lohn = (altesFach) => LOEHNE[Math.min(LOEHNE.length, Math.max(1, altesFach)) - 1];
 
 function verbuche(gewusst, altesFach) {
   const h = roh();
@@ -975,6 +1020,7 @@ const getragenerAuf = (platz) => nachId(roh().getragen[platz]);
   __exporte["SERIE_FUER_BONUS"] = SERIE_FUER_BONUS;
   __exporte["SERIEN_BONUS"] = SERIEN_BONUS;
   __exporte["SITZUNGS_BONUS"] = SITZUNGS_BONUS;
+  __exporte["LOEHNE"] = LOEHNE;
   __exporte["lohn"] = lohn;
   __exporte["verbuche"] = verbuche;
   __exporte["sitzungsBonus"] = sitzungsBonus;
@@ -1495,14 +1541,30 @@ function inDerHand(m, g, aermel, kleid) {
       ${p(`M${x - 7} ${o + 16} V${o + 32}`, null, `stroke="rgba(255,255,255,.6)" stroke-width="3"`)}
     </g>`;
   }
-  const o = y - 24;
+  // Octopott: hohes Facettenglas, Henkel links, Ausguss rechts, Bier drin
+  // mit Schaumkrone. Alles durchscheinend, deshalb sitzt die Kontur vorn.
+  const glas = "#eceef0";
+  const bier = farbe(g.farbe, "#e3a92f");
+  const hoch = 58, breit = 30;
+  const o = y - hoch + 10;
+  const l = x - breit / 2, r = x + breit / 2;
+  const schaumY = o + 13;
   return `<g>
-    ${p(`M${x + 15} ${o + 16} q13 2 13 12 t-13 12`, null, `${strich} fill="none" stroke-width="5"`)}
-    ${p(`M${x - 15} ${o + 8} h30 l4 8 v24 l-4 8 h-30 l-4 -8 v-24 Z`, "#c3c7cc", strich)}
-    ${p(`M${x - 15} ${o + 8} h30 l4 8 h-38 Z`, "#dfe2e6", `stroke="${L}" stroke-width="${Sd}"`)}
-    ${p(`M${x - 18} ${o} h36 v9 h-36 Z`, "#aeb2b8", strich)}
-    ${p(`M${x - 5} ${o - 7} h10 v8 h-10 Z`, "#aeb2b8", `stroke="${L}" stroke-width="${Sd}"`)}
-    ${p(`M${x - 8} ${o + 20} V${o + 38}`, null, `stroke="rgba(255,255,255,.55)" stroke-width="3"`)}
+    ${p(`M${l - 10} ${o + 16} q-11 3 -11 14 t11 14`, null,
+        `fill="none" stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l} ${o + 4} L${l + 2} ${o + hoch - 4} q0 4 4 4 h${breit - 12} q4 0 4 -4
+         L${r} ${o + 4} Z`, glas, `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`)}
+    ${p(`M${l + 1.2} ${schaumY} L${l + 2} ${o + hoch - 4} q0 4 4 4 h${breit - 12} q4 0 4 -4
+         L${r - 1.2} ${schaumY} Z`, bier, "")}
+    ${p(`M${l + 1} ${schaumY} h${breit - 2}`, null, `stroke="#fdf6e6" stroke-width="7"`)}
+    ${[-9, -3, 3, 9].map((dx) =>
+      p(`M${x + dx} ${o + 6} V${o + hoch - 2}`, null,
+        `stroke="rgba(255,255,255,.5)" stroke-width="1.6"`)).join("")}
+    ${p(`M${r - 1} ${o + 4} q7 -3 10 2`, null,
+        `fill="none" stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l} ${o + 4} L${r} ${o + 4}`, null, `stroke="${L}" stroke-width="${S}" stroke-linecap="round"`)}
+    ${p(`M${l + 5} ${o + 20} V${o + hoch - 10}`, null,
+        `stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round"`)}
   </g>`;
 }
 
@@ -1824,10 +1886,108 @@ function spielstandLaden(daten, setzeFortschritt) {
   __exporte["spielstandLaden"] = spielstandLaden;
   return __exporte;
 };
+__module["src/karten/auswahl.js"] = function (__hole) {
+  const __exporte = {};
+  const { mische } = __hole("src/dom.js");
+// Baut Antwortmöglichkeiten: die richtige plus Ablenker aus demselben
+// Stapel.
+//
+// Zur Lage der richtigen Antwort: sie wird mit Fisher-Yates gemischt, also
+// gleichverteilt über alle Plätze. Kein „meistens B“. tests/run-tests.mjs
+// zählt das über zehntausende Durchläufe nach, statt es zu behaupten.
+
+const WUNSCH_ANZAHL = 4;
+const MINDEST_ANZAHL = 3;
+
+// Ablenker kommen bevorzugt aus derselben `gruppe` — sonst stünde bei
+// „Wann wurde das Haus gekauft?“ plötzlich ein Fließtext zur Wahl.
+function kandidaten(einheit, textVon) {
+  const { stapel, karte } = einheit;
+  const gleicheGruppe = (k) => (k.gruppe || null) === (karte.gruppe || null);
+  const tauglich = stapel.karten.filter((k) => k !== karte && k.typ === karte.typ);
+  const bevorzugt = tauglich.filter(gleicheGruppe);
+  return (bevorzugt.length >= MINDEST_ANZAHL - 1 ? bevorzugt : tauglich)
+    .map(textVon)
+    .filter(Boolean);
+}
+
+// Bei langen Antworten werden vier Möglichkeiten auf dem Handy zur
+// Textwand. Dann lieber drei — geraten wird immer noch selten genug.
+const LANG = 90;
+
+function moeglichkeiten(einheit, richtigerText, textVon, anzahl) {
+  if (anzahl === undefined) {
+    anzahl = String(richtigerText).length > LANG ? MINDEST_ANZAHL : WUNSCH_ANZAHL;
+  }
+  const verschieden = [...new Set(kandidaten(einheit, textVon))]
+    .filter((t) => t !== richtigerText);
+  if (verschieden.length < MINDEST_ANZAHL - 1) return null;   // zu wenig für eine echte Wahl
+  const ablenker = mische(verschieden).slice(0, anzahl - 1);
+  return mische([richtigerText, ...ablenker].map((text) => ({ text, richtig: text === richtigerText })));
+}
+
+  __exporte["WUNSCH_ANZAHL"] = WUNSCH_ANZAHL;
+  __exporte["MINDEST_ANZAHL"] = MINDEST_ANZAHL;
+  __exporte["moeglichkeiten"] = moeglichkeiten;
+  return __exporte;
+};
+__module["src/karten/wahlfeld.js"] = function (__hole) {
+  const __exporte = {};
+  const { h, leere } = __hole("src/dom.js");
+// Die Knopfreihe für eine Multiple-Choice-Abfrage. Ein Antippen zählt:
+// danach ist die Wahl gesperrt, richtig und falsch sind markiert.
+
+function wahlfeld(moeglichkeiten, beiAntwort) {
+  const liste = h("ul", { class: "wahlfeld" });
+  let gesperrt = false;
+
+  function zeichne(gewaehlt) {
+    leere(liste);
+    moeglichkeiten.forEach((m, i) => {
+      let klasse = null;
+      if (gesperrt) {
+        if (m.richtig) klasse = "richtig";
+        else if (m === gewaehlt) klasse = "falsch";
+        else klasse = "blass";
+      }
+      liste.append(h("li", {},
+        h("button", {
+          class: klasse, disabled: gesperrt,
+          onclick: () => {
+            if (gesperrt) return;
+            gesperrt = true;
+            zeichne(m);
+            beiAntwort(Boolean(m.richtig));
+          },
+        },
+          h("span", { class: "nr", text: String(i + 1) }),
+          h("span", { class: "wahltext", text: m.text }))));
+    });
+  }
+  zeichne(null);
+
+  return {
+    feld: () => liste,
+    // Für die Tastatur: 1 bis 4 wählen die Möglichkeiten.
+    waehle: (nr) => {
+      if (gesperrt) return false;
+      const knopf = liste.querySelectorAll("button")[nr - 1];
+      if (!knopf) return false;
+      knopf.click();
+      return true;
+    },
+  };
+}
+
+  __exporte["wahlfeld"] = wahlfeld;
+  return __exporte;
+};
 __module["src/karten/couleur.js"] = function (__hole) {
   const __exporte = {};
   const { h } = __hole("src/dom.js");
   const { hellPruefer } = __hole("src/decks.js");
+  const { moeglichkeiten } = __hole("src/karten/auswahl.js");
+  const { wahlfeld } = __hole("src/karten/wahlfeld.js");
 
 function band(karte, istHell, klasse = "band") {
   return h("div", { class: klasse, role: "img", "aria-label": `Farbband: ${karte.farben}` },
@@ -1838,25 +1998,37 @@ function band(karte, istHell, klasse = "band") {
 }
 
 const meta = (a) => [a.ort, a.jahr, a.verband, a.anmerkung].filter(Boolean).join(" · ");
+const buendeVon = (karte) => karte.antworten.map((a) => a.name).join(" / ");
 
-function erstelle(einheit) {
+function erstelle(einheit, ctx) {
   const { karte, stapel } = einheit;
   const istHell = hellPruefer(stapel);
+  const wahl = moeglichkeiten(einheit, buendeVon(karte), buendeVon);
 
+  const antwort = () => h("div", { class: "antwort" },
+    h("p", { class: "farben", text: karte.farben }),
+    karte.antworten.length > 1
+      ? h("p", { class: "multi", text: `Diese Farben führen ${karte.antworten.length} Bünde.` })
+      : null,
+    karte.antworten.map((a) => h("div", { class: "eintrag" },
+      h("p", { class: "name", text: a.name }),
+      meta(a) ? h("p", { class: "meta", text: meta(a) }) : null)),
+    karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
+
+  // Ohne genug andere Bünde im Stapel gäbe es nichts zu wählen — dann
+  // bleibt es bei der Selbsteinschätzung.
+  if (!wahl) {
+    return { modus: "selbst", frage: () => [band(karte, istHell),
+      h("p", { class: "prompt", text: "Welcher Bund?" })], antwort };
+  }
+
+  const feld = wahlfeld(wahl, ctx.beiAntwort);
   return {
-    frage: () => [
-      band(karte, istHell),
-      h("p", { class: "prompt", text: "Welcher Bund?" }),
-    ],
-    antwort: () => h("div", { class: "antwort" },
-      h("p", { class: "farben", text: karte.farben }),
-      karte.antworten.length > 1
-        ? h("p", { class: "multi", text: `Diese Farben führen ${karte.antworten.length} Bünde.` })
-        : null,
-      karte.antworten.map((a) => h("div", { class: "eintrag" },
-        h("p", { class: "name", text: a.name }),
-        meta(a) ? h("p", { class: "meta", text: meta(a) }) : null)),
-      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
+    modus: "auswahl",
+    frage: () => [band(karte, istHell), h("p", { class: "prompt", text: "Welcher Bund führt diese Farben?" })],
+    feld: feld.feld,
+    waehle: feld.waehle,
+    antwort,
   };
 }
 
@@ -1867,17 +2039,40 @@ function erstelle(einheit) {
 __module["src/karten/frage.js"] = function (__hole) {
   const __exporte = {};
   const { h } = __hole("src/dom.js");
+  const { moeglichkeiten } = __hole("src/karten/auswahl.js");
+  const { wahlfeld } = __hole("src/karten/wahlfeld.js");
 
-function erstelle(einheit) {
+const ersteAntwort = (karte) => (karte.antworten && karte.antworten[0]) || "";
+
+function erstelle(einheit, ctx) {
   const { karte } = einheit;
+  const antwort = () => h("div", { class: "antwort" },
+    karte.antworten.length > 1
+      ? h("p", { class: "multi", text: "Jede dieser Antworten gilt." })
+      : null,
+    karte.antworten.map((a) => h("p", { class: "text", text: a })),
+    karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
+
+  // Mehrere gültige Antworten lassen sich nicht sinnvoll ankreuzen —
+  // dann bleibt es bei der Selbsteinschätzung.
+  const wahl = karte.antworten.length > 1
+    ? null
+    : moeglichkeiten(einheit, ersteAntwort(karte), ersteAntwort);
+
+  // Karten dürfen eine Zusatzzeile mitbringen („Wann war das?“).
+  const zusatz = () => (karte.prompt ? h("p", { class: "prompt", text: karte.prompt }) : null);
+
+  if (!wahl) {
+    return { modus: "selbst",
+      frage: () => [h("p", { class: "frage", text: karte.frage }), zusatz()], antwort };
+  }
+  const feld = wahlfeld(wahl, ctx.beiAntwort);
   return {
-    frage: () => h("p", { class: "frage", text: karte.frage }),
-    antwort: () => h("div", { class: "antwort" },
-      karte.antworten.length > 1
-        ? h("p", { class: "multi", text: "Jede dieser Antworten gilt." })
-        : null,
-      karte.antworten.map((a) => h("p", { class: "text", text: a })),
-      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
+    modus: "auswahl",
+    frage: () => [h("p", { class: "frage klein", text: karte.frage }), zusatz()],
+    feld: feld.feld,
+    waehle: feld.waehle,
+    antwort,
   };
 }
 
@@ -1887,22 +2082,32 @@ function erstelle(einheit) {
 __module["src/karten/begriff.js"] = function (__hole) {
   const __exporte = {};
   const { h } = __hole("src/dom.js");
+  const { moeglichkeiten } = __hole("src/karten/auswahl.js");
+  const { wahlfeld } = __hole("src/karten/wahlfeld.js");
 
-function erstelle(einheit) {
+function erstelle(einheit, ctx) {
   const { karte, richtung } = einheit;
   const vonBegriff = richtung === "begriff-definition";
-  return {
-    frage: () => [
-      h("p", { class: vonBegriff ? "frage" : "frage klein",
-               text: vonBegriff ? karte.begriff : karte.definition }),
-      h("p", { class: "prompt", text: vonBegriff ? "Was heißt das?" : "Welcher Begriff?" }),
-    ],
-    antwort: () => h("div", { class: "antwort" },
-      vonBegriff
-        ? h("p", { class: "text", text: karte.definition })
-        : h("p", { class: "name", text: karte.begriff }),
-      karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null),
-  };
+  const gesucht = vonBegriff ? karte.definition : karte.begriff;
+  const textVon = (k) => (vonBegriff ? k.definition : k.begriff);
+
+  const antwort = () => h("div", { class: "antwort" },
+    vonBegriff
+      ? h("p", { class: "text", text: karte.definition })
+      : h("p", { class: "name", text: karte.begriff }),
+    karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
+
+  const frage = () => [
+    h("p", { class: vonBegriff ? "frage" : "frage klein",
+             text: vonBegriff ? karte.begriff : karte.definition }),
+    h("p", { class: "prompt", text: vonBegriff ? "Was heißt das?" : "Welcher Begriff?" }),
+  ];
+
+  const wahl = moeglichkeiten(einheit, gesucht, textVon);
+  if (!wahl) return { modus: "selbst", frage, antwort };
+
+  const feld = wahlfeld(wahl, ctx.beiAntwort);
+  return { modus: "auswahl", frage, feld: feld.feld, waehle: feld.waehle, antwort };
 }
 
   __exporte["erstelle"] = erstelle;
@@ -1927,45 +2132,64 @@ function zerlege(text) {
   return teile;
 }
 
+// Beim Vergleich großzügig bei Groß- und Kleinschreibung, Leerzeichen und
+// Satzzeichen am Rand — aber nicht bei der Schreibweise selbst. Wer „heisst“
+// statt „heißt“ tippt, hat es nicht gewusst.
+const vergleichbar = (s) => String(s || "")
+  .trim().toLowerCase()
+  .replace(/[.,;:!?„“"'’]/g, "")
+  .replace(/\s+/g, " ");
+
+const stimmt = (eingabe, loesungen) =>
+  loesungen.some((l) => vergleichbar(l) === vergleichbar(eingabe));
+
 function erstelle(einheit) {
   const { karte } = einheit;
   const teile = zerlege(karte.text);
   const luecken = [];
+  let geprueft = false;
 
   const absatz = h("p", { class: "lueckentext" },
     teile.map((t) => {
       if (!t.luecke) return document.createTextNode(t.text);
-      // Die Lösung steht schon da, nur unsichtbar: so springt beim Auflösen
-      // keine Zeile um, und die Länge der Lücke bleibt der Hinweis, der sie
-      // beim Auswendiglernen einer Strophe sein soll.
-      //
-      // Unsichtbar heißt aber nicht verborgen: als bloß durchsichtiger Text
-      // ließe sich die Lösung markieren, kopieren und vorlesen. Sie liegt
-      // deshalb in einem eigenen Kind, das die CSS-Regel mit visibility
-      // ausblendet, und für Screenreader steht daneben das Wort „Lücke“.
-      const loesung = h("span", { class: "wort", text: t.loesungen[0] });
-      const marke = h("span", { class: "nur-vorlesen", text: "Lücke" });
-      const el = h("span", { class: "luecke" }, loesung, marke);
-      luecken.push({ el, marke, teil: t });
-      return el;
+      const breite = Math.max(5, t.loesungen[0].length + 2);
+      const feld = h("input", {
+        type: "text", class: "lueckefeld", autocapitalize: "off", autocomplete: "off",
+        autocorrect: "off", spellcheck: "false",
+        style: `width:${breite}ch`, "aria-label": `Lücke ${luecken.length + 1}`,
+      });
+      luecken.push({ feld, teil: t });
+      return feld;
     }));
 
   return {
+    modus: "tippen",
     frage: () => [
       karte.titel ? h("p", { class: "prompt", text: karte.titel }) : null,
       h("div", { class: "antwort" }, absatz),
+      h("p", { class: "prompt", text: `${luecken.length} ${luecken.length === 1 ? "Lücke" : "Lücken"} ausfüllen.` }),
     ],
-    antwort: () => {
-      for (const { el, marke } of luecken) {
-        el.classList.add("gefuellt");
-        marke.remove();
+    // Geprüft wird jederzeit; eine leere Lücke zählt als falsch.
+    bereit: () => true,
+    auswerten: () => {
+      geprueft = true;
+      let alle = true;
+      for (const { feld, teil } of luecken) {
+        const gut = stimmt(feld.value, teil.loesungen);
+        feld.classList.add(gut ? "richtig" : "falsch");
+        feld.readOnly = true;
+        if (!gut) { feld.value = teil.loesungen[0]; alle = false; }
       }
+      return alle;
+    },
+    antwort: () => {
       const mehrere = luecken.filter(({ teil }) => teil.loesungen.length > 1);
-      // Die Trennlinie unter der Zählzeile nur, wenn darunter auch etwas steht.
-      const folgt = mehrere.length > 0 || Boolean(karte.notiz);
+      const falsche = luecken.filter(({ feld }) => feld.classList.contains("falsch")).length;
       return h("div", { class: "antwort" },
-        h("p", { class: folgt ? "multi" : "meta",
-                 text: `${luecken.length} ${luecken.length === 1 ? "Lücke" : "Lücken"} — oben eingesetzt.` }),
+        h("p", { class: mehrere.length || karte.notiz ? "multi" : "meta",
+                 text: !geprueft ? "" : falsche
+                   ? `${falsche} von ${luecken.length} daneben — oben richtig eingesetzt.`
+                   : "Alle Lücken richtig." }),
         mehrere.map(({ teil }) =>
           h("p", { class: "meta", text: `Ebenso richtig: ${teil.loesungen.slice(1).join(", ")}` })),
         karte.notiz ? h("p", { class: "notiz", text: karte.notiz }) : null);
@@ -1974,6 +2198,8 @@ function erstelle(einheit) {
 }
 
   __exporte["zerlege"] = zerlege;
+  __exporte["vergleichbar"] = vergleichbar;
+  __exporte["stimmt"] = stimmt;
   __exporte["erstelle"] = erstelle;
   return __exporte;
 };
@@ -2003,7 +2229,8 @@ function sollGruppe(elemente, wert) {
   return gruppen(elemente).findIndex((g) => g.includes(wert));
 }
 
-function erstelle(einheit, beiAenderung) {
+function erstelle(einheit, ctx) {
+  const beiAenderung = ctx && ctx.neuZeichnen;
   const { karte } = einheit;
   const alle = gruppen(karte.elemente).flat();
   const angeboten = mische(alle);
@@ -2046,13 +2273,20 @@ function erstelle(einheit, beiAenderung) {
   zeichne();
 
   return {
+    // Die Reihenfolge prüft sich selbst — hier war die Selbsteinschätzung
+    // ohnehin nie nötig.
+    modus: "reihenfolge",
     frage: () => [
       h("p", { class: "frage klein", text: karte.frage }),
       h("p", { class: "prompt", text: "In der richtigen Reihenfolge antippen." }),
       liste,
     ],
     bereit: () => gewaehlt.length === alle.length,
-    vorschlag: () => istRichtig(karte.elemente, gewaehlt),
+    auswerten: () => {
+      aufgeloest = true;
+      zeichne();
+      return istRichtig(karte.elemente, gewaehlt);
+    },
     antwort: () => {
       aufgeloest = true;
       zeichne();
@@ -2081,10 +2315,13 @@ __module["src/karten/index.js"] = function (__hole) {
 
 const NACH_TYP = { couleur, frage, begriff, lueckentext, reihenfolge };
 
-function erstelleKarte(einheit, beiAenderung) {
+// ctx trägt zwei Rückrufe: neuZeichnen für Zwischenschritte (Reihenfolge)
+// und beiAntwort, mit dem eine angetippte Wahl sofort zählt.
+function erstelleKarte(einheit, ctx) {
   const modul = NACH_TYP[einheit.karte.typ];
   if (!modul) throw new Error(`Kein Renderer für Typ ${einheit.karte.typ}`);
-  return modul.erstelle(einheit, beiAenderung);
+  const objekt = modul.erstelle(einheit, ctx);
+  return { modus: "selbst", ...objekt };
 }
 
   __exporte["erstelleKarte"] = erstelleKarte;
@@ -2580,6 +2817,7 @@ let modus = "faellig";       // faellig | alle | fehler
 let sitzung = null;
 let enthuellt = false;
 let kartenObjekt = null;
+let ergebnis = null;        // null = noch offen, sonst ob richtig beantwortet
 let letzterLohn = null;     // was die eben beantwortete Karte eingebracht hat
 let sitzungsLohn = 0;
 let bonusGezahlt = false;
@@ -2699,6 +2937,7 @@ function starteSitzung() {
   enthuellt = false;
   kartenObjekt = null;
   letzterLohn = null;
+  ergebnis = null;
   sitzungsLohn = 0;
   bonusGezahlt = false;
   location.hash = "#/lernen";
@@ -2710,42 +2949,57 @@ function ansichtLernen() {
 
   const einheit = sitzung.aktuell;
   if (!kartenObjekt) {
-    kartenObjekt = erstelleKarte(einheit, () => zeichne());
+    kartenObjekt = erstelleKarte(einheit, {
+      neuZeichnen: () => zeichne(),
+      // Eine angetippte Wahl zählt sofort — kein „Gewusst“ hinterher,
+      // bei dem man sich selbst belügen könnte.
+      beiAntwort: (richtig) => { ergebnis = richtig; zeichne(); },
+    });
     enthuellt = false;
+    ergebnis = null;
   }
 
-  const weiter = (gewusst) => {
-    // Das Fach vor der Bewertung bestimmt den Lohn: eine Karte, die noch
-    // im ersten Fach steckt, bringt am meisten.
-    const altesFach = stand(einheit).fach;
-    sitzung.antworte(gewusst);
-    letzterLohn = verbuche(gewusst, altesFach);
-    sitzungsLohn += letzterLohn.betrag + letzterLohn.bonus;
-    kartenObjekt = null;
-    enthuellt = false;
-    zeichne();
-  };
+  const weiter = fortfahren;
+  const spaeter = h("button", { class: "ghost",
+    onclick: () => { sitzung.zurueckstellen(); kartenObjekt = null; ergebnis = null; zeichne(); } },
+    "Später");
 
-  const kannEnthuellen = !kartenObjekt.bereit || kartenObjekt.bereit();
-  const vorschlag = enthuellt && kartenObjekt.vorschlag ? kartenObjekt.vorschlag() : null;
+  const selbst = kartenObjekt.modus === "selbst";
+  const beantwortet = selbst ? enthuellt : ergebnis !== null;
 
-  const knoepfe = enthuellt
-    ? h("div", { class: "row" },
-        h("button", { class: vorschlag === false ? "solid" : null, onclick: () => weiter(false) }, "Falsch"),
-        h("button", { class: vorschlag === null || vorschlag === true ? "solid" : null,
-                      onclick: () => weiter(true) }, "Gewusst"))
-    : h("div", { class: "row" },
-        h("button", { class: "solid", disabled: !kannEnthuellen,
-                      onclick: () => { enthuellt = true; zeichne(); } }, "Antwort zeigen"),
-        h("button", { class: "ghost", onclick: () => { sitzung.zurueckstellen(); kartenObjekt = null; zeichne(); } },
-          "Später"));
+  let knoepfe;
+  if (selbst && !enthuellt) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", onclick: () => { enthuellt = true; zeichne(); } }, "Antwort zeigen"),
+      spaeter);
+  } else if (selbst) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { onclick: () => weiter(false) }, "Falsch"),
+      h("button", { class: "solid", onclick: () => weiter(true) }, "Gewusst"));
+  } else if (!beantwortet && kartenObjekt.modus === "auswahl") {
+    knoepfe = h("div", { class: "row" }, spaeter);     // das Antippen beantwortet
+  } else if (!beantwortet) {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", disabled: kartenObjekt.bereit && !kartenObjekt.bereit(),
+        onclick: () => { ergebnis = kartenObjekt.auswerten(); zeichne(); } }, "Prüfen"),
+      spaeter);
+  } else {
+    knoepfe = h("div", { class: "row" },
+      h("button", { class: "solid", onclick: () => weiter(ergebnis) }, "Weiter"));
+  }
+
+  const urteil = ergebnis === null ? null
+    : h("p", { class: `urteil ${ergebnis ? "gut" : "schlecht"}`,
+               text: ergebnis ? "Richtig." : "Daneben." });
 
   return [
     h("div", { class: "kopf" },
       h("p", { class: "sub", text: einheit.stapel.titel }),
       h("button", { class: "zurueck", onclick: () => { location.hash = "#/"; } }, "Übersicht")),
     kartenObjekt.frage(),
-    enthuellt ? kartenObjekt.antwort() : null,
+    kartenObjekt.feld ? kartenObjekt.feld() : null,
+    urteil,
+    beantwortet ? kartenObjekt.antwort() : null,
     knoepfe,
     h("div", { class: "score" },
       h("span", {}, "Offen ", h("b", { text: String(sitzung.schlange.length) }),
@@ -2755,12 +3009,17 @@ function ansichtLernen() {
           ? h("span", { class: "lohn" }, `+${letzterLohn.betrag + letzterLohn.bonus} `, MUENZE,
               letzterLohn.bonus ? h("b", { text: ` ${letzterLohn.serie}er-Serie!` }) : null)
           : null,
-        " Gewusst ", h("b", { text: String(sitzung.richtig) }),
+        " Richtig ", h("b", { text: String(sitzung.richtig) }),
         " · Falsch ", h("b", { text: String(sitzung.falsch) }))),
-    h("p", { class: "hinweis tasten-hinweis", text: enthuellt
-      ? "Tastatur: G gewusst, F falsch."
-      : "Tastatur: Leertaste zeigt die Antwort, S stellt zurück." }),
+    h("p", { class: "hinweis tasten-hinweis", text: tastenHinweis(selbst, beantwortet) }),
   ];
+}
+
+function tastenHinweis(selbst, beantwortet) {
+  if (beantwortet) return selbst ? "Tastatur: G gewusst, F falsch." : "Tastatur: Leertaste geht weiter.";
+  if (selbst) return "Tastatur: Leertaste zeigt die Antwort, S stellt zurück.";
+  if (kartenObjekt && kartenObjekt.modus === "auswahl") return "Tastatur: 1 bis 4 wählen, S stellt zurück.";
+  return "Tastatur: Leertaste prüft, S stellt zurück.";
 }
 
 function ansichtFertig() {
@@ -2888,7 +3147,7 @@ function spielstandOeffnen() {
 }
 
 function tasten(ev) {
-  if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig) return;
+  if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig || !kartenObjekt) return;
   const ziel = ev.target;
   if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return;
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
@@ -2897,18 +3156,47 @@ function tasten(ev) {
   // Griffe die Abkürzung zusätzlich, passierte zweierlei auf einen Druck.
   const aufKnopf = ziel && ziel.tagName === "BUTTON";
   const taste = ev.key.toLowerCase();
-  if (!enthuellt && (ev.key === " " || taste === "enter")) {
-    if (aufKnopf) return;
-    if (!kartenObjekt.bereit || kartenObjekt.bereit()) {
-      ev.preventDefault(); enthuellt = true; zeichne();
-    }
-  } else if (!enthuellt && taste === "s") {
-    ev.preventDefault(); sitzung.zurueckstellen(); kartenObjekt = null; zeichne();
-  } else if (enthuellt && (taste === "g" || taste === "j")) {
-    ev.preventDefault(); sitzung.antworte(true); kartenObjekt = null; enthuellt = false; zeichne();
-  } else if (enthuellt && (taste === "f" || taste === "n")) {
-    ev.preventDefault(); sitzung.antworte(false); kartenObjekt = null; enthuellt = false; zeichne();
+  const leer = ev.key === " " || taste === "enter";
+  const selbst = kartenObjekt.modus === "selbst";
+  const beantwortet = selbst ? enthuellt : ergebnis !== null;
+
+  const tu = (fn) => { ev.preventDefault(); fn(); };
+
+  if (!beantwortet && taste === "s") {
+    return tu(() => { sitzung.zurueckstellen(); kartenObjekt = null; ergebnis = null; zeichne(); });
   }
+  if (!beantwortet && kartenObjekt.modus === "auswahl" && /^[1-9]$/.test(ev.key)) {
+    return tu(() => kartenObjekt.waehle(Number(ev.key)));
+  }
+  if (leer && aufKnopf) return;
+  if (!beantwortet && leer) {
+    if (selbst) return tu(() => { enthuellt = true; zeichne(); });
+    if (kartenObjekt.auswerten && (!kartenObjekt.bereit || kartenObjekt.bereit())) {
+      return tu(() => { ergebnis = kartenObjekt.auswerten(); zeichne(); });
+    }
+    return;
+  }
+  if (beantwortet && !selbst && leer) {
+    return tu(() => fortfahren(ergebnis));
+  }
+  if (beantwortet && selbst && (taste === "g" || taste === "j")) return tu(() => fortfahren(true));
+  if (beantwortet && selbst && (taste === "f" || taste === "n")) return tu(() => fortfahren(false));
+}
+
+// Ein Weg nach vorn für Knöpfe und Tastatur. Das Fach vor der Bewertung
+// bestimmt den Lohn: eine Karte, die noch im ersten Fach steckt, bringt
+// am meisten.
+function fortfahren(gewusst) {
+  const einheit = sitzung.aktuell;
+  if (!einheit) return;
+  const altesFach = stand(einheit).fach;
+  sitzung.antworte(gewusst);
+  letzterLohn = verbuche(gewusst, altesFach);
+  sitzungsLohn += letzterLohn.betrag + letzterLohn.bonus;
+  kartenObjekt = null;
+  enthuellt = false;
+  ergebnis = null;
+  zeichne();
 }
 
 async function start() {

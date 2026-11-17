@@ -65,6 +65,8 @@ src/
   spiel.js                 Charaktererstellung und Kleiderkammer
   redaktion.js             Redaktionsansicht (nur über #/redaktion)
   karten/                  ein Renderer je Kartentyp
+    auswahl.js             baut die Möglichkeiten und mischt sie
+    wahlfeld.js            die Knopfreihe für Multiple Choice
 decks/                     die Stapel als JSON — hier wird Inhalt gepflegt
   index.json               Manifest: welche Stapel es gibt
 quellen/                   die geprüften Prototypen, gegen die getestet wird
@@ -119,7 +121,9 @@ Hairline um helle Streifen genau steuern will. Die beiden geprüften Stapel
 bringen die Listen ihrer Prototypen wörtlich mit und werden dadurch
 pixelgleich gezeichnet. Fehlt die Liste, entscheidet die Helligkeit der Farbe.
 
-Jede Karte hat `id`, `typ`, `rev` und optional `notiz`.
+Jede Karte hat `id`, `typ`, `rev` und optional `notiz`, `prompt` (eine
+Zusatzzeile unter der Frage) und `gruppe` (woraus die Ablenker kommen
+dürfen).
 
 * **`id`** ist dauerhaft. Der Fortschritt aller Lernenden hängt daran —
   eine geänderte Kennung setzt die Karte für alle auf null.
@@ -253,17 +257,17 @@ weil dort wirklich etwas gelernt wird:
 
 | Fach vor der Antwort | 1 | 2 | 3 | 4 | 5 | falsch |
 |---|---|---|---|---|---|---|
-| Coins | 6 | 5 | 4 | 3 | 2 | 1 |
+| Coins | 10 | 8 | 6 | 5 | 4 | 2 |
 
-Dazu 10 Coins für jede fünfte richtige Antwort in Folge und 25 für eine
+Dazu 20 Coins für jede fünfte richtige Antwort in Folge und 50 für eine
 beendete Sitzung. Ein erster vollständiger Durchgang über alle Stapel bringt
-rund 1200 Coins; spätere Durchgänge weniger, weil die Karten dann in höheren
-Fächern stehen.
+rund 2100 Coins; spätere Durchgänge weniger, weil die Karten dann in höheren
+Fächern stehen. Damit sind Schuhe, Krawatte, Bier, Wachsjacke und Octopott
+schon im ersten Durchgang drin; die SV-Fahne bleibt das Fernziel.
 
-**„Falsch“ zahlt auch.** Nicht viel, aber mehr als nichts — und immer
-weniger als die billigste richtige Antwort. Wer für Ehrlichkeit bestraft
-wird, klickt irgendwann auf „Gewusst“, ohne es zu wissen, und dann ist die
-Selbsteinschätzung wertlos. `tests/run-tests.mjs` prüft diese Ordnung.
+**Eine falsche Antwort zahlt auch.** Nicht viel, aber mehr als nichts — und
+immer weniger als die billigste richtige. `tests/run-tests.mjs` prüft diese
+Ordnung.
 
 Der Katalog steht in `src/held.js`. Jedes Stück sagt über sein Feld `art`,
 wie es gezeichnet wird — nicht über seine Kennung. Eine weitere Krawatte
@@ -297,15 +301,47 @@ Lernansicht zählt Abfragen; die Statistik zeigt beides nebeneinander.
 
 ## Lernen
 
-Leitner mit fünf Fächern. „Gewusst“ rückt eine Karte ein Fach weiter,
-„Falsch“ setzt sie auf Fach 1 zurück und stellt sie in derselben Sitzung
-noch einmal. Die Abstände in Tagen: 0, 1, 3, 7, 21.
+Leitner mit fünf Fächern. Eine richtige Antwort rückt die Karte ein Fach
+weiter, eine falsche setzt sie auf Fach 1 zurück und stellt sie in derselben
+Sitzung noch einmal. Die Abstände in Tagen: 0, 1, 3, 7, 21.
 
 Drei Modi: **Fällige** (was heute dran ist), **Alle**, **Nur Fehler**
 (zuletzt falsch und noch in Fach 1 oder 2).
 
-Tastatur: Leertaste zeigt die Antwort, `S` stellt zurück, `G` gewusst,
-`F` falsch.
+### Wie abgefragt wird
+
+Die App prüft selbst, statt zu fragen „gewusst?“. Eine Selbsteinschätzung
+lässt sich belügen — und wer sich belügt, lernt nichts, weil das ganze
+Leitner-Verfahren auf der Bewertung steht.
+
+| Kartentyp | Abfrage |
+|---|---|
+| `couleur` | Band sehen, aus vier Bünden den richtigen antippen |
+| `frage` | aus mehreren Antworten die richtige antippen |
+| `begriff` | je nach Richtung aus mehreren Begriffen oder Definitionen wählen |
+| `lueckentext` | die fehlenden Wörter eintippen |
+| `reihenfolge` | Elemente ordnen, die App weiß selbst, ob es stimmt |
+
+**Wo die richtige Antwort steht, entscheidet Fisher-Yates** — gleichverteilt
+über alle Plätze, kein „meistens B“. `tests/run-tests.mjs` zählt das über
+20 000 Durchläufe nach und lässt nur durch, was den Chi-Quadrat-Test auf
+dem 0,1-%-Niveau besteht.
+
+Ablenker kommen aus demselben Stapel und bevorzugt aus derselben `gruppe`:
+bei „Wann war das?“ stehen vier Jahreszahlen aus dem Dokument zur Wahl,
+kein Fließtext. Ist eine Antwort länger als 90 Zeichen, gibt es drei statt
+vier Möglichkeiten — sonst wird es auf dem Handy eine Textwand.
+
+Beim Eintippen wird großzügig verglichen: Groß- und Kleinschreibung,
+Leerzeichen und Satzzeichen am Rand sind egal, die Schreibweise selbst
+nicht. Wer `heisst` statt `heißt` tippt, hat es nicht gewusst.
+
+Gibt es für eine Karte zu wenige Ablenker im Stapel — oder hat sie mehrere
+gültige Antworten, die sich nicht ankreuzen lassen —, fällt sie auf die
+Selbsteinschätzung zurück. Das ist der Ausnahmefall, nicht die Regel.
+
+Tastatur: `1` bis `4` wählen, Leertaste prüft und geht weiter, `S` stellt
+zurück.
 
 ## Fremdes Material
 

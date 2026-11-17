@@ -1,13 +1,14 @@
 // Offline auf dem Haus: App-Gerüst und Stapel liegen im Cache.
 // Bei jeder Änderung an Code oder Stapeln FASSUNG hochzählen.
-const FASSUNG = "aeltestenrat-d40beebbd260";
+const FASSUNG = "aeltestenrat-c281399dff78";
 const GERUEST = [
   "./", "./index.html", "./manifest.webmanifest", "./assets/styles.css",
   "./assets/icon-180.png", "./assets/icon-192.png", "./assets/icon-512.png",
   "./src/main.js", "./src/dom.js", "./src/schema.js", "./src/store.js",
   "./src/leitner.js", "./src/decks.js", "./src/sitzung.js", "./src/stats.js",
   "./src/held.js", "./src/koepfe.js", "./src/figur.js", "./src/spiel.js",
-  "./src/redaktion.js", "./src/karten/index.js", "./src/karten/couleur.js",
+  "./src/redaktion.js", "./src/karten/index.js", "./src/karten/auswahl.js", "./src/karten/wahlfeld.js",
+  "./src/karten/couleur.js",
   "./src/karten/frage.js", "./src/karten/begriff.js", "./src/karten/lueckentext.js",
   "./src/karten/reihenfolge.js", "./decks/index.json",
 ];

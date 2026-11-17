@@ -64,6 +64,8 @@ async function durchlauf(name, url, breite) {
 
   // Jeden Stapel einzeln anlernen, damit jeder Kartentyp drankommt
   const gesehen = new Set();
+  const moden = new Set();
+  let gewusstGesehen = 0;
   const anzahl = await s.locator(".stapel li").count();
   for (let n = 0; n < anzahl; n++) {
     await s.goto(url, { waitUntil: "domcontentloaded" });
@@ -75,22 +77,37 @@ async function durchlauf(name, url, breite) {
     for (let i = 0; i < 7; i++) {
       if (await s.locator(".band").count()) gesehen.add("couleur");
       if (await s.locator(".lueckentext").count()) gesehen.add("lueckentext");
-      const reihe = await s.locator(".reihe button").count();
-      if (reihe) {
-        gesehen.add("reihenfolge");
-        for (let j = 0; j < reihe; j++) await s.locator('.reihe button[aria-pressed="false"]').first().click();
-      } else if (await s.locator(".frage").count()) {
+      if (await s.locator(".reihe button").count()) gesehen.add("reihenfolge");
+      else if (await s.locator(".frage").count()) {
         gesehen.add(await s.locator(".prompt").count() ? "begriff" : "frage");
       }
-      const z = s.locator('button:has-text("Antwort zeigen")');
-      if (!(await z.count())) break;
-      await z.click(); await s.waitForTimeout(70);
-      sag(await s.locator(".antwort").count() > 0, `Antwort erscheint (Stapel ${n + 1})`);
-      await s.locator('button:has-text("Gewusst")').click(); await s.waitForTimeout(60);
+      gewusstGesehen += await s.locator('button:has-text("Gewusst")').count();
+
+      // Antworten, je nach Abfrageart
+      if (await s.locator(".wahlfeld button").count()) {
+        moden.add("auswahl");
+        const anz = await s.locator(".wahlfeld button").count();
+        await s.locator(".wahlfeld button").nth(Math.floor(Math.random() * anz)).click();
+      } else if (await s.locator(".lueckefeld").count()) {
+        moden.add("tippen");
+        await s.getByRole("button", { name: "Prüfen", exact: true }).click();
+      } else if (await s.locator(".reihe button").count()) {
+        moden.add("reihenfolge");
+        const anz = await s.locator(".reihe button").count();
+        for (let j = 0; j < anz; j++) await s.locator('.reihe button[aria-pressed="false"]').first().click();
+        await s.getByRole("button", { name: "Prüfen", exact: true }).click();
+      } else break;
+      await s.waitForTimeout(90);
+      sag(await s.locator(".urteil").count() === 1, `Urteil erscheint (Stapel ${n + 1})`);
+      sag(await s.locator(".antwort").count() >= 1, `Lösung erscheint (Stapel ${n + 1})`);
+      await s.getByRole("button", { name: "Weiter", exact: true }).click();
+      await s.waitForTimeout(80);
     }
   }
   sag(gesehen.size === 5, `alle fünf Kartentypen gesehen: ${[...gesehen].sort().join(", ")}`);
-  sag(await s.locator(".lohn").count() >= 0, "Lohnanzeige vorhanden");
+  sag(moden.size === 3, `alle drei Abfragearten: ${[...moden].sort().join(", ")}`);
+  sag(gewusstGesehen === 0, gewusstGesehen
+    ? `„Gewusst“ tauchte ${gewusstGesehen}-mal auf` : "kein „Gewusst“ mehr — die App prüft selbst");
 
   // Münzen verdient?
   const muenzen = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).muenzen);
@@ -127,6 +144,7 @@ async function durchlauf(name, url, breite) {
   // Auswahl bei Krawatte und Anzug
   sag(await s.locator('.laden li:has-text("Krawatte")').count() >= 3, "mehrere Krawatten zur Wahl");
   sag(await s.locator('.laden li:has-text("Anzug,")').count() >= 3, "mehrere Anzüge zur Wahl");
+  sag(await s.locator('.laden li:has-text("Octopott")').count() === 1, "der Octopott steht im Laden");
 
   // Nirgends seitlich über den Rand
   const breit = await s.evaluate(() =>

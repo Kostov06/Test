@@ -260,3 +260,44 @@ textarea.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-s
   aspect-ratio:1;display:block;overflow:hidden}
 .frisurknopf svg{width:100%;height:100%;display:block}
 .frisurknopf[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+
+/* ================================================== Echte Abfragen === */
+
+/* Multiple Choice. Welche Möglichkeit die richtige ist, entscheidet eine
+   Mischung in auswahl.js — nicht die Position. */
+.wahlfeld{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:7px}
+.wahlfeld button{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;
+  border-color:var(--rule);padding:12px 13px;font-size:15px;line-height:1.35}
+.wahlfeld .nr{flex:0 0 1.3em;font-size:12.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;padding-top:2px}
+.wahlfeld .wahltext{flex:1 1 auto;min-width:0}
+.wahlfeld button.richtig{border-color:var(--accent);border-width:2px;padding:11px 12px;
+  background:rgba(61,90,63,.10)}
+.wahlfeld button.richtig .nr{color:var(--accent)}
+.wahlfeld button.falsch{border-color:var(--warn);border-width:2px;padding:11px 12px;
+  background:rgba(125,58,46,.09)}
+.wahlfeld button.falsch .nr{color:var(--warn)}
+.wahlfeld button.blass{opacity:.45}
+.wahlfeld button[disabled]{opacity:1}
+.wahlfeld button.blass[disabled]{opacity:.45}
+
+/* Lücken zum Eintippen. Die Auswahl muss mindestens so genau sein wie die
+   allgemeine Regel für input[type=text], sonst gewinnt deren Rahmen. */
+input[type=text].lueckefeld{
+  font:inherit;font-size:16px;font-weight:600;text-align:center;width:auto;
+  border:0;border-bottom:2px solid var(--ink);border-radius:0;background:transparent;
+  padding:0 .15em;margin:0 .12em;color:var(--ink);vertical-align:baseline;
+  line-height:inherit;-webkit-appearance:none;appearance:none}
+input[type=text].lueckefeld:focus{outline:none;border-bottom-color:var(--accent);
+  background:rgba(61,90,63,.08)}
+input[type=text].lueckefeld:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text].lueckefeld.richtig{border-bottom-color:var(--accent);color:var(--accent)}
+input[type=text].lueckefeld.falsch{border-bottom-color:var(--warn);color:var(--warn)}
+input[type=text].lueckefeld[readonly]{cursor:default}
+
+/* Das Urteil nach einer Abfrage */
+.urteil{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  font-size:19px;margin:14px 0 0;animation:lohnAuf .2s ease-out}
+.urteil.gut{color:var(--accent)}
+.urteil.schlecht{color:var(--warn)}
+@media (prefers-reduced-motion:reduce){.urteil{animation:none}}

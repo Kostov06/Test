@@ -22,7 +22,8 @@ function sollGruppe(elemente, wert) {
   return gruppen(elemente).findIndex((g) => g.includes(wert));
 }
 
-export function erstelle(einheit, beiAenderung) {
+export function erstelle(einheit, ctx) {
+  const beiAenderung = ctx && ctx.neuZeichnen;
   const { karte } = einheit;
   const alle = gruppen(karte.elemente).flat();
   const angeboten = mische(alle);
@@ -65,13 +66,20 @@ export function erstelle(einheit, beiAenderung) {
   zeichne();
 
   return {
+    // Die Reihenfolge prüft sich selbst — hier war die Selbsteinschätzung
+    // ohnehin nie nötig.
+    modus: "reihenfolge",
     frage: () => [
       h("p", { class: "frage klein", text: karte.frage }),
       h("p", { class: "prompt", text: "In der richtigen Reihenfolge antippen." }),
       liste,
     ],
     bereit: () => gewaehlt.length === alle.length,
-    vorschlag: () => istRichtig(karte.elemente, gewaehlt),
+    auswerten: () => {
+      aufgeloest = true;
+      zeichne();
+      return istRichtig(karte.elemente, gewaehlt);
+    },
     antwort: () => {
       aufgeloest = true;
       zeichne();
