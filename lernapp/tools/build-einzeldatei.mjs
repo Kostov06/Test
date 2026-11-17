@@ -17,7 +17,7 @@ const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
 // Reihenfolge = Abhängigkeitsreihenfolge.
 const MODULE = [
   "src/dom.js", "src/schema.js", "src/store.js", "src/leitner.js", "src/decks.js",
-  "src/sitzung.js", "src/stats.js", "src/held.js", "src/figur.js", "src/spiel.js",
+  "src/sitzung.js", "src/stats.js", "src/held.js", "src/koepfe.js", "src/figur.js", "src/spiel.js",
   "src/karten/couleur.js", "src/karten/frage.js",
   "src/karten/begriff.js", "src/karten/lueckentext.js", "src/karten/reihenfolge.js",
   "src/karten/index.js", "src/redaktion.js", "src/main.js",

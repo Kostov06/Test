@@ -60,6 +60,7 @@ src/
   store.js                 localStorage
   stats.js                 Statistik und „was hakt“
   held.js                  Figur, Ausrüstung, Münzen, Ränge
+  koepfe.js                ERZEUGT — Frisuren aus Open Peeps (CC0)
   figur.js                 zeichnet den Helden als SVG
   spiel.js                 Charaktererstellung und Kleiderkammer
   redaktion.js             Redaktionsansicht (nur über #/redaktion)
@@ -71,6 +72,7 @@ tools/
   migriere-prototypen.mjs  erzeugt die beiden Couleur-Stapel aus quellen/
   fassung-stempeln.mjs     schreibt die Inhaltskennung in sw.js
   icons-bauen.mjs          erzeugt die App-Symbole aus Ingvaeonias Farbband
+  koepfe-bauen.mjs         schneidet die Frisuren aus Open Peeps aus
   build-einzeldatei.mjs    baut lernapp.html
 tests/
   run-tests.mjs            Schema, Farbtreue, Leitner, Spiellogik
@@ -209,10 +211,39 @@ Hautton. Danach steht sie oben auf der Übersicht und lässt sich dort wieder
 
 Gezeichnet wird sie in `src/figur.js` als SVG aus Einzelteilen: Fahne hinten,
 Beine, Schuhe, Oberteil, Halsstück, Jacke, Zipfelbund, Arme, Gegenstand in
-der Hand, Kopf, Haar. Flache Flächen, keine Verläufe — dieselbe Handschrift
-wie die Farbbänder. Alle Farben laufen durch eine Schleuse, die nur
-`#rrggbb` durchlässt: die Fahnenfarben kommen aus den Stapeln, und Stapel
-sind Dateien, die jemand von Hand schreibt.
+der Hand, Kopf. Kräftige Tuschelinie, flache Flächen, keine Verläufe. Alle
+Farben laufen durch eine Schleuse, die nur `#rrggbb` durchlässt: die
+Fahnenfarben kommen aus den Stapeln, und Stapel sind Dateien, die jemand
+von Hand schreibt.
+
+### Die Frisuren
+
+Der Kopf wird nicht gezeichnet, sondern eingesetzt. Die 33 Frisuren stammen
+aus **„Open Peeps“ von Pablo Stanley** (openpeeps.com), gemeinfrei unter
+CC0 1.0. `tools/koepfe-bauen.mjs` schneidet sie einmalig aus und legt sie als
+`src/koepfe.js` ab:
+
+```
+npm install @dicebear/core @dicebear/collection
+node tools/koepfe-bauen.mjs
+```
+
+Das ist ein reines Bauwerkzeug. Das Ergebnis ist eingecheckt, die App selbst
+hat keine Paketabhängigkeit und lädt nichts nach — sonst liefe sie nicht
+offline. Der Schritt ist nur nötig, wenn Frisuren dazukommen sollen; eine
+Prüfung in `tests/run-tests.mjs` wacht darüber, dass kein `node_modules` im
+Repo landet.
+
+Alle Frisuren teilen dieselbe Schädelform, deshalb sitzt der Kopf über eine
+feste Verschiebung an derselben Stelle. Große Frisuren ragen darüber hinaus,
+statt die Figur zu stauchen. Vom Ausschneiden verworfen werden Varianten,
+die in der Vorlage gar keinen Schädel zeichnen — das prüft das Werkzeug
+selbst, sonst fiele es erst im Bild auf.
+
+**Eine eigene Haarfarbe gibt es nicht.** In der Vorlage ist das Haar bei den
+meisten Frisuren Teil der Tuschezeichnung und lässt sich nicht sauber von
+den Umrissen trennen. Dafür sind es 33 wirkliche Frisuren statt sechs
+Formen in sechs Farben.
 
 ## Ingvaeonencoins
 
@@ -234,8 +265,15 @@ weniger als die billigste richtige Antwort. Wer für Ehrlichkeit bestraft
 wird, klickt irgendwann auf „Gewusst“, ohne es zu wissen, und dann ist die
 Selbsteinschätzung wertlos. `tests/run-tests.mjs` prüft diese Ordnung.
 
-Der Katalog steht in `src/held.js`. Ein neuer Gegenstand braucht dort einen
-Eintrag — und in `src/figur.js` die Stelle, die ihn zeichnet.
+Der Katalog steht in `src/held.js`. Jedes Stück sagt über sein Feld `art`,
+wie es gezeichnet wird — nicht über seine Kennung. Eine weitere Krawatte
+oder ein weiterer Anzug braucht deshalb nur einen Eintrag im Katalog, keine
+Codeänderung. Eine neue *Art* braucht zusätzlich eine Stelle in
+`src/figur.js`.
+
+Bei den Trophäen sucht man sich aus, bei welchem Bund die Fahne
+abhandenkommt. Die Liste kommt aus dem jeweiligen Couleur-Stapel, mit den
+geprüften Farben daneben — der Diebstahl ist damit nebenbei eine Übung.
 
 ## Spielstand
 
@@ -268,6 +306,16 @@ Drei Modi: **Fällige** (was heute dran ist), **Alle**, **Nur Fehler**
 
 Tastatur: Leertaste zeigt die Antwort, `S` stellt zurück, `G` gewusst,
 `F` falsch.
+
+## Fremdes Material
+
+| Was | Woher | Lizenz |
+|---|---|---|
+| Die 33 Frisuren in `src/koepfe.js` | „Open Peeps“ von Pablo Stanley, openpeeps.com | CC0 1.0, gemeinfrei |
+
+CC0 verlangt keine Nennung; sie steht hier, weil es sich gehört. Sonst ist
+nichts Fremdes in der App: keine Schriftarten, keine Bibliotheken, keine
+Bilder von außen.
 
 ## Woher der Inhalt stammt
 

@@ -5,23 +5,10 @@
 // sich ausführen, ohne die Leitner-Fächer mitzunehmen.
 const SCHLUESSEL = "ael.held.v1";
 
-export const HAARE = [
-  { id: "kurz", name: "Kurz" },
-  { id: "scheitel", name: "Seitenscheitel" },
-  { id: "locken", name: "Locken" },
-  { id: "pferdeschwanz", name: "Pferdeschwanz" },
-  { id: "lang", name: "Lang" },
-  { id: "glatze", name: "Glatze" },
-];
-
-export const HAARFARBEN = [
-  { id: "dunkelbraun", wert: "#3a2a1c" },
-  { id: "braun", wert: "#6b4a2b" },
-  { id: "blond", wert: "#c9a35e" },
-  { id: "rot", wert: "#a9502a" },
-  { id: "schwarz", wert: "#1d1a17" },
-  { id: "grau", wert: "#9a958c" },
-];
+// Die Frisuren stehen in src/koepfe.js (Open Peeps, CC0) — dort steht auch,
+// wie sie dorthin kommen. Eine eigene Haarfarbe gibt es nicht mehr: in der
+// Vorlage ist das Haar Teil der Tuschezeichnung und lässt sich nicht sauber
+// umfärben. Dafür sind es jetzt 33 wirkliche Frisuren statt sechs Formen.
 
 export const HAUTTOENE = ["#f2d3b8", "#e0b492", "#c08e63", "#8d5f3c", "#5e3b24"];
 
@@ -132,8 +119,7 @@ const START = () => ({
   angelegt: false,
   name: "",
   figur: "schlank",
-  haar: "kurz",
-  haarfarbe: "braun",
+  haar: "short1",
   haut: HAUTTOENE[0],
   muenzen: 0,
   verdient: 0,

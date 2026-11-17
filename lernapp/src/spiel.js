@@ -1,10 +1,11 @@
 // Charaktererstellung und Kleiderkammer.
 import { h, leere } from "./dom.js";
-import { figurSvg } from "./figur.js";
+import { figurSvg, kopfFuer } from "./figur.js";
+import { KOEPFE, KOPF_ANSICHT } from "./koepfe.js";
 import { band } from "./karten/couleur.js";
 import { hellPruefer } from "./decks.js";
 import {
-  held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAARE, HAARFARBEN, HAUTTOENE, FIGUREN,
+  held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAUTTOENE, FIGUREN,
   nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht,
 } from "./held.js";
 
@@ -83,15 +84,19 @@ export function heldAnlegen(fertig) {
       waehle(FIGUREN, "figur", (f) => f.name),
 
       h("h2", { text: "Frisur" }),
-      waehle(HAARE, "haar", (f) => f.name),
-
-      h("h2", { text: "Haarfarbe" }),
-      h("div", { class: "wahl" }, HAARFARBEN.map((f) =>
-        h("button", {
-          class: "farbknopf", "aria-pressed": held().haarfarbe === f.id ? "true" : "false",
-          "aria-label": `Haarfarbe ${f.id}`, style: `background:${f.wert}`,
-          onclick: () => { aendere({ haarfarbe: f.id }); zeichne(); },
-        }))),
+      h("div", { class: "frisuren" }, KOEPFE.map((k) => {
+        const knopf = h("button", {
+          class: "frisurknopf", "aria-pressed": held().haar === k.id ? "true" : "false",
+          "aria-label": k.name, title: k.name,
+          onclick: () => { aendere({ haar: k.id }); zeichne(); },
+        });
+        // Vorschau im gewählten Hautton — man sieht, was man bekommt.
+        knopf.innerHTML = `<svg viewBox="110 60 500 520" aria-hidden="true">`
+          + k.svg.split("{{HAUT}}").join(held().haut) + `</svg>`;
+        return knopf;
+      })),
+      h("p", { class: "hinweis",
+        text: `${KOEPFE.length} Frisuren aus „Open Peeps“ von Pablo Stanley, gemeinfrei.` }),
 
       h("h2", { text: "Hautton" }),
       h("div", { class: "wahl" }, HAUTTOENE.map((t, i) =>

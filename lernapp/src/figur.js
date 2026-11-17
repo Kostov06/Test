@@ -4,7 +4,8 @@
 // fester Reihenfolge übereinander: Fahne hinten, Haar vorn. Jedes Kleidungs-
 // stück sagt über sein Feld `art`, wie es gezeichnet wird — nicht über seine
 // Kennung, damit ein neuer Anzug keine Codeänderung braucht.
-import { nachId, HAARFARBEN } from "./held.js";
+import { nachId } from "./held.js";
+import { KOEPFE } from "./koepfe.js";
 
 // Alles, was in das SVG eingesetzt wird, muss hier durch. Farben kommen
 // teils aus den Stapeln, und Stapel sind Dateien, die jemand von Hand
@@ -36,45 +37,6 @@ const MASSE = {
   schlank: { schulter: 72, taille: 58, huefte: 64, arm: 16, bein: 25 },
   kraeftig: { schulter: 86, taille: 76, huefte: 80, arm: 19, bein: 30 },
 };
-
-// ------------------------------------------------------------------ Haar
-function haar(art, f) {
-  const d = (pfad) => p(pfad, f, `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`);
-  const lx = MITTE - KOPF_RX - 1, rx = MITTE + KOPF_RX + 1;
-  const scheitel = KOPF_Y - KOPF_RY;
-  const ansatz = KOPF_Y - 12;
-  switch (art) {
-    case "glatze":
-      return "";
-    case "scheitel":
-      return d(`M${lx} ${ansatz + 8} C${lx - 3} ${scheitel - 16}, ${rx + 3} ${scheitel - 16}, ${rx} ${ansatz + 6}
-        C${rx - 4} ${ansatz - 6}, ${MITTE + 6} ${ansatz - 12}, ${MITTE - 6} ${ansatz - 2}
-        C${MITTE - 15} ${ansatz + 6}, ${MITTE - 22} ${ansatz + 2}, ${lx} ${ansatz + 8} Z`);
-    case "locken": {
-      const ball = (cx, cy, r) =>
-        `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${f}" stroke="${L}" stroke-width="${S}"/>`;
-      return `<g>${[[MITTE - 22, scheitel + 12, 15], [MITTE - 2, scheitel + 2, 17],
-        [MITTE + 20, scheitel + 10, 15], [MITTE + 28, KOPF_Y - 6, 12], [MITTE - 30, KOPF_Y - 6, 12]]
-        .map(([a, b, c]) => ball(a, b, c)).join("")}</g>`;
-    }
-    case "pferdeschwanz":
-      return d(`M${MITTE + 20} ${KOPF_Y - 18} C${MITTE + 50} ${KOPF_Y - 4}, ${MITTE + 48} ${KOPF_Y + 42},
-          ${MITTE + 28} ${KOPF_Y + 50} C${MITTE + 40} ${KOPF_Y + 26}, ${MITTE + 38} ${KOPF_Y + 2},
-          ${MITTE + 14} ${KOPF_Y - 4} Z`)
-        + d(`M${lx} ${ansatz + 8} C${lx - 3} ${scheitel - 16}, ${rx + 3} ${scheitel - 16}, ${rx} ${ansatz + 8}
-          C${rx - 5} ${ansatz - 4}, ${lx + 5} ${ansatz - 4}, ${lx} ${ansatz + 8} Z`);
-    case "lang":
-      return d(`M${lx - 4} ${ansatz + 10} C${lx - 8} ${scheitel - 18}, ${rx + 8} ${scheitel - 18}, ${rx + 4} ${ansatz + 10}
-        L${rx + 6} ${KOPF_Y + 62} L${MITTE + 18} ${KOPF_Y + 58}
-        C${MITTE + 26} ${KOPF_Y + 26}, ${MITTE + 25} ${KOPF_Y - 2}, ${MITTE + 17} ${ansatz - 2}
-        L${MITTE - 17} ${ansatz - 2}
-        C${MITTE - 25} ${KOPF_Y - 2}, ${MITTE - 26} ${KOPF_Y + 26}, ${MITTE - 18} ${KOPF_Y + 58}
-        L${lx - 6} ${KOPF_Y + 62} Z`);
-    default: // kurz
-      return d(`M${lx} ${ansatz + 8} C${lx - 3} ${scheitel - 16}, ${rx + 3} ${scheitel - 16}, ${rx} ${ansatz + 8}
-        C${rx - 5} ${ansatz - 5}, ${lx + 5} ${ansatz - 5}, ${lx} ${ansatz + 8} Z`);
-  }
-}
 
 // ----------------------------------------------------------------- Teile
 function fahne(g, beuteFarben) {
@@ -372,33 +334,29 @@ function inDerHand(m, g, aermel, kleid) {
   </g>`;
 }
 
-function kopf(haut, haarArt, haarWert) {
+// Der Kopf kommt fertig gezeichnet aus koepfe.js (Open Peeps, CC0). Alle
+// Frisuren teilen dieselbe Schädelform, deshalb reicht eine feste
+// Verschiebung: der Schädel liegt in der Vorlage um (392|346) und ist dort
+// 382 breit. Große Frisuren ragen einfach darüber hinaus, statt die Figur
+// zu stauchen — genau so soll es sein.
+const KOPF_MASSSTAB = 0.235;
+const KOPF_X = MITTE - 392 * KOPF_MASSSTAB;
+const KOPF_VERSATZ_Y = KOPF_Y - 346 * KOPF_MASSSTAB;
+
+export const kopfFuer = (id) => KOEPFE.find((k) => k.id === id) || KOEPFE[0];
+
+function kopf(haut, frisur) {
+  const k = kopfFuer(frisur);
+  if (!k) return "";
   const h = farbe(haut, "#f2d3b8");
-  const strich = `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`;
-  const augenY = KOPF_Y + 2;
-  return `<g>
-    ${p(`M${MITTE - 11} ${KOPF_Y + KOPF_RY - 10} h22 v${HALS_UNTEN - KOPF_Y - KOPF_RY + 14} h-22 Z`, h, strich)}
-    <ellipse cx="${MITTE - KOPF_RX - 2}" cy="${KOPF_Y + 6}" rx="6" ry="8" fill="${h}" ${strich}/>
-    <ellipse cx="${MITTE + KOPF_RX + 2}" cy="${KOPF_Y + 6}" rx="6" ry="8" fill="${h}" ${strich}/>
-    <ellipse cx="${MITTE}" cy="${KOPF_Y}" rx="${KOPF_RX}" ry="${KOPF_RY}" fill="${h}" ${strich}/>
-    ${p(`M${MITTE - 18} ${augenY - 11} q6 -5 12 -1`, null,
-        `stroke="${L}" stroke-width="${Sd + .4}" stroke-linecap="round" fill="none"`)}
-    ${p(`M${MITTE + 18} ${augenY - 11} q-6 -5 -12 -1`, null,
-        `stroke="${L}" stroke-width="${Sd + .4}" stroke-linecap="round" fill="none"`)}
-    <ellipse cx="${MITTE - 12}" cy="${augenY}" rx="3.4" ry="4" fill="${L}"/>
-    <ellipse cx="${MITTE + 12}" cy="${augenY}" rx="3.4" ry="4" fill="${L}"/>
-    ${p(`M${MITTE} ${augenY + 3} v7 l-4 1`, null,
-        `stroke="${dunkler(h, .72)}" stroke-width="${Sd}" stroke-linecap="round" fill="none"`)}
-    ${p(`M${MITTE - 9} ${augenY + 17} q9 8 18 0`, null,
-        `stroke="${L}" stroke-width="${Sd + .6}" stroke-linecap="round" fill="none"`)}
-    ${haar(haarArt, haarWert)}
+  return `<g transform="translate(${KOPF_X} ${KOPF_VERSATZ_Y}) scale(${KOPF_MASSSTAB})">
+    ${k.svg.split("{{HAUT}}").join(h)}
   </g>`;
 }
 
 // ---------------------------------------------------------------- Zusammen
 export function figurSvg(h, beuteFarben, klasse = "figur") {
   const m = MASSE[h.figur] || MASSE.schlank;
-  const hf = (HAARFARBEN.find((x) => x.id === h.haarfarbe) || HAARFARBEN[1]).wert;
   const g = (platz) => nachId(h.getragen && h.getragen[platz]);
 
   const oberteil = g("oberteil");
@@ -418,6 +376,6 @@ export function figurSvg(h, beuteFarben, klasse = "figur") {
     ${zipfelbund(g("guertel"), m)}
     ${arme(m, h.haut, aermel, kleid)}
     ${inDerHand(m, g("hand"), aermel, kleid)}
-    ${kopf(h.haut, h.haar, hf)}
+    ${kopf(h.haut, h.haar)}
   </svg>`;
 }

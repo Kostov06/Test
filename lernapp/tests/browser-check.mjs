@@ -48,9 +48,16 @@ async function durchlauf(name, url, breite) {
   await s.waitForTimeout(400);
 
   sag(await s.evaluate(() => location.hash) === "#/held", "Erststart führt in die Charaktererstellung");
+  const frisuren = await s.locator(".frisurknopf").count();
+  sag(frisuren >= 20, `${frisuren} Frisuren zur Auswahl`);
+  sag(await s.locator(".frisurknopf svg").count() === frisuren, "jede Frisur mit Vorschau");
   await s.locator("input[type=text]").fill("Prüffux");
+  await s.locator(".frisurknopf").nth(9).click();
+  await s.waitForTimeout(200);
+  sag(await s.locator('.frisurknopf[aria-pressed="true"]').count() === 1, "genau eine Frisur gewählt");
   await s.locator('button:has-text("Los geht")').click();
   await s.waitForTimeout(350);
+  sag(await s.locator(".heldzeile .figur").count() === 1, "Figur mit gewählter Frisur auf der Übersicht");
   sag(await s.locator(".heldzeile").count() === 1, "Held steht oben auf der Übersicht");
   sag(await s.locator('button:has-text("Redaktion")').count() === 0,
       "Redaktions-Knopf nicht mehr auf der Startseite");

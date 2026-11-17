@@ -13,6 +13,7 @@ import { ausSchnelleingabe } from "../src/redaktion.js";
 import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/leitner.js";
 import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held, ersetze,
          LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS } from "../src/held.js";
+import { KOEPFE } from "../src/koepfe.js";
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
@@ -229,6 +230,32 @@ pruefe("Ein gleich gebliebener rev lässt den Fortschritt in Ruhe", () => {
   gleich(stand({ schluessel: "probe/ruhig", karte: { rev: 3 } }).fach, 3);
 });
 
+// ------------------------------------------- Vollständigkeit der Listen
+// Ein neues Modul muss in beide Listen eingetragen werden, sonst fehlt es
+// in der Einzeldatei oder im Offline-Cache — und das merkt man erst im
+// Browser. Diese Prüfung hat genau das einmal gefangen.
+pruefe("Jedes Modul steht im Einzeldatei-Build und im Service Worker", () => {
+  const bau = lies("tools", "build-einzeldatei.mjs");
+  const sw = lies("sw.js");
+  const module = [];
+  const lauf = (verzeichnis) => {
+    for (const eintrag of readdirSync(join(wurzel, verzeichnis), { withFileTypes: true })) {
+      const pfad = `${verzeichnis}/${eintrag.name}`;
+      if (eintrag.isDirectory()) lauf(pfad);
+      else if (eintrag.name.endsWith(".js")) module.push(pfad);
+    }
+  };
+  lauf("src");
+  const fehlend = module.filter((m) => !bau.includes(`"${m}"`) || !sw.includes(`"./${m}"`));
+  wahr(fehlend.length === 0, `nicht eingetragen: ${fehlend.join(", ")}`);
+});
+
+pruefe("Die App bringt keine Paketabhängigkeit mit", () => {
+  const sichtbar = readdirSync(wurzel);
+  wahr(!sichtbar.includes("node_modules"), "node_modules gehört nicht ins Repo");
+  wahr(!sichtbar.includes("package.json"), "die App soll ohne Paketdatei laufen");
+});
+
 // ------------------------------------------------- Service-Worker-Fassung
 pruefe("sw.js trägt die Kennung des aktuellen Inhalts", () => {
   const { status, stderr } = spawnSync(process.execPath,
@@ -335,6 +362,33 @@ pruefe("Die Bundesfarben hängen am Zipfelbund, nicht an der Krawatte", () => {
 
 pruefe("Jedes Stück sagt, wie es gezeichnet wird", () => {
   for (const g of GEGENSTAENDE) wahr(g.art, `${g.id}: art fehlt`);
+});
+
+// ---------------------------------------------------------------- Köpfe
+pruefe("Es gibt genug Frisuren zur Auswahl", () =>
+  wahr(KOEPFE.length >= 20, `nur ${KOEPFE.length} Frisuren`));
+
+pruefe("Jede Frisur hat Kennung, Namen und Zeichnung", () => {
+  for (const k of KOEPFE) {
+    wahr(k.id && k.name, `Frisur ohne Kennung oder Namen: ${JSON.stringify(k).slice(0, 60)}`);
+    wahr(k.svg && k.svg.length > 200, `${k.id}: Zeichnung fehlt oder ist zu kurz`);
+  }
+});
+
+pruefe("Jede Frisur zeichnet einen Kopf im wählbaren Hautton", () => {
+  for (const k of KOEPFE) {
+    wahr(k.svg.includes("{{HAUT}}"), `${k.id}: kein Platzhalter für den Hautton`);
+  }
+});
+
+pruefe("Die Kennungen der Frisuren sind eindeutig", () => {
+  const gesehen = new Set();
+  for (const k of KOEPFE) { wahr(!gesehen.has(k.id), `${k.id} doppelt`); gesehen.add(k.id); }
+});
+
+pruefe("Die voreingestellte Frisur gibt es wirklich", () => {
+  ersetze({});
+  wahr(KOEPFE.some((k) => k.id === held().haar), `Vorgabe „${held().haar}“ steht nicht in koepfe.js`);
 });
 
 pruefe("Die Ränge steigen und fangen bei 0 an", () => {
