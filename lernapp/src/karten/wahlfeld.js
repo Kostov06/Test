@@ -2,6 +2,8 @@
 // danach ist die Wahl gesperrt, richtig und falsch sind markiert.
 import { h, leere } from "../dom.js";
 
+// beiAntwort bekommt zusätzlich die angetippte Möglichkeit — das Kneipspiel
+// lässt die eigene Figur sagen, was man gewählt hat.
 export function wahlfeld(moeglichkeiten, beiAntwort) {
   const liste = h("ul", { class: "wahlfeld" });
   let gesperrt = false;
@@ -22,7 +24,7 @@ export function wahlfeld(moeglichkeiten, beiAntwort) {
             if (gesperrt) return;
             gesperrt = true;
             zeichne(m);
-            beiAntwort(Boolean(m.richtig));
+            beiAntwort(Boolean(m.richtig), m);
           },
         },
           h("span", { class: "nr", text: String(i + 1) }),

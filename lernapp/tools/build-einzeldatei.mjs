@@ -21,7 +21,7 @@ const MODULE = [
   "src/karten/auswahl.js", "src/karten/wahlfeld.js",
   "src/karten/couleur.js", "src/karten/frage.js",
   "src/karten/begriff.js", "src/karten/lueckentext.js", "src/karten/reihenfolge.js",
-  "src/karten/index.js", "src/redaktion.js", "src/main.js",
+  "src/karten/index.js", "src/kneipspiel.js", "src/redaktion.js", "src/main.js",
 ];
 
 const aufloesen = (von, ziel) => posix.normalize(posix.join(posix.dirname(von), ziel));

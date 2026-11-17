@@ -110,7 +110,10 @@ export const GEGENSTAENDE = [
     quelle: "sv-couleur" },
 ];
 
-export const nachId = (id) => GEGENSTAENDE.find((g) => g.id === id) || null;
+// Nimmt auch ein fertiges Stück entgegen: das Kneipspiel kleidet seine
+// Gäste mit Sachen ein, die im Laden gar nicht zu kaufen sind.
+export const nachId = (id) =>
+  (id && typeof id === "object" ? id : GEGENSTAENDE.find((g) => g.id === id) || null);
 
 // Ränge nach insgesamt verdienten Coins — nicht nach dem Kontostand,
 // sonst stiege man beim Einkaufen wieder ab.

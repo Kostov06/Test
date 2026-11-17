@@ -305,3 +305,25 @@ input[type=text].lueckefeld[readonly]{cursor:default}
 /* Ein Knopf, der etwas unwiderruflich löscht, soll nicht aussehen wie die
    anderen — aber auch nicht schreien. */
 button.gefaehrlich{color:var(--warn);border-color:var(--warn)}
+
+/* --------------------------------------------------------- Kneipspiel */
+/* Die Szene ist ein Bild, kein Bedienfeld: ruhige Flächen, eine Tuschelinie,
+   keine Animation. Die Sprechblasen liegen als Text darüber, damit sie
+   umbrechen dürfen — im SVG täten sie das nicht. */
+.szene-rahmen{position:relative;margin:0 0 16px;border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;background:#e7e0d1}
+.szene-bild{display:block;line-height:0}
+svg.szene{display:block;width:100%;height:auto}
+.blase{position:absolute;max-width:40%;margin:0;padding:7px 9px;
+  background:var(--paper-2);border:1.5px solid var(--ink);border-radius:4px;
+  font-size:12.5px;line-height:1.35}
+.blase::after{content:"";position:absolute;width:10px;height:10px;
+  background:var(--paper-2);border:1.5px solid var(--ink);
+  border-top:0;border-left:0;transform:rotate(45deg)}
+.blase.ruf{left:3%;top:4%}
+.blase.ruf::after{left:22px;bottom:-7px}
+.blase.ich{right:2%;bottom:4%;max-width:36%;background:var(--ink);color:var(--paper-2);
+  border-color:var(--ink)}
+.blase.ich::after{background:var(--ink);border-color:var(--ink);left:-7px;top:14px;
+  transform:rotate(135deg)}
+button.breit{flex:1 1 auto}

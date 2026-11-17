@@ -9,6 +9,7 @@ import { redaktionsAnsicht } from "./redaktion.js";
 import { held, verbuche, sitzungsBonus, rang, naechsterRang } from "./held.js";
 import { heldAnlegen, kleiderkammer, figurKasten, beuteFarben, MUENZE,
          spielstandDaten, spielstandLaden } from "./spiel.js";
+import { kneipspielAnsicht, kneipTaste, kneipeBeenden, SPIEL_STAPEL } from "./kneipspiel.js";
 
 const wurzel = document.getElementById("app");
 let alleStapel = [];
@@ -110,6 +111,9 @@ function ansichtStart() {
     h("div", { class: "row" },
       knopfLernen,
       h("button", { class: "ghost", onclick: () => { location.hash = "#/statistik"; } }, "Statistik")),
+    h("div", { class: "row" },
+      h("button", { class: "ghost breit", onclick: () => { location.hash = "#/kneipspiel"; } },
+        "Kneipspiel — eine Kneipe durchspielen")),
     h("div", { class: "row eng" },
       h("button", { class: "ghost", onclick: spielstandSichern }, "Stand sichern"),
       h("button", { class: "ghost", onclick: spielstandOeffnen }, "Stand laden")),
@@ -302,8 +306,11 @@ function zeichne() {
   else if (route === "#/held") inhalt = heldAnlegen(
     () => { location.hash = "#/"; },
     // Von vorn: auch den Lernfortschritt verwerfen, dann neu anlegen.
-    () => { store.zuruecksetzen(); sitzung = null; gewaehlt = new Set(alleStapel.map((x) => x.id)); zeichne(); });
+    () => { store.zuruecksetzen(); sitzung = null; kneipeBeenden(); gewaehlt = new Set(alleStapel.map((x) => x.id)); zeichne(); });
   else if (route === "#/kleiderkammer") inhalt = kleiderkammer(alleStapel, () => { location.hash = "#/"; });
+  else if (route === "#/kneipspiel") inhalt = kneipspielAnsicht(
+    alleStapel.find((s) => s.id === SPIEL_STAPEL),
+    { zurueck: () => { location.hash = "#/"; }, neuZeichnen: () => zeichne() });
   // Die Redaktion steht nicht mehr auf der Startseite — die Neuen brauchen
   // sie nicht. Über die Adresse bleibt sie erreichbar.
   else if (route === "#/redaktion") inhalt = redaktionsAnsicht(alleStapel, kaputt, () => { location.hash = "#/"; });
@@ -351,6 +358,13 @@ function spielstandOeffnen() {
 }
 
 function tasten(ev) {
+  const ziel0 = ev.target;
+  if (location.hash === "#/kneipspiel") {
+    if (ziel0 && (ziel0.matches("input, textarea, select") || ziel0.isContentEditable)) return;
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    if (/^[1-9]$/.test(ev.key) && kneipTaste(Number(ev.key))) ev.preventDefault();
+    return;
+  }
   if (location.hash !== "#/lernen" || !sitzung || sitzung.fertig || !kartenObjekt) return;
   const ziel = ev.target;
   if (ziel && (ziel.matches("input, textarea, select") || ziel.isContentEditable)) return;

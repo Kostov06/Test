@@ -297,6 +297,28 @@ beim Ändern des Helden **Von vorn anfangen**: das löscht Held, Ausrüstung,
 Coins und alle Leitner-Fächer nach Rückfrage. Wer seinen Stand behalten
 will, sichert ihn vorher als Datei.
 
+## Das Kneipspiel
+
+Unter **Kneipspiel** steht man mit der eigenen Figur an der Kneiptafel.
+Links und rechts ein Zapfen, besetzt mit Herren im dunklen Anzug und Damen
+im Kleid; dazwischen hängt die Fahne. Es wird etwas gerufen — „Silentium!“,
+„Ad exercitium salamandris!“ — und man wählt aus vier Möglichkeiten, was man
+sagt oder tut. Richtig und falsch zählen wie im Lernen: dieselben Fächer,
+derselbe Lohn.
+
+Das Spiel bringt keinen eigenen Inhalt mit. Es spielt den Stapel
+`decks/kneipspiel.json`, und zwar mit ganz gewöhnlichen `frage`-Karten:
+die `frage` ist die Lage, das optionale `prompt` der Zuruf, `antworten[0]`
+die richtige Entgegnung und `ablenker` die drei falschen. Wer eine Szene
+ergänzen will, schreibt eine Karte mehr in diesen Stapel — am Code ist
+nichts zu ändern. `src/kneipspiel.js` zeichnet nur die Kulisse: die Gäste
+tragen Sachen, die es im Laden gar nicht zu kaufen gibt, deshalb stehen
+ihre Kleidungsstücke dort als fertige Stücke statt als Kennungen.
+
+Der Stapel ist **noch nicht geprüft** — er baut auf allgemein üblichem
+Kneiplatein auf. Was davon bei uns so gilt, muss der Ältestenrat durchsehen;
+der Warnhinweis steht in `quelle` und auf der Startseite des Spiels.
+
 ## Spielstand
 
 Fortschritt, Coins und Ausrüstung liegen im localStorage dieses Geräts, in

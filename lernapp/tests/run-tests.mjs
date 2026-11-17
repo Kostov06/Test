@@ -17,6 +17,7 @@ import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held
 import { eintraege, zuruecksetzen as fortschrittZuruecksetzen } from "../src/store.js";
 import { KOEPFE } from "../src/koepfe.js";
 import { moeglichkeiten } from "../src/karten/auswahl.js";
+import { szeneSvg, SPIEL_STAPEL } from "../src/kneipspiel.js";
 import { stimmt } from "../src/karten/lueckentext.js";
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -64,6 +65,29 @@ for (const id of manifest.stapel) {
     }
   });
 }
+
+// ----------------------------------------------------------- Kneipspiel
+pruefe("Das Kneipspiel hat seinen Stapel", () =>
+  wahr(manifest.stapel.includes(SPIEL_STAPEL), `${SPIEL_STAPEL} fehlt im Manifest`));
+
+pruefe("Jede Szene bringt eigene Ablenker und genau eine Antwort mit", () => {
+  const stapel = json("decks", `${SPIEL_STAPEL}.json`);
+  for (const k of stapel.karten) {
+    gleich(k.antworten.length, 1, `${k.id}: Antworten`);
+    wahr((k.ablenker || []).length >= 2,
+      `${k.id}: braucht mindestens zwei eigene Ablenker, sonst wird die Wahl zu dünn`);
+    wahr(Boolean(k.notiz), `${k.id}: ohne Notiz lernt niemand aus einem Fehler`);
+  }
+});
+
+pruefe("Die Szene zeigt fünf Figuren und beide Zapfen", () => {
+  const svg = szeneSvg({ figur: "schlank", haut: "#f2d3b8", haar: "short1",
+    haarfarbe: "#3a2a1c", getragen: { oberteil: "hemd-weiss", hose: "chino-beige" } });
+  wahr(svg.startsWith("<svg"), "kein SVG");
+  gleich((svg.match(/scale\(0\.52\)/g) || []).length, 4, "Gäste an den Zapfen");
+  gleich((svg.match(/scale\(0\.95\)/g) || []).length, 1, "eigene Figur");
+  wahr(!/<script|javascript:/i.test(svg), "nichts Ausführbares in der Szene");
+});
 
 // ------------------------------------------------- Farbtreue zur Vorlage
 function prototypKarten(datei) {

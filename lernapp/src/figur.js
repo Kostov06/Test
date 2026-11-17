@@ -407,7 +407,9 @@ function kopf(haut, frisur, haarId) {
 }
 
 // ---------------------------------------------------------------- Zusammen
-export function figurSvg(h, beuteFarben, klasse = "figur") {
+// Der Inhalt ohne Rahmen — so lässt sich dieselbe Figur in eine größere
+// Szene setzen (Kneipspiel), verschoben und verkleinert.
+export function figurTeile(h, beuteFarben) {
   const m = MASSE[h.figur] || MASSE.schlank;
   const g = (platz) => nachId(h.getragen && h.getragen[platz]);
 
@@ -416,9 +418,7 @@ export function figurSvg(h, beuteFarben, klasse = "figur") {
   const j = g("jacke");
   const aermel = j ? j.farbe : (oberteil ? oberteil.farbe : null);
 
-  return `<svg class="${klasse}" viewBox="0 0 270 400" role="img"
-      aria-label="Figur von ${text(h.name) || "noch namenlos"}">
-    ${fahne(g("trophaee"), beuteFarben)}
+  return `${fahne(g("trophaee"), beuteFarben)}
     ${beine(m, g("hose"), kleid, h.haut)}
     ${schuhe(m, g("schuhe"))}
     ${torso(m, oberteil, h.haut)}
@@ -429,6 +429,12 @@ export function figurSvg(h, beuteFarben, klasse = "figur") {
     ${zipfelbund(g("guertel"), m)}
     ${arme(m, h.haut, aermel, kleid)}
     ${inDerHand(m, g("hand"), aermel, kleid)}
-    ${kopf(h.haut, h.haar, h.haarfarbe)}
+    ${kopf(h.haut, h.haar, h.haarfarbe)}`;
+}
+
+export function figurSvg(h, beuteFarben, klasse = "figur") {
+  return `<svg class="${klasse}" viewBox="0 0 270 400" role="img"
+      aria-label="Figur von ${text(h.name) || "noch namenlos"}">
+    ${figurTeile(h, beuteFarben)}
   </svg>`;
 }
