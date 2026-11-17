@@ -40,11 +40,13 @@ function dame(kopf, haar, haut, kleid, figur) {
 
 // Vier Gäste, fest besetzt — die Szene soll von Runde zu Runde dieselbe
 // bleiben, damit man sich an der Tafel zurechtfindet.
+// Die Haarfarbe ist eine Kennung aus HAARFARBEN, kein Farbwert — ein Wert
+// fiele stillschweigend auf Schwarz zurück, und alle vier sähen gleich aus.
 const BESETZUNG = [
-  herr("short4", "#3a2a1c", "#f2d3b8", "#1d1a17", "#201d1a", "#7d1f2b", "schlank"),
-  dame("long", "#4a3526", "#efcdb0", "#2a2f45", "schlank"),
-  herr("grayShort", "#9a958c", "#e8c5a6", "#232a3c", "#232a3c", "#2f4232", "kraeftig"),
-  dame("bun", "#c9a35e", "#f4dcc4", "#4a2130", "schlank"),
+  herr("short4", "dunkelbraun", "#f2d3b8", "#1d1a17", "#201d1a", "#7d1f2b", "schlank"),
+  dame("long", "braun", "#efcdb0", "#2a2f45", "schlank"),
+  herr("grayShort", "grau", "#e8c5a6", "#232a3c", "#232a3c", "#2f4232", "kraeftig"),
+  dame("bun", "blond", "#f4dcc4", "#4a2130", "schlank"),
 ];
 
 // --------------------------------------------------------------- Kulisse
@@ -195,7 +197,7 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
     return [
       kopf(zurueck),
       h("p", { class: "frage", text: "Die Kneipe ist aus." }),
-      h("div", { class: "szenekasten" }, szene(spieler, null, "Ex est!")),
+      h("div", { class: "szenekasten" }, szene(spieler, null, "„Ex est!“")),
       h("p", { class: "text", text: `${s.richtig} von ${s.richtig + s.falsch} Antworten saßen.` }),
       h("p", { class: "text", text: `Verdient: ${spiel.verdient} Coins.` }),
       h("div", { class: "row" },
@@ -215,7 +217,7 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
   return [
     kopf(zurueck),
     h("div", { class: "szenekasten" },
-      szene(spieler, karte.prompt || null, beantwortet ? spiel.gesagt : null)),
+      szene(spieler, karte.prompt || null, beantwortet ? zitat(spiel.gesagt) : null)),
     h("p", { class: "frage klein", text: karte.frage }),
     spiel.feld.feld(),
     beantwortet
@@ -236,6 +238,14 @@ export function kneipspielAnsicht(stapel, { zurueck, neuZeichnen }) {
       h("p", { class: "sub", text: s ? `Kneipspiel · noch ${s.schlange.length}` : "Kneipspiel" }),
       h("button", { class: "zurueck", onclick: zur }, "Übersicht"));
   }
+}
+
+// Nur wirklich Gesagtes gehört in eine Sprechblase. „Du setzt dein Glas
+// an den Tisch“ ist erzählt, nicht gesprochen — und wäre auf dem Handy
+// außerdem eine Blase über die halbe Szene.
+function zitat(text) {
+  const t = String(text || "").match(/„([^“]+)“/);
+  return t ? `„${t[1]}“` : null;
 }
 
 // Szene samt Sprechblasen. Der Ruf steht über der Tafel, die eigene

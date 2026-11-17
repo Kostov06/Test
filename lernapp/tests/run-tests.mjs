@@ -121,6 +121,16 @@ pruefe("Jede Szene bringt eigene Ablenker und genau eine Antwort mit", () => {
   }
 });
 
+// Die Haarfarbe ist eine Kennung, kein Farbwert. Wer dort einen Farbwert
+// einträgt, bekommt stillschweigend Schwarz — und alle Gäste sehen gleich aus.
+pruefe("Die Gäste im Kneipspiel haben verschiedene Haarfarben", () => {
+  const svg = szeneSvg({ figur: "schlank", haut: "#f2d3b8", haar: "short1",
+    haarfarbe: "braun", getragen: { oberteil: "hemd-weiss", hose: "chino-beige" } });
+  const benutzt = HAARFARBEN.filter((f) => svg.includes(`fill="${f.wert}"`));
+  wahr(benutzt.length >= 4,
+    `nur ${benutzt.map((f) => f.id).join(", ") || "keine"} — Kennung statt Farbwert eintragen`);
+});
+
 pruefe("Die Szene zeigt fünf Figuren und beide Zapfen", () => {
   const svg = szeneSvg({ figur: "schlank", haut: "#f2d3b8", haar: "short1",
     haarfarbe: "#3a2a1c", getragen: { oberteil: "hemd-weiss", hose: "chino-beige" } });
