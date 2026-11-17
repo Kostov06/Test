@@ -40,8 +40,18 @@ export function setzeEintrag(schluessel, wert) {
 export function auswahl() { return roh().auswahl; }
 export function setzeAuswahl(ids) { roh().auswahl = ids; sichere(); }
 
-export function vergiss(schluesselTest) {
-  const e = roh().eintraege;
-  for (const k of Object.keys(e)) if (schluesselTest(k)) delete e[k];
+// Für Spielstand-Dateien: den ganzen Fortschritt ausgeben und einsetzen.
+export function alleDaten() { return JSON.parse(JSON.stringify(roh())); }
+
+export function ersetzeAlles(daten) {
+  zwischen = { ...LEER, eintraege: {}, ...daten };
   sichere();
+  return zwischen;
+}
+
+// Den gesamten Lernfortschritt verwerfen.
+export function zuruecksetzen() {
+  zwischen = { ...LEER, eintraege: {} };
+  try { localStorage.removeItem(SCHLUESSEL); } catch { /* Speicher gesperrt */ }
+  return zwischen;
 }

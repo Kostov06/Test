@@ -26,7 +26,7 @@ export function stand(einheit) {
   const e = eintrag(einheit.schluessel);
   if (!e) return frisch(einheit.karte.rev);
   if (e.rev !== einheit.karte.rev) {
-    return { ...e, fach: 1, faellig: heute(), rev: einheit.karte.rev, veraltet: true };
+    return { ...e, fach: 1, faellig: heute(), rev: einheit.karte.rev };
   }
   return e;
 }

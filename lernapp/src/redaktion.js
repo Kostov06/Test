@@ -41,6 +41,14 @@ function zeilenFeld(beschriftung, werte, beiEingabe, hinweis) {
     hinweis ? h("p", { class: "hinweis", text: hinweis }) : null);
 }
 
+// Eigene Ablenker: die wichtigste Stellschraube gegen zu leichte Fragen.
+// Ohne sie nimmt die App Antworten anderer Karten — und die sind oft schon
+// am Gegenstand als falsch zu erkennen.
+function ablenkerFeld(karte, hinweis) {
+  return zeilenFeld("Falsche Möglichkeiten (optional)", karte.ablenker,
+    (v) => { karte.ablenker = v.length ? v : undefined; }, hinweis);
+}
+
 // ----------------------------------------------------------- Karteneditor
 function couleurEditor(karte, neuZeichnen) {
   karte.band = karte.band || { streifen: [{ farbe: "#000000" }, { farbe: "#ffffff" }] };
@@ -129,8 +137,10 @@ function kartenEditor(karte, neuZeichnen) {
   if (karte.typ === "frage") {
     return [
       feld("Frage", flaeche(karte.frage, (v) => { karte.frage = v; })),
+      feld("Zusatzzeile (optional)", textFeld(karte.prompt, (v) => { karte.prompt = v || undefined; })),
       zeilenFeld("Antworten", karte.antworten, (v) => { karte.antworten = v; },
         "Eine Antwort je Zeile. Mehrere Zeilen heißt: jede davon gilt."),
+      ablenkerFeld(karte, "Eine falsche Möglichkeit je Zeile."),
     ];
   }
 
@@ -146,6 +156,8 @@ function kartenEditor(karte, neuZeichnen) {
         h("option", { value: "definition-begriff", selected: karte.richtung === "definition-begriff" }, "Definition → Begriff"))),
       h("p", { class: "hinweis",
         text: "„In beide Richtungen“ zählt als zwei Karten im Fortschritt — sonst gilt sie als gekonnt, obwohl nur eine Richtung sitzt." }),
+      ablenkerFeld(karte, "Eine falsche Definition je Zeile. Nur in der Richtung "
+        + "Begriff → Definition; andersherum kommen die Möglichkeiten aus dem Stapel."),
     ];
   }
 
@@ -207,6 +219,8 @@ export function ausSchnelleingabe(text) {
       .map((z) => z.slice(2).trim());
     const erste = (buchstabe) => nimm(buchstabe)[0] || "";
     const notiz = erste("n");
+    const ablenker = nimm("x");
+    const zusatz = erste("p");
     const karte = { id: "", typ, rev: 1 };
 
     if (typ === "frage") {
@@ -231,6 +245,8 @@ export function ausSchnelleingabe(text) {
       if (karte.elemente.length < 2) fehler.push(`Block ${nr + 1}: weniger als zwei Elemente (E:)`);
     }
     if (notiz) karte.notiz = notiz;
+    if (zusatz && (typ === "frage" || typ === "begriff")) karte.prompt = zusatz;
+    if (ablenker.length && (typ === "frage" || typ === "begriff")) karte.ablenker = ablenker;
     karten.push(karte);
   });
   return { karten, fehler };
@@ -238,6 +254,8 @@ export function ausSchnelleingabe(text) {
 
 const SCHNELL_HILFE = `F: Mit welchem Satz eröffnet der Präside die Kneipe?
 A: Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.
+X: Die Kneipe ist eröffnet, das Kommando liegt beim Präsidium.
+X: Hiermit eröffne ich die Kneipe im Namen des Bundes.
 
 B: Farbenführend
 D: Die Mitglieder führen Farben zu bestimmten Anlässen mit sich.
@@ -287,7 +305,6 @@ export function redaktionsAnsicht(stapel, kaputt, zurueck) {
     // dann fällt die Karte bei allen zurück in Fach 1.
     const alt = (original.karten || []).find((k) => k.id === offen.urspruenglicheId);
     const neu = { ...offen.karte };
-    delete neu.urspruenglicheId;
     if (alt) {
       const a = { ...alt }, b = { ...neu };
       delete a.rev; delete b.rev;

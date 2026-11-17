@@ -21,12 +21,9 @@ export function neueSitzung(einheiten, modus) {
     gesamt: schlange.length,
     richtig: 0,
     falsch: 0,
-    erledigt: new Set(),
 
     get aktuell() { return this.schlange[0] || null; },
     get fertig() { return this.schlange.length === 0; },
-    // Wie viele Einheiten sitzen schon — nicht wie viele Antworten gegeben wurden.
-    get geschafft() { return this.erledigt.size; },
 
     antworte(gewusst) {
       const e = this.schlange.shift();
@@ -34,10 +31,8 @@ export function neueSitzung(einheiten, modus) {
       bewerte(e, gewusst);
       if (gewusst) {
         this.richtig++;
-        this.erledigt.add(e.schluessel);
       } else {
         this.falsch++;
-        this.erledigt.delete(e.schluessel);
         const platz = Math.min(this.schlange.length, ABSTAND);
         this.schlange.splice(platz, 0, e);
       }

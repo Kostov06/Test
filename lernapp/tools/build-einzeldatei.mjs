@@ -17,9 +17,11 @@ const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
 // Reihenfolge = Abhängigkeitsreihenfolge.
 const MODULE = [
   "src/dom.js", "src/schema.js", "src/store.js", "src/leitner.js", "src/decks.js",
-  "src/sitzung.js", "src/stats.js", "src/karten/couleur.js", "src/karten/frage.js",
+  "src/sitzung.js", "src/stats.js", "src/held.js", "src/koepfe.js", "src/figur.js", "src/spiel.js",
+  "src/karten/auswahl.js", "src/karten/wahlfeld.js",
+  "src/karten/couleur.js", "src/karten/frage.js",
   "src/karten/begriff.js", "src/karten/lueckentext.js", "src/karten/reihenfolge.js",
-  "src/karten/index.js", "src/redaktion.js", "src/main.js",
+  "src/karten/index.js", "src/kneipspiel.js", "src/redaktion.js", "src/main.js",
 ];
 
 const aufloesen = (von, ziel) => posix.normalize(posix.join(posix.dirname(von), ziel));
@@ -29,8 +31,15 @@ const IMPORT_STERN = /^import\s*\*\s*as\s+(\w+)\s+from\s*"([^"]+)";?\s*$/;
 const REEXPORT = /^export\s*\{([^}]*)\}\s*from\s*"([^"]+)";?\s*$/;
 const EXPORT_DEKL = /^export\s+(?:async\s+)?(?:function\*?|const|let|class)\s+(\w+)/;
 
+// import { a, b } from "x" darf über mehrere Zeilen gehen. Vor dem Zerlegen
+// werden solche Anweisungen wieder zu einer Zeile zusammengezogen.
+function einzeilig(quelle) {
+  return quelle.replace(/^(import|export)\s*\{[^}]*\}\s*from\s*"[^"]+";?/gm,
+    (treffer) => treffer.replace(/\s+/g, " "));
+}
+
 function uebersetze(pfad, quelle) {
-  const zeilen = quelle.split("\n");
+  const zeilen = einzeilig(quelle).split("\n");
   const kopf = [];
   const koerper = [];
   const exporte = [];

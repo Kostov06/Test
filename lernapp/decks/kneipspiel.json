@@ -1,0 +1,258 @@
+{
+  "schema": 1,
+  "id": "kneipspiel",
+  "titel": "Kneipspiel",
+  "untertitel": "Eine Kneipe durchspielen: Was sagst du jetzt?",
+  "quelle": "ACHTUNG, NOCH NICHT GEPRÜFT: die Szenen bauen auf allgemein üblichem Kneiplatein auf, nicht auf den Unterlagen des Ältestenrats. Nur „non licet vagari neque fumare neque telecomunicare“, das Colloquium und das sine voce der 2. Strophe stehen so in eurem Material. Bitte durchsehen und korrigieren, bevor die Neuen damit spielen.",
+  "stand": "2026-11-17",
+  "karten": [
+    {
+      "id": "szene-tempus",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "kneipspiel",
+      "frage": "Das Officium läuft, und du musst dringend hinaus. Was sagst du?",
+      "antworten": [
+        "„Praeside, ich bitte um ein Tempus!“"
+      ],
+      "ablenker": [
+        "„Praeside, ich bitte um ein Colloquium!“",
+        "„Praeside, ich bitte um ein Silentium!“",
+        "Gar nichts — du stehst leise auf und gehst."
+      ],
+      "notiz": "Tempus ist die Pause. Wer hinaus will, erbittet sie beim Präsidium und wartet, bis sie gewährt ist."
+    },
+    {
+      "id": "szene-silentium",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Das Silentium ist gegeben. Was tust du?",
+      "prompt": "Der Präside: „Silentium!“",
+      "antworten": [
+        "Du schweigst augenblicklich und legst jedes Gespräch nieder."
+      ],
+      "ablenker": [
+        "Du antwortest „Fiducit!“ und sprichst leiser weiter.",
+        "Du hebst das Glas und trinkst aus.",
+        "Du stehst auf und wartest im Stehen."
+      ],
+      "notiz": "Silentium heißt Ruhe. Es kommt vom Präsidium und beendet jedes Gespräch — ohne Antwort, ohne Nachsatz."
+    },
+    {
+      "id": "szene-strictissimum",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Das strengste Silentium ist gegeben. Was bedeutet das für dich?",
+      "prompt": "Der Präside: „Silentium strictissimum!“",
+      "antworten": [
+        "Strengste Ruhe: kein Wort, kein Glas, keine Bewegung — gleich folgt eine Rede oder ein feierlicher Akt."
+      ],
+      "ablenker": [
+        "Dasselbe wie Silentium, nur lauter gerufen.",
+        "Ruhe, aber Zutrinken bleibt erlaubt.",
+        "Die Gespräche sind wieder freigegeben."
+      ],
+      "notiz": "Silentium strictissimum ist die schärfste Form der Ruhe."
+    },
+    {
+      "id": "szene-prosit",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Dir wird zugetrunken. Was antwortest du?",
+      "prompt": "Ein Bundesbruder: „Prosit!“",
+      "antworten": [
+        "„Fiducit!“"
+      ],
+      "ablenker": [
+        "„Prosit!“",
+        "„Ad fundum!“",
+        "„Ex est!“"
+      ],
+      "notiz": "Prosit heißt „es möge nützen“, Fiducit kommt von fiducia sit — es sei Vertrauen. Das ist die Antwort auf einen Zutrunk."
+    },
+    {
+      "id": "szene-ex-est",
+      "typ": "frage",
+      "rev": 1,
+      "gruppe": "kneipspiel",
+      "frage": "Der Präside fragt dich, wie es um dein Glas steht. Es ist leer. Was sagst du?",
+      "antworten": [
+        "„Ex est!“"
+      ],
+      "ablenker": [
+        "„Ad fundum!“",
+        "„Pro poena!“",
+        "„Bibite!“"
+      ],
+      "notiz": "Ex est heißt: das Glas ist leer. Ex! ist dagegen die Aufforderung, es in einem Zug auszutrinken."
+    },
+    {
+      "id": "szene-bibite",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Das Kommando zum Trinken ist gegeben. Was tust du?",
+      "prompt": "Der Präside: „Bibite!“",
+      "antworten": [
+        "Du trinkst — die Aufforderung gilt der ganzen Corona."
+      ],
+      "ablenker": [
+        "Du erbittest zuerst ein Tempus.",
+        "Du antwortest „Fiducit!“ und lässt das Glas stehen.",
+        "Du gibst das Kommando an das Contrarium weiter."
+      ],
+      "notiz": "Bibite! heißt Trinkt! und richtet sich vom Präsidium an die Corona."
+    },
+    {
+      "id": "szene-ex",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Dir wird „Ex!“ zugerufen. Was tust du?",
+      "prompt": "Der Präside: „Ex!“",
+      "antworten": [
+        "Du trinkst dein Glas in einem Zug ganz aus."
+      ],
+      "ablenker": [
+        "Du nimmst einen Schluck und setzt ab.",
+        "Du gibst das Glas zum Zapfen zurück.",
+        "Du wartest, bis der Cantus zu Ende ist."
+      ],
+      "notiz": "Ex! heißt ganz austrinken, ad fundum bis zum Grund. Danach gilt: ex est."
+    },
+    {
+      "id": "szene-salamander",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Der Salamander wird angekündigt. Was tust du?",
+      "prompt": "Der Präside: „Ad exercitium salamandris!“",
+      "antworten": [
+        "Du setzt dein Glas an den Tisch und wartest auf das Kommando: reiben, trinken, dreimal aufschlagen."
+      ],
+      "ablenker": [
+        "Du trinkst sofort aus und rufst „Fiducit!“.",
+        "Du erhebst dich und singst die erste Strophe.",
+        "Du stellst das Glas weg und applaudierst."
+      ],
+      "notiz": "Der Salamander ist der feierlichste Ehrentrunk. Alles geschieht auf Kommando des Präsidiums, nichts vorher."
+    },
+    {
+      "id": "szene-non-licet",
+      "typ": "frage",
+      "rev": 1,
+      "gruppe": "kneipspiel",
+      "frage": "Dein Telefon brummt, und du würdest gern kurz hinausgehen und rangehen. Was gilt im Officium?",
+      "antworten": [
+        "Gar nichts davon: non licet vagari neque fumare neque telecomunicare."
+      ],
+      "ablenker": [
+        "Erlaubt, solange du dich beim Contrarium abmeldest.",
+        "Erlaubt, sobald das Colloquium gegeben ist.",
+        "Erlaubt, wenn du anschließend pro poena trinkst."
+      ],
+      "notiz": "Nicht umherlaufen, nicht rauchen, nicht telefonieren. Wer hinaus muss, erbittet ein Tempus."
+    },
+    {
+      "id": "szene-peccatum",
+      "typ": "frage",
+      "rev": 1,
+      "gruppe": "kneipspiel",
+      "frage": "Du bist ohne Tempus aufgestanden. Der Präside stellt dich zur Rede. Was tust du?",
+      "antworten": [
+        "Du nimmst das Peccatum an und trinkst pro poena."
+      ],
+      "ablenker": [
+        "Du erbittest nachträglich ein Tempus.",
+        "Du widersprichst und rufst das Contrarium an.",
+        "Du entschuldigst dich und verlässt die Kneipe."
+      ],
+      "notiz": "Ein Peccatum ist ein Vergehen gegen den Comment, pro poena das, was man dafür zu trinken hat."
+    },
+    {
+      "id": "szene-colloquium",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "Das Colloquium ist gegeben. Was heißt das für dich?",
+      "prompt": "Der Präside: „Colloquium!“",
+      "antworten": [
+        "Das Gespräch ist freigegeben — du bleibst aber auf deinem Platz."
+      ],
+      "ablenker": [
+        "Die Kneipe ist beendet, du darfst gehen.",
+        "Jetzt beginnt das Inoffiz mit Spielen und Bierdorf.",
+        "Du darfst reden, sobald du ein Tempus erbeten hast."
+      ],
+      "notiz": "Colloquium gibt das Gespräch frei. Das Umhergehen gibt es erst, wenn das Präsidium es freigibt."
+    },
+    {
+      "id": "szene-cantus",
+      "typ": "frage",
+      "rev": 3,
+      "gruppe": "kneipspiel",
+      "frage": "„Cantus ex est“ — was heißt das?",
+      "prompt": "Der Präside: „Cantus ex est!“",
+      "antworten": [
+        "Das Lied ist zu Ende."
+      ],
+      "ablenker": [
+        "Es wird noch eine Strophe gesungen.",
+        "Alle singen jetzt gleichzeitig ein Lied ihrer Wahl.",
+        "Das Lied wird ohne Stimme wiederholt."
+      ],
+      "notiz": "Cantus ist das Lied, cantus ex est sein Ende — genau wie beim Glas: ex est heißt leer."
+    },
+    {
+      "id": "szene-sine-voce",
+      "typ": "frage",
+      "rev": 1,
+      "gruppe": "kneipspiel",
+      "frage": "Die zweite Strophe des SV-Verbandslieds steht an. Was tust du?",
+      "antworten": [
+        "Du singst sie sine voce — ohne Stimme."
+      ],
+      "ablenker": [
+        "Du singst sie besonders laut.",
+        "Du singst sie im Stehen, mit erhobenem Glas.",
+        "Du setzt aus und hörst den Chargen zu."
+      ],
+      "notiz": "Sine voce heißt ohne Stimme. Bei der vierten Strophe werden die Hände überkreuzt gefasst."
+    },
+    {
+      "id": "szene-quodlibet",
+      "typ": "frage",
+      "rev": 1,
+      "gruppe": "kneipspiel",
+      "frage": "Im Inoffiz wird ein Quodlibet ausgerufen. Was passiert?",
+      "antworten": [
+        "Alle singen gleichzeitig ein Lied ihrer Wahl."
+      ],
+      "ablenker": [
+        "Alle singen dasselbe Lied im Kanon.",
+        "Das Präsidium gibt ein Lied vor, das niemand kennen darf.",
+        "Die Corona singt, das Präsidium schweigt."
+      ],
+      "notiz": "Quodlibet heißt „was beliebt“. Das Ergebnis klingt entsprechend."
+    },
+    {
+      "id": "szene-praesidium",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "kneipspiel",
+      "frage": "Du möchtest dich an das Präsidium wenden. Wie sprichst du es an?",
+      "antworten": [
+        "„Praeside!“"
+      ],
+      "ablenker": [
+        "„Contrarium!“",
+        "„Corona!“",
+        "„Zapfen!“"
+      ],
+      "notiz": "Praeses ist der oder die Vorsitzende der Kneipe, bei uns Präside. Das Kommando liegt allein dort; das Contrarium sitzt am anderen Ende der Tafel."
+    }
+  ]
+}
