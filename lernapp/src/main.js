@@ -6,6 +6,9 @@ import { statistik, wasHakt, bezeichnung } from "./stats.js";
 import { stand, istFaellig, hakt, FAECHER } from "./leitner.js";
 import * as store from "./store.js";
 import { redaktionsAnsicht } from "./redaktion.js";
+import { held, verbuche, sitzungsBonus, rang, naechsterRang } from "./held.js";
+import { heldAnlegen, kleiderkammer, figurKasten, beuteFarben, MUENZE,
+         spielstandDaten, spielstandLaden } from "./spiel.js";
 
 const wurzel = document.getElementById("app");
 let alleStapel = [];
@@ -15,6 +18,9 @@ let modus = "faellig";       // faellig | alle | fehler
 let sitzung = null;
 let enthuellt = false;
 let kartenObjekt = null;
+let letzterLohn = null;     // was die eben beantwortete Karte eingebracht hat
+let sitzungsLohn = 0;
+let bonusGezahlt = false;
 
 // ------------------------------------------------------------------ Start
 function ansichtStart() {
@@ -70,8 +76,25 @@ function ansichtStart() {
 
   aktualisiere();
 
+  const hd = held();
+  const r = rang(hd.verdient);
+  const naechster = naechsterRang(hd.verdient);
+
   return [
-    h("h1", { text: "Ältestenrat" }),
+    h("div", { class: "heldzeile" },
+      h("button", {
+        class: "heldknopf", onclick: () => { location.hash = "#/held"; },
+        "aria-label": "Held ändern",
+      }, figurKasten(beuteFarben(alleStapel), "figur klein")),
+      h("div", { class: "heldtext" },
+        h("p", { class: "heldname", text: hd.name || "Namenlos" }),
+        h("p", { class: "meta", text: r.name }),
+        h("p", { class: "kontostand" }, MUENZE, " ", h("b", { text: String(hd.muenzen) })),
+        naechster
+          ? h("p", { class: "meta", text: `noch ${naechster.ab - hd.verdient} bis ${naechster.name}` })
+          : h("p", { class: "meta", text: "höchster Rang" })),
+      h("button", { class: "ghost", onclick: () => { location.hash = "#/kleiderkammer"; } },
+        "Kleiderkammer")),
     h("p", { class: "sub", text: "Stoff für die Neuen: Couleur, Comment, Verbandskunde, Geschichte." }),
     kaputt.length ? h("p", { class: "fehler" },
       `${kaputt.length} Stapel konnten nicht geladen werden: ${kaputt.map((k) => k.id).join(", ")}. `,
@@ -87,10 +110,12 @@ function ansichtStart() {
       knopfLernen,
       h("button", { class: "ghost", onclick: () => { location.hash = "#/statistik"; } }, "Statistik")),
     h("div", { class: "row eng" },
-      h("button", { class: "ghost", onclick: () => { location.hash = "#/redaktion"; } }, "Redaktion")),
+      h("button", { class: "ghost", onclick: spielstandSichern }, "Stand sichern"),
+      h("button", { class: "ghost", onclick: spielstandOeffnen }, "Stand laden")),
     h("p", { class: "hinweis" },
       "Fünf Fächer nach Leitner: gewusst rückt eine Karte ein Fach weiter (1 Tag, 3, 7, 21), ",
-      "falsch setzt sie zurück auf Fach 1. Der Fortschritt bleibt auf diesem Gerät."),
+      "falsch setzt sie zurück auf Fach 1. Fortschritt, Coins und Ausrüstung liegen auf diesem ",
+      "Gerät — wer das Handy wechselt oder den Browserspeicher leert, nimmt die Datei mit."),
   ];
 
   function faecherBalken(w) {
@@ -111,6 +136,9 @@ function starteSitzung() {
   sitzung = neueSitzung(einheiten, modus);
   enthuellt = false;
   kartenObjekt = null;
+  letzterLohn = null;
+  sitzungsLohn = 0;
+  bonusGezahlt = false;
   location.hash = "#/lernen";
 }
 
@@ -125,7 +153,12 @@ function ansichtLernen() {
   }
 
   const weiter = (gewusst) => {
+    // Das Fach vor der Bewertung bestimmt den Lohn: eine Karte, die noch
+    // im ersten Fach steckt, bringt am meisten.
+    const altesFach = stand(einheit).fach;
     sitzung.antworte(gewusst);
+    letzterLohn = verbuche(gewusst, altesFach);
+    sitzungsLohn += letzterLohn.betrag + letzterLohn.bonus;
     kartenObjekt = null;
     enthuellt = false;
     zeichne();
@@ -155,7 +188,12 @@ function ansichtLernen() {
     h("div", { class: "score" },
       h("span", {}, "Offen ", h("b", { text: String(sitzung.schlange.length) }),
         " von ", h("b", { text: String(sitzung.gesamt) })),
-      h("span", {}, "Gewusst ", h("b", { text: String(sitzung.richtig) }),
+      h("span", {},
+        letzterLohn
+          ? h("span", { class: "lohn" }, `+${letzterLohn.betrag + letzterLohn.bonus} `, MUENZE,
+              letzterLohn.bonus ? h("b", { text: ` ${letzterLohn.serie}er-Serie!` }) : null)
+          : null,
+        " Gewusst ", h("b", { text: String(sitzung.richtig) }),
         " · Falsch ", h("b", { text: String(sitzung.falsch) }))),
     h("p", { class: "hinweis tasten-hinweis", text: enthuellt
       ? "Tastatur: G gewusst, F falsch."
@@ -165,12 +203,26 @@ function ansichtLernen() {
 
 function ansichtFertig() {
   const s = sitzung;
+  // Der Abschlussbonus wird einmal je Sitzung gezahlt, nicht bei jedem
+  // Neuzeichnen dieses Bildes.
+  if (!bonusGezahlt) {
+    sitzungsLohn += sitzungsBonus();
+    bonusGezahlt = true;
+  }
+  const hd = held();
   return [
     h("h1", { text: "Durch." }),
     h("p", { class: "sub",
-      text: `${s.gesamt} Karten, ${s.richtig} mal gewusst, ${s.falsch} mal falsch.` }),
+      text: `${s.gesamt} Abfragen, ${s.richtig} mal gewusst, ${s.falsch} mal falsch.` }),
+    figurKasten(beuteFarben(alleStapel), "figur"),
+    h("div", { class: "antwort" },
+      h("p", { class: "ausbeute" }, "+", h("b", { text: String(sitzungsLohn) }), " ", MUENZE,
+        h("span", { class: "meta", text: "  in dieser Sitzung" })),
+      h("p", { class: "meta", text: `Kontostand: ${hd.muenzen} · Rang: ${rang(hd.verdient).name}` })),
     h("div", { class: "row" },
-      h("button", { class: "solid", onclick: () => { location.hash = "#/"; } }, "Zur Übersicht")),
+      h("button", { class: "solid", onclick: () => { location.hash = "#/"; } }, "Zur Übersicht"),
+      h("button", { class: "ghost", onclick: () => { location.hash = "#/kleiderkammer"; } },
+        "Kleiderkammer")),
   ];
 }
 
@@ -225,9 +277,52 @@ function zeichne() {
   let inhalt;
   if (route === "#/lernen") inhalt = ansichtLernen();
   else if (route === "#/statistik") inhalt = ansichtStatistik();
+  else if (route === "#/held") inhalt = heldAnlegen(() => { location.hash = "#/"; });
+  else if (route === "#/kleiderkammer") inhalt = kleiderkammer(alleStapel, () => { location.hash = "#/"; });
+  // Die Redaktion steht nicht mehr auf der Startseite — die Neuen brauchen
+  // sie nicht. Über die Adresse bleibt sie erreichbar.
   else if (route === "#/redaktion") inhalt = redaktionsAnsicht(alleStapel, kaputt, () => { location.hash = "#/"; });
   else inhalt = ansichtStart();
   for (const teil of [inhalt].flat(Infinity)) if (teil) wurzel.append(teil);
+}
+
+// --------------------------------------------------------- Spielstand
+function spielstandSichern() {
+  const daten = spielstandDaten(store.alleDaten());
+  const name = (held().name || "held").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "held";
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(daten, null, 2) + "\n"], { type: "application/json" }));
+  const a = h("a", { href: url, download: `aeltestenrat-${name}.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function spielstandOeffnen() {
+  const eingabe = h("input", {
+    type: "file", accept: ".json,application/json", style: "display:none",
+    onchange: (ev) => {
+      const datei = ev.currentTarget.files[0];
+      if (!datei) return;
+      const leser = new FileReader();
+      leser.onload = () => {
+        try {
+          const daten = JSON.parse(leser.result);
+          const hd = daten.held || {};
+          if (!confirm(`Spielstand von „${hd.name || "ohne Namen"}“ vom ${daten.gesichert || "?"} laden?\n\n`
+              + "Der Fortschritt auf diesem Gerät wird dabei überschrieben.")) return;
+          spielstandLaden(daten, store.ersetzeAlles);
+          location.hash = "#/";
+          zeichne();
+        } catch (fehler) {
+          alert(`Konnte nicht geladen werden: ${fehler.message}`);
+        }
+      };
+      leser.readAsText(datei);
+    },
+  });
+  document.body.append(eingabe);
+  eingabe.click();
+  setTimeout(() => eingabe.remove(), 60000);
 }
 
 function tasten(ev) {
@@ -277,7 +372,14 @@ async function start() {
     else zeichne();
   });
   document.addEventListener("keydown", tasten);
-  zeichne();
+
+  // Ohne Helden geht gar nichts — der steht am Anfang.
+  if (!held().angelegt && location.hash !== "#/held") {
+    location.hash = "#/held";
+    if (location.hash !== "#/held") zeichne();
+  } else {
+    zeichne();
+  }
 }
 
 start();

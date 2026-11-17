@@ -39,3 +39,12 @@ export function setzeEintrag(schluessel, wert) {
 
 export function auswahl() { return roh().auswahl; }
 export function setzeAuswahl(ids) { roh().auswahl = ids; sichere(); }
+
+// Für Spielstand-Dateien: den ganzen Fortschritt ausgeben und einsetzen.
+export function alleDaten() { return JSON.parse(JSON.stringify(roh())); }
+
+export function ersetzeAlles(daten) {
+  zwischen = { ...LEER, eintraege: {}, ...daten };
+  sichere();
+  return zwischen;
+}

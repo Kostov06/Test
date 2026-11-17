@@ -27,13 +27,23 @@ python3 -m http.server 8000     # dann http://localhost:8000/
 ## Prüfen
 
 ```
-node tests/run-tests.mjs
+node tests/
+  run-tests.mjs            Schema, Farbtreue, Leitner, Spiellogik
+  browser-check.mjs        Durchlauf im echten Browser (braucht Playwright)
 ```
 
 Prüft alle Stapel gegen das Schema, vergleicht die Couleur-Stapel Streifen
-für Streifen mit den geprüften Prototypen in `quellen/` und stellt sicher,
-dass `sw.js` die Kennung des aktuellen Inhalts trägt. Nach jeder Änderung an
-`decks/` oder `src/` laufen lassen.
+für Streifen mit den geprüften Prototypen in `quellen/`, prüft Leitner- und
+Spiellogik und stellt sicher, dass `sw.js` die Kennung des aktuellen Inhalts
+trägt. Nach jeder Änderung an `decks/` oder `src/` laufen lassen.
+
+Dazu ein Durchlauf im echten Browser — Seitenfassung unter einem Unterpfad,
+offline, Einzeldatei, alle Kartentypen, alle Breiten ab 320 px:
+
+```
+node tests/browser-check.mjs            # wenn playwright installiert ist
+node tests/browser-check.mjs /pfad/zu/playwright/index.js
+```
 
 ## Aufbau
 
@@ -49,7 +59,10 @@ src/
   sitzung.js               Warteschlange einer Lernsitzung
   store.js                 localStorage
   stats.js                 Statistik und „was hakt“
-  redaktion.js             Redaktionsansicht
+  held.js                  Figur, Ausrüstung, Münzen, Ränge
+  figur.js                 zeichnet den Helden als SVG
+  spiel.js                 Charaktererstellung und Kleiderkammer
+  redaktion.js             Redaktionsansicht (nur über #/redaktion)
   karten/                  ein Renderer je Kartentyp
 decks/                     die Stapel als JSON — hier wird Inhalt gepflegt
   index.json               Manifest: welche Stapel es gibt
@@ -59,15 +72,19 @@ tools/
   fassung-stempeln.mjs     schreibt die Inhaltskennung in sw.js
   icons-bauen.mjs          erzeugt die App-Symbole aus Ingvaeonias Farbband
   build-einzeldatei.mjs    baut lernapp.html
-tests/run-tests.mjs
+tests/
+  run-tests.mjs            Schema, Farbtreue, Leitner, Spiellogik
+  browser-check.mjs        Durchlauf im echten Browser (braucht Playwright)
 ```
 
 ## Einen Stapel anlegen
 
 Ohne Code anzufassen:
 
-1. In der App auf **Redaktion** gehen, **Neuer Stapel**, Karten anlegen
-   (oder über **Schnelleingabe** aus einer Handbuchseite einlesen).
+1. Die Redaktionsansicht über die Adresse `…/#/redaktion` öffnen — sie steht
+   bewusst nicht auf der Startseite, die Neuen brauchen sie nicht. Dort
+   **Neuer Stapel**, Karten anlegen (oder über **Schnelleingabe** aus einer
+   Handbuchseite einlesen).
 2. **Herunterladen** — die Datei nach `decks/` legen.
 3. Die Kennung des Stapels in `decks/index.json` eintragen.
 4. `node tools/fassung-stempeln.mjs`, dann `node tests/run-tests.mjs`,
@@ -183,6 +200,54 @@ gewollter Hinweis.
 Ein verschachteltes Array bedeutet: an dieser Stelle ist die Reihenfolge
 untereinander egal — sonst würde die App eine Ordnung als richtig lehren,
 die es nicht gibt.
+
+## Der Held
+
+Beim ersten Start legt man eine Figur an: Name, Statur, Frisur, Haarfarbe,
+Hautton. Danach steht sie oben auf der Übersicht und lässt sich dort wieder
+ändern — die Ausrüstung bleibt dabei erhalten.
+
+Gezeichnet wird sie in `src/figur.js` als SVG aus Einzelteilen: Fahne hinten,
+Beine, Schuhe, Oberteil, Halsstück, Jacke, Zipfelbund, Arme, Gegenstand in
+der Hand, Kopf, Haar. Flache Flächen, keine Verläufe — dieselbe Handschrift
+wie die Farbbänder. Alle Farben laufen durch eine Schleuse, die nur
+`#rrggbb` durchlässt: die Fahnenfarben kommen aus den Stapeln, und Stapel
+sind Dateien, die jemand von Hand schreibt.
+
+## Ingvaeonencoins
+
+Jede beantwortete Karte zahlt. Der Lohn hängt am Leitner-Fach **vor** der
+Antwort — eine Karte, die noch im ersten Fach steckt, bringt am meisten,
+weil dort wirklich etwas gelernt wird:
+
+| Fach vor der Antwort | 1 | 2 | 3 | 4 | 5 | falsch |
+|---|---|---|---|---|---|---|
+| Coins | 6 | 5 | 4 | 3 | 2 | 1 |
+
+Dazu 10 Coins für jede fünfte richtige Antwort in Folge und 25 für eine
+beendete Sitzung. Ein erster vollständiger Durchgang über alle Stapel bringt
+rund 1200 Coins; spätere Durchgänge weniger, weil die Karten dann in höheren
+Fächern stehen.
+
+**„Falsch“ zahlt auch.** Nicht viel, aber mehr als nichts — und immer
+weniger als die billigste richtige Antwort. Wer für Ehrlichkeit bestraft
+wird, klickt irgendwann auf „Gewusst“, ohne es zu wissen, und dann ist die
+Selbsteinschätzung wertlos. `tests/run-tests.mjs` prüft diese Ordnung.
+
+Der Katalog steht in `src/held.js`. Ein neuer Gegenstand braucht dort einen
+Eintrag — und in `src/figur.js` die Stelle, die ihn zeichnet.
+
+## Spielstand
+
+Fortschritt, Coins und Ausrüstung liegen im localStorage dieses Geräts, in
+zwei getrennten Schlüsseln (`ael.fortschritt.v1`, `ael.held.v1`), damit das
+eine nicht das andere beschädigt.
+
+localStorage überlebt aber kein gelöschtes Browserprofil und reist nicht aufs
+nächste Handy mit. Deshalb gibt es auf der Übersicht **Stand sichern** und
+**Stand laden**: eine JSON-Datei mit Held und Fortschritt, die man
+aufbewahren oder auf ein anderes Gerät mitnehmen kann. Beim Laden wird der
+Stand auf dem Gerät überschrieben, nach Rückfrage.
 
 ## Karte und Abfrage
 

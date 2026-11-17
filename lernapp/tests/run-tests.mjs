@@ -11,6 +11,8 @@ import { zerlege } from "../src/karten/lueckentext.js";
 import { istRichtig, gruppen } from "../src/karten/reihenfolge.js";
 import { ausSchnelleingabe } from "../src/redaktion.js";
 import { INTERVALLE, FAECHER, stand, bewerte, istFaellig, hakt } from "../src/leitner.js";
+import { GEGENSTAENDE, PLAETZE, RAENGE, rang, lohn, verbuche, kaufe, trage, held, ersetze,
+         LOHN_FALSCH, SERIE_FUER_BONUS, SERIEN_BONUS } from "../src/held.js";
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lies = (...p) => readFileSync(join(wurzel, ...p), "utf8");
@@ -232,6 +234,95 @@ pruefe("sw.js trägt die Kennung des aktuellen Inhalts", () => {
   const { status, stderr } = spawnSync(process.execPath,
     [join(wurzel, "tools", "fassung-stempeln.mjs"), "--pruefe"], { encoding: "utf8" });
   wahr(status === 0, (stderr || "").trim());
+});
+
+// ------------------------------------------------------- Held und Münzen
+pruefe("Jeder Gegenstand liegt auf einem bekannten Platz", () => {
+  const plaetze = new Set(PLAETZE.map((p) => p.id));
+  for (const g of GEGENSTAENDE) wahr(plaetze.has(g.platz), `${g.id}: Platz „${g.platz}“ gibt es nicht`);
+});
+
+pruefe("Jeder Gegenstand hat Name, Beschreibung und Preis", () => {
+  for (const g of GEGENSTAENDE) {
+    wahr(g.name && g.beschreibung, `${g.id}: Name oder Beschreibung fehlt`);
+    wahr(Number.isInteger(g.preis) && g.preis >= 0, `${g.id}: Preis ist keine ganze Zahl ab 0`);
+  }
+});
+
+pruefe("Die Kennungen der Gegenstände sind eindeutig", () => {
+  const gesehen = new Set();
+  for (const g of GEGENSTAENDE) {
+    wahr(!gesehen.has(g.id), `${g.id} kommt doppelt vor`);
+    gesehen.add(g.id);
+  }
+});
+
+pruefe("Die erbeutete Fahne ist das teuerste Stück", () => {
+  const teuerste = [...GEGENSTAENDE].sort((a, b) => b.preis - a.preis)[0];
+  gleich(teuerste.platz, "trophaee", "teuerster Platz");
+  const andere = GEGENSTAENDE.filter((g) => g.platz !== "trophaee").map((g) => g.preis);
+  wahr(teuerste.preis > Math.max(...andere), "Trophäe muss teurer sein als alles andere");
+});
+
+pruefe("Man kann am ersten Tag nichts kaufen außer der Startkleidung", () => {
+  const umsonst = GEGENSTAENDE.filter((g) => g.preis === 0).map((g) => g.id);
+  gleich(umsonst.sort(), ["chino-beige", "hemd-weiss", "socken-weiss"].sort());
+});
+
+pruefe("Der Lohn sinkt, je besser eine Karte schon sitzt", () => {
+  const loehne = [1, 2, 3, 4, 5].map(lohn);
+  wahr(loehne.every((n, i) => i === 0 || n < loehne[i - 1]), `Löhne: ${loehne.join(", ")}`);
+  wahr(Math.min(...loehne) >= 1, "nie unter einer Münze");
+});
+
+pruefe("Auch eine falsche Antwort zahlt — sonst lügt man sich selbst an", () => {
+  wahr(LOHN_FALSCH >= 1, "Falsch muss mehr als nichts bringen");
+  wahr(LOHN_FALSCH < lohn(5), "aber weniger als die billigste richtige Antwort");
+});
+
+pruefe("Münzen werden gezählt und der Serienbonus greift", () => {
+  ersetze({ angelegt: true, name: "Probe" });
+  for (let i = 0; i < SERIE_FUER_BONUS - 1; i++) verbuche(true, 1);
+  const vorBonus = held().muenzen;
+  const letzte = verbuche(true, 1);
+  gleich(letzte.bonus, SERIEN_BONUS, "Bonus bei voller Serie");
+  gleich(held().muenzen, vorBonus + lohn(1) + SERIEN_BONUS, "Kontostand");
+});
+
+pruefe("Eine falsche Antwort reißt die Serie ab", () => {
+  ersetze({ angelegt: true });
+  verbuche(true, 1); verbuche(true, 1);
+  verbuche(false, 1);
+  gleich(held().serie, 0);
+});
+
+pruefe("Kaufen zieht ab, zweimal kaufen geht nicht, zu arm auch nicht", () => {
+  ersetze({ angelegt: true, muenzen: 200 });
+  const schuhe = GEGENSTAENDE.find((g) => g.id === "bootsschuhe");
+  const kanne = GEGENSTAENDE.find((g) => g.id === "kanne");
+  wahr(kaufe(schuhe), "Bootsschuhe sollten bezahlbar sein");
+  gleich(held().muenzen, 200 - schuhe.preis, "Kontostand nach dem Kauf");
+  wahr(!kaufe(schuhe), "zweimal dasselbe Stück darf nicht gehen");
+  wahr(!kaufe(kanne), "zu teuer darf nicht gehen");
+  wahr(held().getragen.schuhe === "bootsschuhe", "Gekauftes wird gleich getragen");
+});
+
+pruefe("Pflichtplätze lassen sich wechseln, aber nicht leeren", () => {
+  ersetze({ angelegt: true, muenzen: 500 });
+  const hemd = GEGENSTAENDE.find((g) => g.id === "hemd-weiss");
+  trage(hemd);
+  gleich(held().getragen.oberteil, "hemd-weiss", "Hemd bleibt an");
+  const krawatte = GEGENSTAENDE.find((g) => g.id === "krawatte");
+  kaufe(krawatte);
+  trage(krawatte);
+  gleich(held().getragen.hals, null, "Krawatte lässt sich ablegen");
+});
+
+pruefe("Die Ränge steigen und fangen bei 0 an", () => {
+  gleich(RAENGE[0].ab, 0);
+  wahr(RAENGE.every((r, i) => i === 0 || r.ab > RAENGE[i - 1].ab), "Schwellen müssen wachsen");
+  gleich(rang(0).name, RAENGE[0].name);
+  gleich(rang(1e9).name, RAENGE[RAENGE.length - 1].name);
 });
 
 console.log(`${gelaufen - gefallen} von ${gelaufen} Prüfungen bestanden.`);
