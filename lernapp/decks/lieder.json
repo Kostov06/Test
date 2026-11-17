@@ -9,31 +9,49 @@
     {
       "id": "bundeslied-name",
       "typ": "frage",
-      "rev": 2,
+      "rev": 3,
       "frage": "Wie heißt unser Bundeslied?",
       "antworten": [
         "„Noch ist die blühende goldene Zeit“"
       ],
-      "notiz": "Auch bekannt unter der Zeile „Noch sind die Tage der Rosen“."
+      "notiz": "Auch bekannt unter der Zeile „Noch sind die Tage der Rosen“.",
+      "ablenker": [
+        "„Gaudeamus igitur“",
+        "„O alte Burschenherrlichkeit“",
+        "„Noch sind die Rosen nicht verblüht“",
+        "„Wohlauf, die Luft geht frisch und rein“"
+      ]
     },
     {
       "id": "bundeslied-melodie",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Von wem stammt die Melodie des Bundeslieds?",
       "antworten": [
         "W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist"
-      ]
+      ],
+      "ablenker": [
+        "O. Roquette (1824–1896), deutscher Schriftsteller und Professor für Literaturgeschichte",
+        "W. Baumgartner (1864–1912), deutscher Kapellmeister",
+        "F. Silcher (1789–1860), württembergischer Musikdirektor"
+      ],
+      "gruppe": "bundeslied"
     },
     {
       "id": "bundeslied-text",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Von wem stammt der Text des Bundeslieds?",
       "antworten": [
         "O. Roquette (1824–1896), deutscher Schriftsteller hugenottischer Abstammung und Professor für Literaturgeschichte"
       ],
-      "notiz": "Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia."
+      "notiz": "Mitglied der Fürstenthal-Burschenschaft Halle und der alten Heidelberger Burschenschaft Teutonia.",
+      "ablenker": [
+        "W. Baumgartner (1820–1867), Schweizer Chordirigent, Komponist und Pianist",
+        "O. Roquette (1824–1896), Schweizer Chordirigent und Pianist",
+        "J. V. von Scheffel (1826–1886), deutscher Dichter"
+      ],
+      "gruppe": "bundeslied"
     },
     {
       "id": "bundeslied-str2",
@@ -50,28 +68,9 @@
       "text": "Ja im {{Herzen}} tief innen ist alles daheim,\nder {{Freude}} Saaten, der {{Schmerzen}} Keim.\nNoch ist die blühende goldene Zeit:\no du schöne Welt, wie bist du so {{weit}}!\nDrum {{frisch}} sei das Herz\nund {{lebendig}} der Sinn,\ndann brauset, ihr {{Stürme}}, daher und dahin!\nWir aber sind allzeit zu {{singen}} bereit:\nNoch ist die blühende, goldene Zeit,\nnoch sind |:die {{Tage der Rosen}}!:|"
     },
     {
-      "id": "adk",
-      "typ": "frage",
-      "rev": 1,
-      "frage": "Was ist das ADK, und seit wann gibt es es?",
-      "antworten": [
-        "Das „Allgemeine Deutsche Kommersbuch“, seit 1858. Viele besitzen es."
-      ]
-    },
-    {
-      "id": "sv-liederbuch",
-      "typ": "frage",
-      "rev": 1,
-      "frage": "Wie kam es zum SV-Liederbuch?",
-      "antworten": [
-        "Es wurde zu Beginn der 2000er Jahre unter Leitung von Vbr. Hans Dieter Fleischmann ausgearbeitet. Heute gilt die 2. Auflage von 2010."
-      ],
-      "notiz": "Anlass waren die politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und die daraus folgende Auswahl der Lieder. Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung."
-    },
-    {
       "id": "liederbuch-struktur",
       "typ": "reihenfolge",
-      "rev": 1,
+      "rev": 2,
       "frage": "Wie ist das SV-Liederbuch gegliedert? Bringe die Teile in die richtige Reihenfolge.",
       "elemente": [
         "A — Verbandslieder, Nationalhymne, Bundeslieder",
@@ -79,6 +78,90 @@
         "C — Lieder zu Inoffizium, Fidulität und Bierdorf",
         "D — Liedsätze und Kanons aus fünf Jahrhunderten"
       ]
+    },
+    {
+      "id": "adk-wofuer",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "liederbuch",
+      "frage": "Wofür steht die Abkürzung ADK?",
+      "antworten": [
+        "Allgemeines Deutsches Kommersbuch"
+      ],
+      "ablenker": [
+        "Allgemeine Deutsche Kommersordnung",
+        "Akademisches Deutsches Kommersbuch",
+        "Allgemeines Deutsches Kneipbuch",
+        "Altes Deutsches Kommersbuch"
+      ],
+      "notiz": "Viele besitzen es."
+    },
+    {
+      "id": "adk-seit",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "liedjahr",
+      "prompt": "Seit wann?",
+      "frage": "Seit wann gibt es das Allgemeine Deutsche Kommersbuch?",
+      "antworten": [
+        "1858"
+      ],
+      "ablenker": [
+        "1848",
+        "1868",
+        "1885",
+        "1815"
+      ]
+    },
+    {
+      "id": "sv-liederbuch-leitung",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "liederbuch",
+      "frage": "Unter wessen Leitung wurde das SV-Liederbuch ausgearbeitet?",
+      "antworten": [
+        "Vbr. Hans Dieter Fleischmann"
+      ],
+      "ablenker": [
+        "Vbr. Hans Dieter Fleischhauer",
+        "Vbr. Hans Dietrich Fleischmann",
+        "Vbr. Dieter Hans Fleischmann",
+        "AH Rasch"
+      ],
+      "notiz": "Zu Beginn der 2000er Jahre. Heute gilt die 2. Auflage von 2010."
+    },
+    {
+      "id": "sv-liederbuch-auflage",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "liedjahr",
+      "prompt": "Welches Jahr?",
+      "frage": "Aus welchem Jahr stammt die heute gültige 2. Auflage des SV-Liederbuchs?",
+      "antworten": [
+        "2010"
+      ],
+      "ablenker": [
+        "2000",
+        "2005",
+        "2012",
+        "1998"
+      ]
+    },
+    {
+      "id": "sv-liederbuch-warum",
+      "typ": "frage",
+      "rev": 2,
+      "gruppe": "liederbuch",
+      "frage": "Warum wurde ein eigenes SV-Liederbuch ausgearbeitet?",
+      "antworten": [
+        "Wegen der politisch-gesellschaftlichen Veränderungen seit Mitte des 20. Jahrhunderts und der daraus folgenden Auswahl der Lieder"
+      ],
+      "ablenker": [
+        "Weil das Allgemeine Deutsche Kommersbuch vergriffen war",
+        "Weil der VASV ein eigenes Liederbuch verlangte",
+        "Weil die Noten des ADK urheberrechtlich geschützt sind"
+      ],
+      "notiz": "Einige alte Lieder sind im Bestand geblieben — als Gedenken an vergangene Zeiten, nicht als Bekenntnis unserer Gesinnung."
     }
   ]
 }

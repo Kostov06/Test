@@ -51,6 +51,18 @@ for (const id of manifest.stapel) {
     wahr(fehler.length === 0, fehler.join("\n       "));
   });
   pruefe(`${id}: id im Kopf gleich Dateiname`, () => gleich(stapel.id, id, "Kopf-id"));
+  // Ein Ablenker, der die richtige Antwort wiederholt, macht zwei Knöpfe
+  // richtig — und die Auswahl hätte keine eindeutige Lösung mehr.
+  pruefe(`${id}: kein Ablenker wiederholt seine eigene Antwort`, () => {
+    for (const k of stapel.karten) {
+      for (const a of k.ablenker || []) {
+        wahr(a.trim() !== String(k.antwort || "").trim(),
+          `${k.id}: Ablenker gleicht der Antwort`);
+        wahr((k.ablenker || []).filter((x) => x.trim() === a.trim()).length === 1,
+          `${k.id}: Ablenker „${a}“ steht doppelt`);
+      }
+    }
+  });
 }
 
 // ------------------------------------------------- Farbtreue zur Vorlage

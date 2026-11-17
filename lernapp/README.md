@@ -122,8 +122,8 @@ bringen die Listen ihrer Prototypen wörtlich mit und werden dadurch
 pixelgleich gezeichnet. Fehlt die Liste, entscheidet die Helligkeit der Farbe.
 
 Jede Karte hat `id`, `typ`, `rev` und optional `notiz`, `prompt` (eine
-Zusatzzeile unter der Frage) und `gruppe` (woraus die Ablenker kommen
-dürfen).
+Zusatzzeile unter der Frage), `gruppe` (woraus die Ablenker kommen dürfen)
+und `ablenker` (eine Liste eigener falscher Möglichkeiten).
 
 * **`id`** ist dauerhaft. Der Fortschritt aller Lernenden hängt daran —
   eine geänderte Kennung setzt die Karte für alle auf null.
@@ -345,9 +345,14 @@ Leitner-Verfahren auf der Bewertung steht.
 20 000 Durchläufe nach und lässt nur durch, was den Chi-Quadrat-Test auf
 dem 0,1-%-Niveau besteht.
 
-Ablenker kommen aus demselben Stapel und bevorzugt aus derselben `gruppe`:
-bei „Wann war das?“ stehen vier Jahreszahlen aus dem Dokument zur Wahl,
-kein Fließtext. Ist eine Antwort länger als 90 Zeichen, gibt es drei statt
+Ablenker stehen zuerst in der Karte selbst (`ablenker`), danach kommen sie
+aus derselben `gruppe` und erst zuletzt aus dem ganzen Stapel. Handgeschrieben
+sind sie am besten: beim SV-Wahlspruch stehen die Wahlsprüche anderer Verbände
+zur Wahl, bei der Nadel die Seite, auf der sie gerade nicht sitzt. Ohne das
+antworten die Ablenker auf andere Fragen und lassen sich allein am Gegenstand
+aussortieren — die Frage wäre zu leicht. Enthält die Antwort eine Jahreszahl,
+werden nahe Jahre bevorzugt: bei „Wann war das?“ stehen vier Jahreszahlen zur
+Wahl, kein Fließtext. Ist eine Antwort länger als 90 Zeichen, gibt es drei statt
 vier Möglichkeiten — sonst wird es auf dem Handy eine Textwand.
 
 Beim Eintippen wird großzügig verglichen: Groß- und Kleinschreibung,

@@ -34,10 +34,15 @@
     {
       "id": "eroeffnungssatz",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Mit welchem Satz eröffnet der oder die Präsid*in die Kneipe?",
       "antworten": [
         "„Das Kommando dieser Veranstaltung liegt bei mir und nur bei mir.“"
+      ],
+      "ablenker": [
+        "„Das Kommando dieser Veranstaltung liegt bei mir und beim Contrarium.“",
+        "„Die Kneipe ist eröffnet, das Kommando liegt beim Präsidium.“",
+        "„Hiermit eröffne ich die Kneipe im Namen des Bundes.“"
       ]
     },
     {
@@ -61,12 +66,17 @@
     {
       "id": "sehr-verehrlich",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Welche Bünde werden bei der Begrüßung mit „sehr verehrlich“ angesprochen?",
       "antworten": [
         "Die Gründungsbünde und die Bünde, die das Präsidium stellen. Alle anderen werden mit „verehrlich“ angesprochen."
       ],
-      "notiz": "Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt."
+      "notiz": "Im SV also München und Berlin (immer) sowie der Bund, der den SVx stellt.",
+      "ablenker": [
+        "Alle anwesenden Bünde. „Verehrlich“ bleibt den Gastgebern vorbehalten.",
+        "Nur die Bünde, die das Präsidium stellen. Die Gründungsbünde werden mit „verehrlich“ angesprochen.",
+        "Die Gründungsbünde und die Bünde mit eigenem Haus."
+      ]
     },
     {
       "id": "begruessung-ablauf",
@@ -109,10 +119,15 @@
     {
       "id": "spiele-sv",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Auf wessen Kneipen gibt es Spiele, und wie sehen sie aus?",
       "antworten": [
         "Nur auf Kneipen des Sondershäuser Verbands. Das Präsidium überlegt sie sich für die Kneipe, gerne kurz gehalten, häufig ein Abdecken der Musen: Schreiben, Malen, Theater, Singen."
+      ],
+      "ablenker": [
+        "Auf Kneipen aller Dachverbände. Das Contrarium überlegt sie sich.",
+        "Nur auf Kneipen des eigenen Bundes, und nur im Offiz.",
+        "Nur auf Kommersen des Sondershäuser Verbands."
       ]
     },
     {
@@ -147,56 +162,86 @@
     {
       "id": "sv-nadel",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Wo wird die SV-Nadel getragen?",
       "antworten": [
         "Rechts, zum Herzen zeigend — bei den Herren am rechten Revers"
+      ],
+      "ablenker": [
+        "Links, zum Herzen zeigend — bei den Herren am linken Revers",
+        "Rechts, vom Herzen weg zeigend",
+        "Mittig am Kragen, nach oben zeigend"
       ]
     },
     {
       "id": "rollen-kneipe",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "In welche Rollen sind die Kneipant*innen unterteilt?",
       "antworten": [
         "Präsidium, Chargen, Zapfen, Contrarium, Biermusikus bzw. Bierorgel, Bierversorgung und Corona"
+      ],
+      "ablenker": [
+        "Präsidium, Chargen, Zapfen, Contrarium, Fuxmajor, Bierversorgung und Corona",
+        "Präsidium, Chargen, Zapfen, Biermusikus, Kantus und Corona",
+        "Präsidium, Contrarium, Zapfen, Bierorgel und Philisterium"
       ]
     },
     {
       "id": "zipfel-wann",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Wann werden Zipfel getauscht?",
       "antworten": [
         "Das erste Mal üblicherweise im Offiz einer Kneipe oder eines Kommerses. Freundschaftszipfel hingegen, wenn überhaupt, im Inoffiz."
+      ],
+      "ablenker": [
+        "Das erste Mal im Inoffiz; Freundschaftszipfel hingegen im Offiz.",
+        "Ausschließlich im Bierdorf, nach Beendigung der Kneipe.",
+        "Das erste Mal bei der Aufnahme als endgültiges Mitglied."
       ]
     },
     {
       "id": "zipfel-farben",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Wessen Farben tragen getauschte Zipfel?",
       "antworten": [
         "Immer die Farben des oder der Schenkenden"
+      ],
+      "ablenker": [
+        "Immer die Farben des oder der Beschenkten",
+        "Immer die Farben des Bundes, auf dessen Kneipe getauscht wird",
+        "Immer die Farben des SV"
       ]
     },
     {
       "id": "braeuche-bummeln",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Welche drei Bräuche beim Bummeln nennt der Ältestenratsabend?",
       "antworten": [
         "Die (An- und Ab-)Stafette, der Bierjunge (BJ) und der Generalbierjunge (GBJ)"
       ],
-      "notiz": "Scherzhaft auch Tierlunge und Generaltierlunge."
+      "notiz": "Scherzhaft auch Tierlunge und Generaltierlunge.",
+      "ablenker": [
+        "Die Stafette, der Bierjunge und der Salamander",
+        "Der Bierjunge, der Generalbierjunge und der Fuxenulk",
+        "Die Stafette, das Couleurbier und der Zipfeltausch"
+      ]
     },
     {
       "id": "couleurbummel-sitte",
       "typ": "frage",
-      "rev": 1,
+      "rev": 2,
       "frage": "Was erhält ein Korporierter, der auf dem Couleurbummel um Einlass bittet?",
       "antworten": [
         "Nach guter Sitte ein kostenloses Couleurbier"
+      ],
+      "ablenker": [
+        "Nach guter Sitte ein kostenloses Abendessen",
+        "Nach guter Sitte einen Platz im Offiz",
+        "Nach guter Sitte ein Gastgeschenk des Hauses"
       ]
     },
     {

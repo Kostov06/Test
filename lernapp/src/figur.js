@@ -32,6 +32,9 @@ const p = (d, fuellung, extra = "") =>
 const MITTE = 130;
 const KOPF_Y = 66, KOPF_RX = 31, KOPF_RY = 35;
 const HALS_UNTEN = 110, SCHULTER_Y = 116, TAILLE_Y = 208, HUEFTE_Y = 236, FUSS_Y = 376;
+// Oberkante von Hosenbund und Gürtel. Das Hemd steckt dahinter, die
+// Krawattenspitze endet hier — so lang gehört sie, nicht länger.
+const BUND_Y = HUEFTE_Y - 18;
 
 const MASSE = {
   schlank: { schulter: 72, taille: 58, huefte: 64, arm: 16, bein: 25 },
@@ -67,7 +70,7 @@ function beinSpannen(m) {
 
 function beine(m, hose, kleid, haut) {
   const f = kleid ? farbe(haut, "#f2d3b8") : farbe(hose && hose.farbe, "#d8c9a7");
-  const oben = kleid ? HUEFTE_Y + 50 : HUEFTE_Y - 16;
+  const oben = kleid ? HUEFTE_Y + 50 : BUND_Y + 4;
   const unten = FUSS_Y - 16;
   const strich = `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`;
   return beinSpannen(m).map(({ aussen, innen, zeichen }) => {
@@ -117,14 +120,15 @@ function schuhe(m, schuh) {
 }
 
 // Rumpfumriss — davon leben Hemd, Kleid und Jacke
-function rumpfPfad(m, bis) {
+function rumpfPfad(m, bis, saumBreite) {
   const s = m.schulter / 2, t = m.taille / 2;
+  const e = saumBreite === undefined ? t + 3 : saumBreite;
   return `M${MITTE - s} ${SCHULTER_Y + 10}
     Q${MITTE - s - 1} ${SCHULTER_Y - 4}, ${MITTE - s + 13} ${SCHULTER_Y - 7}
     L${MITTE + s - 13} ${SCHULTER_Y - 7}
     Q${MITTE + s + 1} ${SCHULTER_Y - 4}, ${MITTE + s} ${SCHULTER_Y + 10}
-    L${MITTE + t} ${TAILLE_Y} L${MITTE + t + 3} ${bis}
-    L${MITTE - t - 3} ${bis} L${MITTE - t} ${TAILLE_Y} Z`;
+    L${MITTE + t} ${TAILLE_Y} L${MITTE + e} ${bis}
+    L${MITTE - e} ${bis} L${MITTE - t} ${TAILLE_Y} Z`;
 }
 
 function torso(m, oberteil, haut) {
@@ -144,13 +148,43 @@ function torso(m, oberteil, haut) {
       + p(`M${MITTE - t - 1} ${TAILLE_Y - 2} L${MITTE + t + 1} ${TAILLE_Y - 2}`, null,
           `stroke="${dunkler(f, .72)}" stroke-width="${Sd}"`);
   }
-  // Hemd: Rumpf, Knopfleiste, Knöpfe
-  return p(rumpfPfad(m, HUEFTE_Y + 8), f, strich)
-    + p(`M${MITTE} ${SCHULTER_Y - 2} V${HUEFTE_Y + 4}`, null,
+  // Hemd: Rumpf, Knopfleiste, Knöpfe. Der Saum endet schmal und tief —
+  // der Hosenbund deckt ihn zu, dadurch steckt das Hemd in der Hose.
+  const saum = BUND_Y + 12;
+  return p(rumpfPfad(m, saum, m.huefte / 2 - 4), f, strich)
+    + p(`M${MITTE} ${SCHULTER_Y - 2} V${BUND_Y + 2}`, null,
         `stroke="${dunkler(f, .86)}" stroke-width="${Sd + 1}"`)
-    + [0.32, 0.52, 0.72].map((anteil) =>
-        `<circle cx="${MITTE}" cy="${SCHULTER_Y + (HUEFTE_Y - SCHULTER_Y) * anteil}" r="2.6"
+    + [0.3, 0.52, 0.74].map((anteil) =>
+        `<circle cx="${MITTE}" cy="${SCHULTER_Y + (BUND_Y - SCHULTER_Y) * anteil}" r="2.6"
                  fill="none" stroke="${dunkler(f, .62)}" stroke-width="${Sd}"/>`).join("");
+}
+
+// Hosenbund samt Gürtel: liegt über dem Hemdsaum, deshalb erst nach dem Torso.
+function hosenbund(m, hose, kleid) {
+  if (kleid) return "";
+  const f = farbe(hose && hose.farbe, "#d8c9a7");
+  const strich = `stroke="${L}" stroke-width="${S}" stroke-linejoin="round"`;
+  const b = m.huefte / 2;
+  const bund = p(`M${MITTE - b} ${BUND_Y} L${MITTE + b} ${BUND_Y}
+      L${MITTE + b} ${BUND_Y + 17} L${MITTE - b} ${BUND_Y + 17} Z`, f, strich)
+    + [-1, 1].map((z) =>
+        p(`M${MITTE + z * (b - 9)} ${BUND_Y + 1} V${BUND_Y + 16}`, null,
+          `stroke="${dunkler(f, .82)}" stroke-width="${Sd}"`)).join("");
+
+  // Gürtel: Rindleder, Messingschließe, Lochreihe
+  const leder = "#5b3a24", messing = "#d8ae4f";
+  const gy = BUND_Y + 3, gh = 10;
+  const guertel = `<rect x="${MITTE - b}" y="${gy}" width="${b * 2}" height="${gh}"
+        fill="${leder}" ${strich}/>`
+    + p(`M${MITTE - b} ${gy + 2.5} L${MITTE + b} ${gy + 2.5}`, null,
+        `stroke="rgba(255,255,255,.14)" stroke-width="2"`)
+    + [7, 13, 19].map((d) =>
+        `<circle cx="${MITTE + b - d}" cy="${gy + gh / 2}" r="1.1" fill="${dunkler(leder, .5)}"/>`).join("")
+    + `<rect x="${MITTE - 12}" y="${gy - 2}" width="24" height="${gh + 4}" rx="3"
+        fill="${messing}" ${strich}/>`
+    + `<rect x="${MITTE - 4}" y="${gy + 0.5}" width="8" height="${gh - 1}" rx="1.5"
+        fill="${leder}" stroke="${L}" stroke-width="${Sd}"/>`;
+  return bund + guertel;
 }
 
 function kragen(m, oberteil) {
@@ -174,13 +208,14 @@ function halsstueck(hals) {
       + `<rect x="${MITTE - 5}" y="${o - 3}" width="10" height="8" rx="3" fill="${dunkler(f, .7)}" ${strich}/>`;
   }
   const f = farbe(hals.farbe, "#243352");
-  const spitze = o + 74;
+  const spitze = BUND_Y + 5;   // ideale Länge: die Spitze trifft die Schließe
   const krawatte = p(`M${MITTE - 8} ${o - 6} L${MITTE + 8} ${o - 6} L${MITTE + 5} ${o + 6}
       L${MITTE + 10} ${spitze - 12} L${MITTE} ${spitze} L${MITTE - 10} ${spitze - 12}
       L${MITTE - 5} ${o + 6} Z`, f, strich);
+  const bis = spitze - 18, von = o + 22;
   const streifen = hals.art === "krawatte-gestreift"
-    ? [0, 1, 2].map((i) => {
-        const yy = o + 20 + i * 17;
+    ? Array.from({ length: Math.max(1, Math.floor((bis - von) / 17) + 1) }, (_, i) => {
+        const yy = von + i * 17;
         return p(`M${MITTE - 7.5} ${yy} L${MITTE + 8.5} ${yy - 7}`, null,
           `stroke="${farbe(hals.zweitfarbe, "#2f5d3a")}" stroke-width="6" stroke-linecap="round"`);
       }).join("")
@@ -268,7 +303,7 @@ function jacke(m, j) {
 function zipfelbund(g, m) {
   if (!g) return "";
   const [rot, gold, schwarz] = BUNDESFARBEN;
-  const y = TAILLE_Y + 2, x = MITTE + m.taille / 2 - 10;
+  const y = BUND_Y + 1, x = MITTE + m.taille / 2 - 10;
   const strich = `stroke="${L}" stroke-width="${Sd}" stroke-linejoin="round"`;
   const band = (bx, bw, bh) => `
     <rect x="${bx}" y="${y + 6}" width="${bw}" height="${bh}" rx="2" fill="${rot}" ${strich}/>
@@ -387,6 +422,7 @@ export function figurSvg(h, beuteFarben, klasse = "figur") {
     ${beine(m, g("hose"), kleid, h.haut)}
     ${schuhe(m, g("schuhe"))}
     ${torso(m, oberteil, h.haut)}
+    ${hosenbund(m, g("hose"), kleid)}
     ${halsstueck(g("hals"))}
     ${kragen(m, oberteil)}
     ${jacke(m, j)}
