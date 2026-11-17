@@ -65,7 +65,7 @@ async function durchlauf(name, url, breite) {
     for (let j = 0; j < anzahl; j++) if ((await k.nth(j).isChecked()) !== (j === n)) await k.nth(j).click();
     await s.locator("button.solid").first().click();
     await s.waitForTimeout(200);
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 7; i++) {
       if (await s.locator(".band").count()) gesehen.add("couleur");
       if (await s.locator(".lueckentext").count()) gesehen.add("lueckentext");
       const reihe = await s.locator(".reihe button").count();
@@ -96,6 +96,30 @@ async function durchlauf(name, url, breite) {
   await s.waitForTimeout(350);
   sag(await s.locator(".laden li").count() >= 10, "Kleiderkammer zeigt die Waren");
   sag(await s.locator(".schaufenster .figur").count() === 1, "Figur steht im Schaufenster");
+
+  // Fahne aussuchen statt zugelost bekommen
+  await s.evaluate(() => {
+    const hd = JSON.parse(localStorage.getItem("ael.held.v1"));
+    hd.muenzen = 99999; localStorage.setItem("ael.held.v1", JSON.stringify(hd));
+  });
+  await s.goto(url, { waitUntil: "domcontentloaded" });
+  await s.waitForTimeout(300);
+  await s.locator('button:has-text("Kleiderkammer")').first().click();
+  await s.waitForTimeout(350);
+  await s.locator('.laden li:has-text("Prunkfahne (SV)") button:has-text("Aussuchen")').first().click();
+  await s.waitForTimeout(350);
+  const kandidaten = await s.locator(".fahnenliste li").count();
+  sag(kandidaten >= 15, `Fahnenwahl bietet ${kandidaten} Bünde an`);
+  sag(await s.locator(".fahnenliste .miniband").count() === kandidaten, "jeder mit seinen Farben");
+  const gewaehlt = (await s.locator(".fahnenliste .fahnenname").nth(3).textContent()).trim();
+  await s.locator(".fahnenwahlknopf").nth(3).click();
+  await s.waitForTimeout(350);
+  const beute = await s.evaluate(() => JSON.parse(localStorage.getItem("ael.held.v1")).beute);
+  sag(beute["fahne-sv"] === gewaehlt, `erbeutet wurde genau der gewählte Bund (${gewaehlt})`);
+
+  // Auswahl bei Krawatte und Anzug
+  sag(await s.locator('.laden li:has-text("Krawatte")').count() >= 3, "mehrere Krawatten zur Wahl");
+  sag(await s.locator('.laden li:has-text("Anzug,")').count() >= 3, "mehrere Anzüge zur Wahl");
 
   // Nirgends seitlich über den Rand
   const breit = await s.evaluate(() =>

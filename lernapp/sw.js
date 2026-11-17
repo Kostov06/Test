@@ -1,6 +1,6 @@
 // Offline auf dem Haus: App-Gerüst und Stapel liegen im Cache.
 // Bei jeder Änderung an Code oder Stapeln FASSUNG hochzählen.
-const FASSUNG = "aeltestenrat-23678ad44c75";
+const FASSUNG = "aeltestenrat-92b25f5c3c3d";
 const GERUEST = [
   "./", "./index.html", "./manifest.webmanifest", "./assets/styles.css",
   "./assets/icon-180.png", "./assets/icon-192.png", "./assets/icon-512.png",

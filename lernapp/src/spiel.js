@@ -1,6 +1,8 @@
 // Charaktererstellung und Kleiderkammer.
 import { h, leere } from "./dom.js";
 import { figurSvg } from "./figur.js";
+import { band } from "./karten/couleur.js";
+import { hellPruefer } from "./decks.js";
 import {
   held, aendere, ersetze, GEGENSTAENDE, PLAETZE, HAARE, HAARFARBEN, HAUTTOENE, FIGUREN,
   nachId, kaufe, trage, besitzt, traegt, rang, naechsterRang, platzIstPflicht,
@@ -31,14 +33,17 @@ export function beuteFarben(alleStapel) {
   return karte ? karte.band.streifen.map((s) => s.farbe) : null;
 }
 
-function zufallsBeute(alleStapel, g) {
+// Bei welchen Bünden kann man die Fahne holen? Bei allen aus dem Stapel —
+// außer beim eigenen. Die Farben stehen daneben, man sieht also, was man
+// mitnimmt.
+function beuteKandidaten(alleStapel, g) {
   const stapel = alleStapel.find((s) => s.id === g.quelle);
-  if (!stapel) return null;
-  const fremde = stapel.karten
-    .flatMap((k) => k.antworten.map((a) => a.name))
-    .filter((n) => !/Ingvaeonia/i.test(n));
-  if (!fremde.length) return null;
-  return fremde[Math.floor(Math.random() * fremde.length)];
+  if (!stapel) return [];
+  return stapel.karten.flatMap((k) =>
+    k.antworten
+      .filter((a) => !/Ingvaeonia/i.test(a.name))
+      .map((a) => ({ name: a.name, meta: [a.ort, a.jahr, a.verband].filter(Boolean).join(" · "),
+                     karte: k, stapel })));
 }
 
 // --------------------------------------------------- Charaktererstellung
@@ -116,8 +121,44 @@ export function heldAnlegen(fertig) {
 // ------------------------------------------------------- Kleiderkammer
 export function kleiderkammer(alleStapel, zurueck) {
   const wurzel = h("div", {});
+  let fahnenwahl = null;      // der Trophäen-Gegenstand, für den gerade gewählt wird
+
+  // ------------------------------------------------- Welche Fahne denn?
+  function zeichneFahnenwahl() {
+    const g = fahnenwahl;
+    const kandidaten = beuteKandidaten(alleStapel, g);
+    leere(wurzel);
+    wurzel.append(
+      h("div", { class: "kopf" },
+        h("h1", { text: "Bei wem denn?" }),
+        h("button", { class: "zurueck", onclick: () => { fahnenwahl = null; zeichne(); } }, "Zurück")),
+      h("p", { class: "sub", text: `${g.name} — such dir den Bund aus, dem sie abhandenkommt.` }),
+      h("ul", { class: "fahnenliste" }, kandidaten.map((k) => {
+        const istHell = hellPruefer(k.stapel);
+        const knopf = h("button", {
+          class: "fahnenwahlknopf",
+          onclick: () => {
+            if (kaufe(g, k.name)) {
+              fahnenwahl = null;
+              zeichne();
+            }
+          },
+        });
+        knopf.append(
+          h("span", { class: "fahnenband" }, band(k.karte, istHell, "miniband hoch")),
+          h("span", { class: "fahnentext" },
+            h("span", { class: "fahnenname", text: k.name }),
+            k.meta ? h("span", { class: "meta", text: k.meta }) : null));
+        return h("li", {}, knopf);
+      })),
+      h("p", { class: "hinweis",
+        text: "Die Fahne weht danach in den Farben dieses Bundes neben dir. "
+          + "Wer fragt: sie kommt nach dem Stiftungsfest zurück." }),
+    );
+  }
 
   function zeichne() {
+    if (fahnenwahl) return zeichneFahnenwahl();
     const hd = held();
     const r = rang(hd.verdient);
     const naechster = naechsterRang(hd.verdient);
@@ -167,13 +208,10 @@ export function kleiderkammer(alleStapel, zurueck) {
       knopf = h("button", {
         class: "solid",
         onclick: () => {
-          const name = g.quelle ? zufallsBeute(alleStapel, g) : null;
-          if (kaufe(g, name)) {
-            zeichne();
-            if (name) alert(`Erbeutet: die Prunkfahne der ${name}.\n\nSie steht jetzt neben dir.`);
-          }
+          if (g.quelle) { fahnenwahl = g; zeichne(); return; }
+          if (kaufe(g)) zeichne();
         },
-      }, `Kaufen · ${g.preis}`);
+      }, g.quelle ? `Aussuchen · ${g.preis}` : `Kaufen · ${g.preis}`);
     } else if (an && platzIstPflicht(g.platz)) {
       knopf = h("button", { class: "ghost", disabled: true }, "An");
     } else {

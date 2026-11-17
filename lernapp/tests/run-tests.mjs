@@ -312,10 +312,29 @@ pruefe("Pflichtplätze lassen sich wechseln, aber nicht leeren", () => {
   const hemd = GEGENSTAENDE.find((g) => g.id === "hemd-weiss");
   trage(hemd);
   gleich(held().getragen.oberteil, "hemd-weiss", "Hemd bleibt an");
-  const krawatte = GEGENSTAENDE.find((g) => g.id === "krawatte");
+  const krawatte = GEGENSTAENDE.find((g) => g.art === "krawatte");
   kaufe(krawatte);
   trage(krawatte);
   gleich(held().getragen.hals, null, "Krawatte lässt sich ablegen");
+});
+
+pruefe("Bei Krawatte, Anzug und Kleid gibt es etwas zu wählen", () => {
+  for (const art of ["krawatte", "anzug", "kleid"]) {
+    const n = GEGENSTAENDE.filter((g) => g.art === art).length;
+    wahr(n >= 3, `nur ${n} Stück der Art „${art}“ — da ist nichts auszusuchen`);
+  }
+});
+
+pruefe("Die Bundesfarben hängen am Zipfelbund, nicht an der Krawatte", () => {
+  const zipfel = GEGENSTAENDE.find((g) => g.art === "zipfelbund");
+  wahr(/Bundesfarben/.test(zipfel.name), "Zipfelbund führt die Farben");
+  for (const k of GEGENSTAENDE.filter((g) => g.art === "krawatte")) {
+    wahr(!/Bundesfarben/.test(k.name), `${k.id} sollte keine Bundesfarben tragen`);
+  }
+});
+
+pruefe("Jedes Stück sagt, wie es gezeichnet wird", () => {
+  for (const g of GEGENSTAENDE) wahr(g.art, `${g.id}: art fehlt`);
 });
 
 pruefe("Die Ränge steigen und fangen bei 0 an", () => {
